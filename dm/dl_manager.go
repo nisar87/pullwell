@@ -317,7 +317,7 @@ func (m *dlManager) load() {
 		e := &dlEntry{dlItem: it}
 		switch it.State {
 		case "downloading":
-			e.State = "queued" // it was running when NetMerge closed: carry on
+			e.State = "queued" // it was running when the program closed: carry on
 		case "queued", "paused", "done", "error":
 		default:
 			e.State = "error"
@@ -787,7 +787,7 @@ func (m *dlManager) finishRun(e *dlEntry, t dlRunner, err error) {
 	case e.wantHold && !m.quit:
 		e.State, e.Note = "queued", m.holdTextForLocked(m.hold)
 	case m.quit || errors.Is(err, context.Canceled):
-		e.State = "queued" // NetMerge is closing: carry on at the next start
+		e.State = "queued" // the program is closing: carry on at the next start
 	default:
 		msg, retry := dlFriendly(err)
 		e.Err, e.Detail, e.Note = msg, dlFmtErr(err), ""

@@ -429,6 +429,7 @@ func dlParseImport(text string) ([]dlExportItem, []dlQueue, error) {
 	}
 	if strings.HasPrefix(text, "{") {
 		var f dlExportFile
+		// also "netmerge-downloads": lists saved by NetMerge, so a list can be moved over from there
 		if err := json.Unmarshal([]byte(text), &f); err != nil || (f.App != strings.ToLower(hName())+"-downloads" && f.App != "netmerge-downloads") {
 			return nil, nil, errors.New("that is not a download list")
 		}

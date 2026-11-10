@@ -7,7 +7,7 @@ Legend: ✅ done and verified on Windows · 🟡 done, verified on Linux only ·
 
 ## Where we start
 
-The download engine (from NetMerge, in daily use there), the compact window, its own WebView2 window
+The download engine, the compact window, its own WebView2 window
 (✅ "window: ready" on the owner's PC, 2026-11-10 09:17), tray, single instance, browser extension, Start with
 Windows, grouped notifications and self-update (🟡) exist. Tests: 150 engine tests, ~40 program tests, 22 automated
 window checks, 8 extension tests, all green.

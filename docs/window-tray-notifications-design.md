@@ -1,6 +1,9 @@
 # Pullwell: window, tray and notifications (design)
 
-Status: **design for review, no code written yet.** Written 2026-11-10 against NetMerge `main` at commit
+Status: **historical design record** (Pullwell has since been built from it and is a standalone program; the
+NetMerge references below describe where the code came from at the time).
+
+Original status: **design for review, no code written yet.** Written 2026-11-10 against NetMerge `main` at commit
 `0bfab33` (3.11.20) and `docs/convoy-handover.md` from that commit. Target: Windows 10 and 11, 64-bit (x64).
 
 Legend: **[PC]** = needs a real Windows PC to test. **[here]** = can be checked in the cloud workspace (Linux, Go

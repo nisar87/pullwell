@@ -2,7 +2,7 @@
 
 package main
 
-// Windows functions the engine needs. Ported from NetMerge's sys_windows.go (tested on real PCs), without PowerShell.
+// Windows functions the engine needs, without PowerShell.
 
 import (
 	"context"
@@ -192,7 +192,7 @@ func revealInShell(path string) error {
 	if int32(hr) < 0 {
 		return fmt.Errorf("the shell could not show %s (0x%x)", path, uint32(hr))
 	}
-	// Explorer opens behind the window we were clicked in; bring it up (NetMerge 3.11.13-3.11.16, handover 7.4).
+	// Explorer opens behind the window we were clicked in; bring it up.
 	go raiseExplorer(filepath.Base(filepath.Dir(path)))
 	return nil
 }

@@ -32,7 +32,7 @@ func ftpCreds(hdr map[string]string) (user, pass string) {
 			}
 		}
 	}
-	return "anonymous", "netmerge@"
+	return "anonymous", strings.ToLower(hName()) + "@"
 }
 
 // ftpPath: ftp://host/pub/a.zip means pub/a.zip from the login folder; ftp://host//pub/a.zip is absolute.

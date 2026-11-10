@@ -7,7 +7,7 @@ const PORTS = {{PORTS}};
 const APP_ID = '{{SCHEME}}';
 
 // base finds the program: the port that worked last time, else the first port whose /ext/ping answers as this app
-// (another program on the same port, NetMerge for example, is not mistaken for it).
+// (another program on the same port is not mistaken for it).
 async function base(force) {
   const s = await api.storage.local.get(['port']);
   if (s.port && !force) return 'http://127.0.0.1:' + s.port;

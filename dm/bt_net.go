@@ -1,7 +1,7 @@
 package dm
 
 // BitTorrent: finding peers through trackers (HTTP and UDP) and the DHT. Every request goes out through one of
-// NetMerge's lines, so tracker and DHT traffic leave the same way the download does.
+// the program's lines, so tracker and DHT traffic leave the same way the download does.
 
 import (
 	"context"

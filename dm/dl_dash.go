@@ -384,7 +384,7 @@ var dlRunProgram = func(args []string) error {
 	return exec.Command(args[0], args[1:]...).Run()
 }
 
-// dlFindFFmpeg looks for ffmpeg in the PATH and next to NetMerge. NetMerge does not install it.
+// dlFindFFmpeg looks for ffmpeg in the PATH and next to the program. The program does not install it.
 func dlFindFFmpeg() string {
 	if p, err := exec.LookPath("ffmpeg"); err == nil {
 		return p

@@ -144,7 +144,7 @@ type btState struct {
 	Stamps []btStamp `json:"files,omitempty"` // size and modification time of every file when the list was saved
 }
 
-// btStamp lets a resume notice that a file was edited, replaced or deleted while NetMerge was not looking.
+// btStamp lets a resume notice that a file was edited, replaced or deleted while the program was not looking.
 type btStamp struct {
 	Size int64 `json:"s"`
 	Mod  int64 `json:"m"`

@@ -17,7 +17,7 @@ import (
 )
 
 // customRoot is true when the program was started with -root: such a copy (a test or development copy) must not
-// register itself to start with Windows, or it would replace the real installation's entry (NetMerge 3.11.12).
+// register itself to start with Windows, or it would replace the real installation's entry.
 var customRoot bool
 
 var errCustomRoot = errors.New("this copy was started with its own data folder (-root), so it cannot start with Windows")

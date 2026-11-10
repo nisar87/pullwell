@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Test fixtures for the NetMerge download manager (Python 3.8+, standard library only).
+"""Test fixtures for the Pullwell download manager (Python 3.8+, standard library only).
 
     python fixtures.py [--host 127.0.0.1] [--port 8765] [--out fixtures_out] [--ffmpeg]
 

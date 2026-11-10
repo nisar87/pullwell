@@ -1,4 +1,4 @@
-// Package dm is the NetMerge download manager. It is a separate module: it imports nothing from the product, and
+// Package dm is the download engine. It is a separate module: it imports nothing from the product, and
 // the product reaches it only through Setup, Routes, Enabled/SetEnabled, Shutdown and a few small helpers.
 // It is off by default: until it is switched on it starts no goroutine, reads and writes no file, and answers no request.
 package dm

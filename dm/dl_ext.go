@@ -17,9 +17,9 @@ import (
 	"time"
 )
 
-// The browser extension talks to NetMerge on the same local port as the window, under /ext/. Only extension pages may
+// The browser extension talks to the program on the same local port as the window, under /ext/. Only extension pages may
 // call it (a normal website is refused by its Origin), the Host header must be local, and every call except "ping"
-// and "pair" needs a private token that the extension got by typing a one-time code shown in NetMerge.
+// and "pair" needs a private token that the extension got by typing a one-time code shown in the program.
 
 type extBrowser struct {
 	ID       string `json:"id"`

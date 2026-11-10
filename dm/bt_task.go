@@ -1,7 +1,7 @@
 package dm
 
 // BitTorrent: one torrent download. It finds peers (trackers, DHT, peer exchange, magnet hints), connects to them
-// through NetMerge's lines (each peer connection leaves through one line, weighted by what the line can carry), picks
+// through the program's lines (each peer connection leaves through one line, weighted by what the line can carry), picks
 // pieces rarest-first, checks every piece against its SHA-1 and writes it to the disk.
 //
 // Not included: incoming connections, encryption (MSE), uTP, seeding after the download is complete.
@@ -538,7 +538,7 @@ func (t *btTask) initStorage(ctx context.Context) error {
 	return nil
 }
 
-// repairFromState: the saved list says which pieces were finished, but files can change while NetMerge is closed.
+// repairFromState: the saved list says which pieces were finished, but files can change while the program is closed.
 // Every file whose size or time differs from what was saved (or that was deleted and made again) has all of its
 // finished pieces hashed again; the ones that do not match are dropped from the list and fetched again.
 func (t *btTask) repairFromState(ctx context.Context, st *btStore, have []bool, saved []btStamp) error {
@@ -998,7 +998,7 @@ func (t *btTask) maxPeers(lines int) int {
 }
 
 // sampleOK checks a few of the pieces the saved list says we have. A file that was changed, replaced or deleted while
-// NetMerge was closed makes the saved list wrong; then everything is checked again.
+// the program was closed makes the saved list wrong; then everything is checked again.
 func (t *btTask) sampleOK(st *btStore, have []bool) bool {
 	var idx []int
 	for i, h := range have {

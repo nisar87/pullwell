@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.2 (not released)
+
+- Pullwell is a standalone program: it needs nothing from NetMerge and no longer follows NetMerge's copy of the
+  download engine. The engine notes about keeping the two in step are removed. A download list saved by NetMerge can
+  still be loaded (Tasks → Load a list), so existing downloads can be moved over.
+- Anonymous FTP logins give "pullwell@" instead of "netmerge@" as the password.
+
 ## 0.4.1 (2026-11-10)
 
 - The "Download this?" offer for a copied link is a real Windows notification with a **Download…** button. The
@@ -135,7 +142,7 @@ updates itself. See the README for connecting your browser.
   one place (`appname.go`) so a rename is cheap.
 - The download engine (`dm/`) copied from NetMerge 3.11.20 (commit `0bfab33`), including the 3.11.20 fix:
   when a server refuses a download and no referer was given, it asks once more with the site's own address as the
-  referer. Its few differences from NetMerge's copy are listed in `docs/engine-sync.md`.
+  referer.
 - The parts of the window, tray and notification design that need no Windows, each with tests:
   - `pullwell://` links from toast buttons. Only five actions exist; everything except "show" needs a one-time
     random token that Pullwell itself put in the toast, so a web page cannot use the link to open your files; and a

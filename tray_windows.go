@@ -2,7 +2,7 @@
 
 package main
 
-// The notification-area icon and the single-instance hand-over. Ported from NetMerge's sys_tray_windows.go.
+// The notification-area icon and the single-instance hand-over.
 // Click: open the window. Right-click: Open, Pause all, Resume all, Quit. The tooltip shows what is downloading.
 // The same hidden window receives a second start's message (WM_COPYDATA) and then shows the window.
 

@@ -12,8 +12,7 @@ import (
 	"pullwell/dm"
 )
 
-// normalLine is the computer's ordinary connection. If NetMerge runs on this PC it spreads these connections over
-// all lines by itself; the program does not need to know.
+// normalLine is the computer's ordinary internet connection; all downloads go out through it.
 var normalLine = dm.Line{
 	Name: "Computer",
 	Kind: "ethernet",

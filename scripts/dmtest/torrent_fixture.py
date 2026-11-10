@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Torrent fixture for the NetMerge download manager: makes a torrent, and runs an HTTP tracker and a seeder (stdlib only).
+"""Torrent fixture for the Pullwell download manager: makes a torrent, and runs an HTTP tracker and a seeder (stdlib only).
 
     python torrent_fixture.py --host 192.168.1.20 [--out fixtures_out] [--private] [--corrupt-piece N] [--upload-test]
 
-IMPORTANT: use this PC's LAN address for --host (not 127.0.0.1). NetMerge refuses peers and trackers on 127.0.0.1 in
+IMPORTANT: use this PC's LAN address for --host (not 127.0.0.1). Pullwell refuses peers and trackers on 127.0.0.1 in
 normal builds, and refuses LAN addresses too for torrents that a web page (the extension) added; add with the app's own page.
 
 Writes <out>/demo.torrent (and <out>/demo-magnet.txt), serves the tracker on port 6969 and the seeder on port 6881.
@@ -11,8 +11,8 @@ Content: Demo/one.bin 300000 bytes, Demo/sub/two.bin 300000 bytes, Demo/three.bi
 piece length 65536. Expected hashes are written to <out>/demo-expected.json.
   --private          sets the private flag
   --corrupt-piece N  the seeder sends garbage for piece N (the client must reject it; with a second good seeder it still completes)
-  --upload-test      the seeder also asks NetMerge for pieces NetMerge already has (NetMerge has no listening port, so this uses the same
-                     connection it opened to us). Prints CORRECT/WRONG when NetMerge uploads, or "choked"/nothing when it does not (T14, T15)
+  --upload-test      the seeder also asks Pullwell for pieces Pullwell already has (Pullwell has no listening port, so this uses the same
+                     connection it opened to us). Prints CORRECT/WRONG when Pullwell uploads, or "choked"/nothing when it does not (T14, T15)
   --throttle BPS     limit the seeder's total send speed
 Stop with Ctrl+C. The log shows every request, so you can read the tracker events (started / stopped / completed)."""
 import argparse, hashlib, http.server, json, os, socket, socketserver, struct, sys, threading, time, urllib.parse
@@ -80,7 +80,7 @@ def main():
             msg(c, 5, bytes(bitfield)); print("[seeder%s] peer" % (" BAD" if bad else ""), addr, flush=True)
             theirs, asked = set(), [False]
             def want():
-                # upload test: ask NetMerge for a piece it says it has
+                # upload test: ask Pullwell for a piece it says it has
                 if a.upload_test and theirs:
                     if not asked[0]: msg(c, 2); asked[0] = True
             while True:
@@ -93,11 +93,11 @@ def main():
                 elif t == 4:
                     theirs.add(struct.unpack(">I", b[1:5])[0]); want()
                 elif t == 1 and theirs:
-                    idx = min(theirs); msg(c, 6, struct.pack(">III", idx, 0, 16384)); print("[upload-test] asked NetMerge for piece %d" % idx, flush=True)
-                elif t == 0 and a.upload_test: print("[upload-test] NetMerge choked us (no upload)", flush=True)
+                    idx = min(theirs); msg(c, 6, struct.pack(">III", idx, 0, 16384)); print("[upload-test] asked Pullwell for piece %d" % idx, flush=True)
+                elif t == 0 and a.upload_test: print("[upload-test] Pullwell choked us (no upload)", flush=True)
                 elif t == 7 and a.upload_test:
                     idx, begin = struct.unpack(">II", b[1:9]); ok = b[9:] == pieces[idx][begin:begin + len(b) - 9]
-                    print("[upload-test] got %d bytes of piece %d from NetMerge: %s" % (len(b) - 9, idx, "CORRECT" if ok else "WRONG"), flush=True)
+                    print("[upload-test] got %d bytes of piece %d from Pullwell: %s" % (len(b) - 9, idx, "CORRECT" if ok else "WRONG"), flush=True)
                 elif t == 6:
                     idx, begin, ln = struct.unpack(">III", b[1:13])
                     blk = pieces[idx][begin:begin + ln]

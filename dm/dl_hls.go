@@ -23,7 +23,7 @@ import (
 	"time"
 )
 
-// Video streams (HLS, ".m3u8"): the playlist lists many small parts. NetMerge fetches the parts over all lines at once
+// Video streams (HLS, ".m3u8"): the playlist lists many small parts. The program fetches the parts over all lines at once
 // (a fast line simply finishes more of them), decrypts them when the stream uses plain AES-128, and joins them into
 // one video file. Live streams, copy-protected (DRM) streams and streams that keep sound in a separate part are
 // refused with a clear message. MPEG-DASH (".mpd") is not supported.

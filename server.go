@@ -15,7 +15,7 @@ import (
 )
 
 // appPorts: a fixed default port and a short list of fallbacks (handover 4.4). The browser extension tries them in
-// this order, so they never change between starts or versions. NetMerge uses 9196.
+// this order, so they never change between starts or versions. 9196 is left free on purpose (another program uses it).
 var appPorts = []int{9197, 9297, 9397, 9497}
 
 //go:embed ui

@@ -4,8 +4,8 @@ A fast, reliable download manager for Windows 10 and 11, with a browser extensio
 
 ![Pullwell's main window: menu bar, toolbar, categories and the list of downloads](docs/screenshots/main-light.png)
 
-> **Status: first public version.** "Pullwell" is a working name and may change after a trademark check. The
-> download engine comes from [NetMerge](https://github.com/nisar87/netmerge), where it has been in daily use.
+> **Status: first public versions, in daily use.** "Pullwell" is a working name and may change after a trademark
+> check.
 
 ## Install
 
@@ -53,8 +53,6 @@ downloads the file itself.
 - The PC stays awake while something downloads (you can switch that off).
 - Optional: when you copy a link to a file anywhere in Windows, a notification offers to download it.
 - `Pullwell.exe <link>` adds a link from a script or another program.
-- With [NetMerge](https://github.com/nisar87/netmerge) running on the same PC, a download also uses all your
-  internet connections. Pullwell doesn't need NetMerge.
 
 | | |
 | --- | --- |
@@ -100,8 +98,6 @@ Every push builds a test version (the `test-build` pre-release). Changing `VERSI
 - [Changelog](CHANGELOG.md)
 - [Publishing: the steps only the owner can take](docs/publishing.md) (browser stores, winget, code signing)
 - [Window, tray and notifications design](docs/window-tray-notifications-design.md)
-- [How the engine is kept in step with NetMerge](docs/engine-sync.md), and
-  [problems found that also affect NetMerge](docs/netmerge-reports.md)
 
 ## Licence
 
