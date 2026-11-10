@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.3.0 (not released)
+
+- **Proxy.** Options → Connection → Proxy: "Same as Windows" (the default; what Settings → Network → Proxy says,
+  including the list of addresses that go direct), "No proxy", or "This proxy" (host:port, or socks5://host:port,
+  with user:password@ if the proxy asks for it). Downloads and the update check use it; **Test** checks it works.
+  An automatic proxy setup script is not read; Options says so, and you can type the proxy instead.
+- **Rename** a download (F2, or right-click → Rename): a finished file is renamed in its folder; one that has not
+  started yet is saved under the new name.
+- **Speed limit at a click**: click the speed in the status bar, or Tools → Speed limit for all downloads.
+- The tray menu has **Add a download** (with the copied link already in it, when there is one) and **Open the
+  download folder**.
+- `Pullwell.exe <link>` opens the Add dialog with that link (also when Pullwell is already running).
+- **Save the list** now writes the file into your download folder and shows it; in the program's own window the
+  old way saved nothing.
+- Fixed: a numbered series typed in the Add dialog (`file[001-050].jpg`) was checked as one literal link and
+  failed; it is now added as a series.
+- Confirmations (shut down when finished, delete a queue, run a program after each download) are Pullwell dialogs
+  instead of browser boxes.
+
 ## 0.2.0 (2026-11-10)
 
 The first public version. Download `Pullwell.exe`, put it in a folder of its own and start it; from then on it

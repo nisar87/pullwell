@@ -352,3 +352,6 @@ func DownloadDir() string {
 	}
 	return defaultDlDir()
 }
+
+// ExportList is the download list as the file "Save the list" writes (the same as the "export" action).
+func ExportList() any { return dlMgr.exportList() }

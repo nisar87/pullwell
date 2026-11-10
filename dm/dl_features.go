@@ -410,7 +410,7 @@ type dlExportFile struct {
 func (m *dlManager) exportList() dlExportFile {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	f := dlExportFile{App: "netmerge-downloads", Version: 1, Queues: append([]dlQueue{}, m.cfg.Queues...)}
+	f := dlExportFile{App: strings.ToLower(hName()) + "-downloads", Version: 1, Queues: append([]dlQueue{}, m.cfg.Queues...)}
 	for _, e := range m.items {
 		it := dlExportItem{URL: e.URL, Name: e.Name, Queue: e.Queue, Mirrors: e.Mirrors, Hash: e.Hash, Finished: e.State == "done"}
 		if e.Dir != "" {
@@ -429,7 +429,7 @@ func dlParseImport(text string) ([]dlExportItem, []dlQueue, error) {
 	}
 	if strings.HasPrefix(text, "{") {
 		var f dlExportFile
-		if err := json.Unmarshal([]byte(text), &f); err != nil || f.App != "netmerge-downloads" {
+		if err := json.Unmarshal([]byte(text), &f); err != nil || (f.App != strings.ToLower(hName())+"-downloads" && f.App != "netmerge-downloads") {
 			return nil, nil, errors.New("that is not a download list")
 		}
 		return f.Items, f.Queues, nil

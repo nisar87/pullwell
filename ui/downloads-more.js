@@ -221,11 +221,8 @@ function dlFolders(){
 
 /* ----- save / load the list ----- */
 async function dlExport(){
-  const r = await dlAct({action:'export'}); if (!r || !r.file) return;
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([JSON.stringify(r.file, null, 2)], {type:'application/json'}));
-  a.download = APP.name.toLowerCase() + '-downloads-' + new Date().toISOString().slice(0,10) + '.json'; document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  // the program writes the file (into the download folder) and shows it: the window cannot save files reliably
+  try { const r = await api('app', {saveList: true}); toast('List saved: ' + r.path); } catch(e){ toast(e.message, true); }
 }
 function dlImport(){
   const f = document.createElement('input'); f.type = 'file'; f.accept = '.json,.txt,.lst,.csv';

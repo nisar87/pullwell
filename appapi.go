@@ -5,6 +5,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -34,12 +35,13 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 			StartMenu *bool         `json:"startMenu"`
 			Proxy     *proxySetting `json:"proxy"`
 			ProxyTest bool          `json:"proxyTest"`
-			SaveExt   string        `json:"saveExt"` // "chrome-edge" | "firefox": save the extension in the download folder and show it
+			SaveExt   string        `json:"saveExt"`  // "chrome-edge" | "firefox": save the extension in the download folder and show it
+			SaveList  bool          `json:"saveList"` // write the download list to a file in the download folder and show it
 			Uninstall *struct {
 				Data bool `json:"data"` // also delete the data folder (list, settings, log); downloads are never deleted
 			} `json:"uninstall"`
 		}
-		if json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&in) != nil || (in.Autostart == nil && !in.Quit && in.Open == "" && in.Clipboard == nil && in.Take != "add" && in.StartMenu == nil && in.Uninstall == nil && in.SaveExt == "" && in.Proxy == nil && !in.ProxyTest) {
+		if json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&in) != nil || (in.Autostart == nil && !in.Quit && in.Open == "" && in.Clipboard == nil && in.Take != "add" && in.StartMenu == nil && in.Uninstall == nil && in.SaveExt == "" && in.Proxy == nil && !in.ProxyTest && !in.SaveList) {
 			w.WriteHeader(400)
 			_ = json.NewEncoder(w).Encode(map[string]string{"error": "bad request"})
 			return
@@ -102,6 +104,17 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+			return
+		}
+		if in.SaveList {
+			path, err := saveListFile()
+			if err != nil {
+				w.WriteHeader(409)
+				_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+				return
+			}
+			logf("list saved: %s", path)
+			_ = json.NewEncoder(w).Encode(map[string]string{"path": path})
 			return
 		}
 		if in.SaveExt != "" {
@@ -202,6 +215,32 @@ func saveExtension(kind string) (string, error) {
 		return "", err
 	}
 	path := filepath.Join(dir, AppName+"-extension-"+kind+".zip")
+	if err := os.WriteFile(path, b, 0o644); err != nil {
+		return "", err
+	}
+	_ = sysOpenPath(path, true)
+	return path, nil
+}
+
+// saveListFile writes the download list next to the downloads ("pullwell-downloads-2026-11-10.json", with a number
+// added when that exists) and shows it in Explorer. The window cannot be relied on to save files itself.
+func saveListFile() (string, error) {
+	b, err := json.MarshalIndent(dm.ExportList(), "", "  ")
+	if err != nil {
+		return "", err
+	}
+	dir := dm.DownloadDir()
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return "", err
+	}
+	base := strings.ToLower(AppName) + "-downloads-" + time.Now().Format("2006-01-02")
+	path := filepath.Join(dir, base+".json")
+	for i := 2; i < 100; i++ {
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			break
+		}
+		path = filepath.Join(dir, fmt.Sprintf("%s (%d).json", base, i))
+	}
 	if err := os.WriteFile(path, b, 0o644); err != nil {
 		return "", err
 	}
