@@ -80,7 +80,7 @@ func main() {
 	lnk := filepath.Join(os.Getenv("APPDATA"), `Microsoft\Windows\Start Menu\Programs`, *name+".lnk")
 	check("Start menu entry made at start", ok && exists(lnk), lnk)
 	cmd := regQuery(`HKCU\Software\Classes\`+scheme+`\shell\open\command`, "")
-	check(scheme+":// link registered for this program", strings.Contains(strings.ToLower(cmd), strings.ToLower(exe)), cmd)
+	check(scheme+":// link registered for this program", strings.Contains(strings.ToLower(cmd), strings.ToLower(`\wintest\app\`+*name+`.exe" "%1"`)), cmd)
 
 	// ---- downloads ----
 	data := pattern(3 << 20)
@@ -125,9 +125,9 @@ func main() {
 	check("a link with a wrong code does not open anything", waitFor(5*time.Second, func() bool { return logHas("link open: link without a valid token") }))
 
 	// ---- Start with Windows ----
-	post("api/app", map[string]any{"autostart": true})
+	as := post("api/app", map[string]any{"autostart": true})
 	run1 := regQuery(`HKCU\Software\Microsoft\Windows\CurrentVersion\Run`, *name)
-	check("Start with Windows writes one startup entry", strings.Contains(strings.ToLower(run1), strings.ToLower(exe)) && strings.Contains(run1, "-tray"), run1)
+	check("Start with Windows writes one startup entry", strings.Contains(strings.ToLower(run1), strings.ToLower(`\wintest\app\`+*name+`.exe" -tray`)), run1, as)
 	post("api/app", map[string]any{"autostart": false})
 	check("and removes it", regQuery(`HKCU\Software\Microsoft\Windows\CurrentVersion\Run`, *name) == "")
 
@@ -180,7 +180,8 @@ func main() {
 	os.MkdirAll(pdir, 0o755)
 	pexe := filepath.Join(pdir, *name+".exe")
 	must(copyFile(*exeSrc, pexe))
-	out, err := exec.Command("icacls", pdir, "/deny", "*S-1-1-0:(OI)(CI)(W)").CombinedOutput()
+	// only the folder (and folders in it) is closed for writing: the program file itself stays runnable
+	out, err := exec.Command("icacls", pdir, "/deny", "*S-1-1-0:(CI)(W)").CombinedOutput()
 	check("set up a folder nobody may write to", err == nil, string(out))
 	start(pexe, "-tray")
 	check("the program still starts from a protected folder", waitUp(30*time.Second))

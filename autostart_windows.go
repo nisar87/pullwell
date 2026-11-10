@@ -45,8 +45,9 @@ func autoStartGet() (bool, error) {
 func autoStartSet(on bool) error {
 	p, _ := syscall.UTF16PtrFromString(runKey)
 	var h syscall.Handle
-	if err := syscall.RegOpenKeyEx(syscall.HKEY_CURRENT_USER, p, 0, syscall.KEY_SET_VALUE|syscall.KEY_QUERY_VALUE, &h); err != nil {
-		return err
+	// created when missing: a fresh user profile may not have a Run key yet
+	if r, _, _ := pRegCreateKeyEx.Call(uintptr(syscall.HKEY_CURRENT_USER), uintptr(unsafe.Pointer(p)), 0, 0, 0, syscall.KEY_SET_VALUE|syscall.KEY_QUERY_VALUE, 0, uintptr(unsafe.Pointer(&h)), 0); r != 0 {
+		return syscall.Errno(r)
 	}
 	defer syscall.RegCloseKey(h)
 	name, _ := syscall.UTF16PtrFromString(AppName)
