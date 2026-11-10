@@ -2,6 +2,12 @@
 
 ## 0.1.0 (not released)
 
+- **Browser extension** for Chrome, Edge, Brave and Firefox (from NetMerge, renamed): big downloads and "Download
+  with Pullwell" from the right-click menu go to Pullwell; if Pullwell is not running the browser downloads as
+  usual. The program carries the extension and offers it in **Options → Browser → Connect a browser**, with the
+  pairing code, so the extension always matches the program. The extension finds Pullwell on its fixed ports
+  (9197, then 9297, 9397, 9497) and checks it is really Pullwell before pairing. Connected browsers are listed
+  there and can be disconnected; the size limit and an off switch are in the same tab.
 - **Its own window.** The program now opens in a normal Windows window with Microsoft's WebView2 inside (built into
   Windows 10 and 11), instead of an Edge or Chrome "app" window. It needs no extra DLL and no third-party code. If
   WebView2 is missing or fails, it falls back to Edge or Chrome by itself, and the log says why. The window remembers

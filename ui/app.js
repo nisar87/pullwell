@@ -115,7 +115,7 @@ const COLS = [
   {k:'speed', t:'Speed', w:84, r:1, sort: v => v.state === 'downloading' ? v.speed || 0 : -1, cell: v => `<td class="r">${v.state === 'downloading' ? bytes(v.speed) + '/s' : ''}</td>`},
   {k:'left', t:'Time left', w:78, r:1, sort: v => leftOf(v) || 1e12, cell: v => `<td class="r">${dur(leftOf(v))}</td>`},
   {k:'added', t:'Added', w:116, sort: v => v.added || 0, cell: v => `<td title="${v.finished ? 'Finished ' + esc(new Date(v.finished*1000).toLocaleString()) : ''}">${when(v.added)}</td>`},
-  {k:'info', t:'Description', w:220, sort: v => (v.err || v.note || ''), cell: v => `<td title="${esc(v.detail || '')}">${infoOf(v)}</td>`},
+  {k:'info', t:'Description', w:200, sort: v => (v.err || v.note || ''), cell: v => `<td title="${esc(v.detail || '')}">${infoOf(v)}</td>`},
 ];
 let widths = store.get('widths', {});
 
@@ -166,7 +166,7 @@ function renderTable(){
   if (hk !== headKey) {
     headKey = hk;
     $('#cg').innerHTML = COLS.map(c => `<col style="width:${c.w ? (widths[c.k] || c.w) + 'px' : 'auto'}">`).join('');
-    $('#tbl').style.minWidth = COLS.reduce((a, c) => a + (c.w ? (widths[c.k] || c.w) : 220), 0) + 'px'; // the name keeps at least 220 px; narrower windows scroll sideways
+    $('#tbl').style.minWidth = COLS.reduce((a, c) => a + (c.w ? (widths[c.k] || c.w) : 170), 0) + 'px'; // the name keeps at least 170 px; narrower windows scroll sideways
     $('#th').innerHTML = `<tr>${COLS.map(c => `<th data-sort="${c.k}"${c.r ? ' class="r"' : ''}>${c.t}${sortBy.c === c.k ? `<span class="ar">${sortBy.d > 0 ? '▲' : '▼'}</span>` : ''}</th>`).join('')}</tr>`;
   }
   const tb = $('#tb'), keep = new Set(visible);
@@ -504,7 +504,7 @@ async function addTorrentFile(f){
 
 /* ---------- options ---------- */
 let optTab = null;
-const OPT_TABS = [['general','General'],['connection','Connection'],['schedule','Schedule'],['torrents','Torrents'],['advanced','Advanced']];
+const OPT_TABS = [['general','General'],['connection','Connection'],['schedule','Schedule'],['browser','Browser'],['torrents','Torrents'],['advanced','Advanced']];
 function limSel(key, cur){
   const near = LIMITS.reduce((b, x) => Math.abs(x*1048576 - cur) < Math.abs(b*1048576 - cur) ? x : b, 0);
   return `<select class="sel" data-cfg="${esc(key)}" data-lim2="1" aria-label="Speed limit">${LIMITS.map(x => `<option value="${x}"${x === near ? ' selected' : ''}>${x ? (x < 1 ? x*1000 + ' KB/s' : x + ' MB/s') : 'No limit'}</option>`).join('')}</select>`;
@@ -527,13 +527,19 @@ function optionsBody(tab){
   if (tab === 'schedule') return orow('Only download at certain hours', 'For example at night. Downloads outside these hours wait.', `<div class="row" style="flex-wrap:nowrap"><input type="time" class="inp" id="dlWinFrom" value="${esc(c.window.from)}"><span class="hint2">to</span><input type="time" class="inp" id="dlWinTo" value="${esc(c.window.to)}">${tog('id="dlWinTog"', c.window.enabled, 'Download hours')}</div>`)
     + orow('When everything is finished', 'Done once, after the last download. A shutdown gives you one minute to cancel.', `<select class="sel" data-cfg="afterAll">${[['','Do nothing'],['sleep','Put the PC to sleep'],['shutdown','Shut the PC down']].map(o => `<option value="${o[0]}"${(c.afterAll || '') === o[0] ? ' selected' : ''}>${o[1]}</option>`).join('')}</select>`)
     + orow('Queues', `Groups of downloads with their own hours and days, for example “Night”. ${(c.queues || []).length} queue${(c.queues || []).length === 1 ? '' : 's'}.`, `<button class="btn" data-dm="queues">Manage queues…</button>`);
+  if (tab === 'browser') {
+    const x = DL.ext || {browsers: [], minMB: 5, enabled: true}, bs = x.browsers || [];
+    return orow('Take over downloads from the browser', `Big downloads in Chrome, Edge, Brave or Firefox go to ${esc(APP.name)} once the extension is connected. If ${esc(APP.name)} is not running, the browser downloads as usual.`, tog('id="extOn"', x.enabled, 'Take over browser downloads'))
+      + orow('Only files bigger than', 'Smaller files are quicker to leave with the browser.', `<select class="sel" id="extMin">${[0,1,5,10,25,50,100].map(n => `<option value="${n}"${x.minMB === n ? ' selected' : ''}>${n ? n + ' MB' : 'Everything'}</option>`).join('')}</select>`)
+      + orow('Connected browsers', bs.length ? '' : 'None yet.', `<button class="btn pri" id="extCode">Connect a browser…</button>`)
+      + bs.map(b => orow(esc(b.name || 'Browser'), `Connected ${when(b.created)}${b.lastSeen ? ' · last used ' + when(b.lastSeen) : ''}`, `<button class="btn" data-extrm="${esc(b.id)}">Disconnect</button>`)).join('');
+  }
   if (tab === 'torrents') return orow('Torrents and magnet links', 'Turn off to refuse magnet links and .torrent files.', tog('data-dm="torTog"', !c.noTorrents, 'Allow torrents'))
     + (c.noTorrents ? '' : orow('Share while downloading', 'Pieces you already have go out to others while the rest comes in.', tog('data-dm="upTog"', !c.noUpload, 'Share while downloading'))
     + (c.noUpload ? '' : orow('Upload speed limit', '', limSel('uploadLimit', c.uploadLimit || 0))));
   return orow('Run a program after each download', 'For example a virus scanner. Use <code>%f</code> for the file: <code>"C:\\Tools\\scan.exe" "%f"</code>', `<div class="row" style="flex-wrap:nowrap"><input class="inp" id="dlAfterCmd" value="${esc(c.afterCmd || '')}" style="width:230px" spellcheck="false"><button class="btn" data-dm="afterSave">Save</button></div>`)
     + orow('ffmpeg', DL.ffmpeg ? 'Found: web videos with a separate sound track are joined into one file.' : `Not found: such videos are saved as two files. Put ffmpeg.exe next to ${esc(APP.name)} to join them.`, `<span class="hint2">${DL.ffmpeg ? '✓ ready' : 'not installed'}</span>`)
     + orow('Your list', 'Save the list of downloads to a file, or load one (also a text file with one link per line).', `<div class="row" style="flex-wrap:nowrap"><button class="btn" data-dm="export">Save list…</button><button class="btn" data-dm="import">Load list…</button></div>`)
-    + orow('Browser extension', `Hands downloads from Chrome, Edge, Brave and Firefox to ${esc(APP.name)}. Coming in a later version.`, '')
     + orow('About', `${esc(APP.name)} ${esc(APP.version)}. No telemetry: it contacts only the sites you download from.`, '');
 }
 function showOptions(tab){
@@ -545,6 +551,26 @@ function showOptions(tab){
   if (keepFocus && $('#' + keepFocus) && $('#dlDlg').contains($('#' + keepFocus))) $('#' + keepFocus).focus();
 }
 function afterChange(){ if (optTab && $('#dlDlg') && $('.opt')) showOptions(optTab); }
+
+/* ---------- connecting a browser ---------- */
+async function extConnect(){
+  let r; try { r = await api('downloads', {action:'extCode'}); } catch(e){ return toast(e.message, true); }
+  const zip = k => `/extension/${encodeURIComponent(APP.name)}-extension-${k}.zip`;
+  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Connect a browser" style="max-width:580px"><h3>Connect a browser</h3>
+    <div class="hint2" style="margin-bottom:10px">The extension is not in the browser stores yet, so it is added by hand once (about a minute).</div>
+    <ol class="hint2" style="margin:0 0 12px;padding-left:18px;display:grid;gap:8px">
+      <li><b>Save the extension:</b> <a class="btn" href="${zip('chrome-edge')}" download>Chrome / Edge / Brave</a> <a class="btn" href="${zip('firefox')}" download>Firefox</a></li>
+      <li><b>Chrome, Edge, Brave:</b> unzip it into a folder you keep. Open <code>chrome://extensions</code> (Edge: <code>edge://extensions</code>) <button class="btn" id="extCopy" style="padding:1px 8px;min-height:0">Copy</button>, switch on <b>Developer mode</b>, click <b>Load unpacked</b> and choose that folder.<br><b>Firefox:</b> open <code>about:debugging#/runtime/this-firefox</code>, click <b>Load Temporary Add-on</b> and choose the zip (Firefox forgets it when it closes).</li>
+      <li><b>Pin the ${esc(APP.name)} icon</b> (the puzzle piece in the toolbar), click it and type this code:</li>
+    </ol>
+    <div class="selectable" style="font:700 28px/1.2 var(--mono);letter-spacing:.12em;text-align:center;padding:12px;border-radius:8px;background:var(--inset)">${esc(r.code)}</div>
+    <div class="hint2" style="margin-top:6px;text-align:center" id="extLeft"></div>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn pri" id="extDone">Done</button></div></div>`);
+  $('#extDone').onclick = () => showOptions('browser');
+  $('#extCopy').onclick = () => copyText('chrome://extensions', 'Copied: paste it in a new browser tab');
+  const tick = () => { const el = $('#extLeft'); if (!el) return; const left = r.expires - Math.floor(Date.now()/1000); if (left <= 0) { el.textContent = 'The code has expired. Close this and connect again.'; return; } el.textContent = `Valid for ${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}, one use only.`; setTimeout(tick, 1000); };
+  tick();
+}
 
 /* ---------- events ---------- */
 document.addEventListener('click', async e => {
@@ -570,11 +596,15 @@ document.addEventListener('click', async e => {
   if (t.id === 'dlCatTog') return dlAct({action:'config', config: {...DL.config, useCategories: !DL.config.useCategories}});
   if (t.id === 'dlWinTog') return dlAct({action:'config', config: {...DL.config, window: {...DL.config.window, enabled: !DL.config.window.enabled}}});
   if (t.id === 'dlForget') return dlAct({action:'forgetHosts'}, 'Forgotten');
+  if (t.id === 'extCode') return extConnect();
+  if (t.id === 'extOn') return dlAct({action:'extConfig', extMinMB: DL.ext.minMB, extOff: DL.ext.enabled});
+  if (t.dataset.extrm) { const r = await askBox({title:'Disconnect this browser?', text:'Its extension stops sending downloads until you connect it again.', ok:'Disconnect'}); if (r.ok) { await dlAct({action:'extRevoke', id: t.dataset.extrm}, 'Disconnected'); showOptions('browser'); } return; }
 });
 document.addEventListener('change', async e => {
   const t = e.target; if (!DL) return;
   if (t.id === 'torFile') { const f = t.files && t.files[0]; return addTorrentFile(f); }
   if (t.id === 'optTheme') { store.set('theme', t.value); applyTheme(); return; }
+  if (t.id === 'extMin') return dlAct({action:'extConfig', extMinMB: +t.value, extOff: !DL.ext.enabled});
   if (t.id === 'dlMax') return dlAct({action:'config', config: {...DL.config, maxActive: +t.value}});
   if (t.id === 'dlPer') return dlAct({action:'config', config: {...DL.config, maxPerLine: +t.value}});
   if (t.id === 'dlWinFrom' || t.id === 'dlWinTo') return dlAct({action:'config', config: {...DL.config, window: {...DL.config.window, from: $('#dlWinFrom').value || '22:00', to: $('#dlWinTo').value || '07:00'}}});

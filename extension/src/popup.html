@@ -1,0 +1,32 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>{{NAME}}</title><link rel="stylesheet" href="popup.css"></head>
+<body>
+<h1><span class="logo"></span> {{NAME}} Downloads</h1>
+<div id="v-down" class="v" hidden>
+  <p><b>{{NAME}} is not running.</b></p><p class="m">Open {{NAME}}, then try again. Until then your browser downloads files as usual.</p>
+  <button id="retry">Try again</button>
+</div>
+<div id="v-off" class="v" hidden>
+  <p><b>{{NAME}} is not taking downloads.</b></p><p class="m">Open {{NAME}} and try again. Until then your browser downloads files as usual.</p>
+  <button id="retry2">Try again</button>
+</div>
+<div id="v-pair" class="v" hidden>
+  <p><b>Connect to {{NAME}}</b></p>
+  <p class="m">In {{NAME}} open <b>Options → Browser → Connect a browser</b>, then type the code here.</p>
+  <input id="code" placeholder="xxxxx-xxxxx" autocomplete="off" spellcheck="false" maxlength="12">
+  <button id="pair">Connect</button><p id="perr" class="err"></p>
+</div>
+<div id="v-on" class="v" hidden>
+  <p id="stat"></p>
+  <label class="row"><input type="checkbox" id="on"> Send big downloads to {{NAME}}</label>
+  <p class="m" id="min"></p>
+  <label class="m">Keep these sites in the browser (one per line)</label>
+  <textarea id="ign" rows="3" spellcheck="false" placeholder="example.com"></textarea>
+  <label class="m">Always send these file types, whatever their size (for example pdf, epub)</label>
+  <textarea id="typ" rows="2" spellcheck="false" placeholder="pdf, epub"></textarea>
+  <div id="perm" hidden><p class="m">To download files from sites where you are signed in, {{NAME}} needs to pass your sign-in cookie for that link along.</p><button id="grant">Allow for all sites</button></div>
+  <div id="media" hidden><label class="m">Videos on this page</label><div id="mlist"></div></div>
+  <button id="unpair" class="link">Disconnect</button>
+</div>
+<script src="core.js"></script><script src="popup.js"></script>
+</body></html>

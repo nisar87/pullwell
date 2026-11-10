@@ -211,7 +211,7 @@ func extHandler(auth bool, h http.HandlerFunc) http.HandlerFunc {
 
 func registerExtRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/ext/ping", extHandler(false, func(w http.ResponseWriter, r *http.Request) {
-		writeJSON(w, map[string]any{"app": "netmerge", "version": H.Version})
+		writeJSON(w, map[string]any{"app": strings.ToLower(hName()), "version": H.Version})
 	}))
 	mux.HandleFunc("/ext/pair", extHandler(false, func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
