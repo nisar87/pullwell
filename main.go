@@ -145,11 +145,15 @@ func fail(format string, a ...any) {
 
 // writableDir reports whether a folder exists or can be made, and files can be written in it.
 func writableDir(dir string) bool {
+	_, statErr := os.Stat(dir)
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return false
 	}
 	f, err := os.CreateTemp(dir, ".write-test-*")
 	if err != nil {
+		if os.IsNotExist(statErr) {
+			_ = os.Remove(dir) // made just now for the test: leave nothing behind
+		}
 		return false
 	}
 	name := f.Name()
