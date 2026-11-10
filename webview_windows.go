@@ -255,6 +255,7 @@ var mw struct {
 	url        string
 	normal     winRect // last size and place while neither minimised nor maximised
 	starting   bool
+	shownOnce  bool
 	hintShown  bool
 	failedOnce bool
 }
@@ -286,9 +287,10 @@ func showMain() {
 	cmd := uintptr(swShow)
 	if m, _, _ := pIsIconic.Call(mw.hwnd); m != 0 {
 		cmd = swRestore
-	} else if v, _, _ := pIsWindowVis.Call(mw.hwnd); v == 0 && mw.normal == (winRect{}) && loadPlacement().Max {
-		cmd = swShowMaximized
+	} else if !mw.shownOnce && loadPlacement().Max {
+		cmd = swShowMaximized // it was maximised when it was last closed: open it maximised again
 	}
+	mw.shownOnce = true
 	pShowWindow.Call(mw.hwnd, cmd)
 	pBringToTop.Call(mw.hwnd)
 	pSetForeground.Call(mw.hwnd)
@@ -599,16 +601,32 @@ func loadPlacement() placement {
 	return p
 }
 
+// windowPlacement is WINDOWPLACEMENT: Windows keeps the normal size and place of a window even while it is
+// maximised (and on which monitor), so that is what is saved, not something tracked by hand.
+type windowPlacement struct {
+	Length  uint32
+	Flags   uint32
+	ShowCmd uint32
+	PtMin   [2]int32
+	PtMax   [2]int32
+	Normal  winRect
+}
+
+var pGetWindowPlacement = user32.NewProc("GetWindowPlacement")
+
 func savePlacement() {
 	if mw.hwnd == 0 {
 		return
 	}
-	p := loadPlacement()
-	if mw.normal != (winRect{}) {
-		p.L, p.T, p.R, p.B = mw.normal.L, mw.normal.T, mw.normal.R, mw.normal.B
+	var wp windowPlacement
+	wp.Length = uint32(unsafe.Sizeof(wp))
+	if r, _, _ := pGetWindowPlacement.Call(mw.hwnd, uintptr(unsafe.Pointer(&wp))); r == 0 || wp.Normal.w() <= 0 {
+		return
 	}
+	p := placement{L: wp.Normal.L, T: wp.Normal.T, R: wp.Normal.R, B: wp.Normal.B}
 	z, _, _ := pIsZoomed.Call(mw.hwnd)
-	p.Max = z != 0
+	m, _, _ := pIsIconic.Call(mw.hwnd)
+	p.Max = z != 0 || (m != 0 && wp.Flags&2 != 0) // WPF_RESTORETOMAXIMIZED: minimised from maximised
 	if b, err := json.Marshal(p); err == nil {
 		_ = os.WriteFile(placementFile(), b, 0o644)
 	}
