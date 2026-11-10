@@ -69,6 +69,10 @@ var NMCore = (function () {
     if (minB === 0) return { catch: true, why: 'everything' };
     var ext = extOf(item.filename) || extOf(pathOf(item.url));
     if (ext && BIG.indexOf(ext) >= 0) return { catch: true, why: 'size unknown, big file type' };
+    // a link without a file ending (testfile.org/files-5GB) that the site answers with an archive, program, disc
+    // image or video: its type says it is a download worth taking over, even when no size is announced
+    if (/^(application\/(octet-stream|zip|x-zip-compressed|x-7z-compressed|x-rar-compressed|vnd\.rar|gzip|x-gzip|x-tar|x-iso9660-image|x-msdownload|x-msi|vnd\.microsoft\.portable-executable|x-apple-diskimage|vnd\.android\.package-archive)|video\/)/i.test(item.mime || ''))
+      return { catch: true, why: 'size unknown, big file type (by its content type)' };
     return no('size unknown');
   }
 

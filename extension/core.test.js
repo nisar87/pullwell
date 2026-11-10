@@ -21,6 +21,13 @@ test('unknown size: only big file types', () => {
 test('minimum size 0 catches everything', () => {
   assert.equal(C.shouldCatch(it({ fileSize: 10, url: 'https://x.com/a.txt' }), Object.assign({}, cfg, { minMB: 0 })).catch, true);
 });
+test('a link without a file ending but with an archive content type is taken, a web page is not', () => {
+  const u = 'https://testfile.org/files-5GB';
+  assert.equal(C.shouldCatch(it({ url: u, fileSize: -1, mime: 'application/octet-stream' }), cfg).catch, true);
+  assert.equal(C.shouldCatch(it({ url: u, fileSize: -1, mime: 'application/zip' }), cfg).catch, true);
+  assert.equal(C.shouldCatch(it({ url: u, fileSize: -1, mime: 'text/html' }), cfg).catch, false);
+  assert.equal(C.shouldCatch(it({ url: u, fileSize: -1 }), cfg).catch, false);
+});
 test('never touches what the program would refuse or what is private', () => {
   for (const u of ['http://localhost/a.zip', 'http://127.0.0.1/a.zip', 'http://192.168.1.5/a.zip', 'http://10.0.0.2/a.zip', 'http://172.20.1.1/a.zip',
     'http://169.254.1.1/a.zip', 'http://[::1]/a.zip', 'http://nas/a.zip', 'http://printer.local/a.zip', 'http://[fd00::1]/a.zip', 'http://[fe80::1]/a.zip',
