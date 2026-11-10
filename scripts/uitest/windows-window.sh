@@ -63,4 +63,12 @@ else
   echo "shots: the window did not start" | tee -a "$summary"; failed=1
 fi
 echo; cat "$summary"
+# the check outputs and small copies of the screenshots go into the log too, for a review that cannot fetch artifacts
+for c in "$out"/*_check.txt; do echo "::group::$(basename "$c")"; cat "$c"; echo "::endgroup::"; done
+if [ -d "$out/shots" ]; then
+  echo "::group::screenshots (zip, base64)"
+  powershell -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$here/small-shots.ps1")" -Results "$(cygpath -w "$out")" -Zip "$(cygpath -w "$work/small.zip")"
+  echo "BEGIN-SHOTS"; base64 -w 0 "$work/small.zip"; echo; echo "END-SHOTS"
+  echo "::endgroup::"
+fi
 exit $failed

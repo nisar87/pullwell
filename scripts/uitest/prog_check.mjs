@@ -58,6 +58,10 @@ check('it refreshes while open', t1 !== t2, `${t1} → ${t2}`);
 await shot('p01-progress');
 await js('document.querySelector("#pgMain").click()'); await sleep(1200);
 check('Pause from the dialog pauses it', /Paused/.test(await js('document.querySelector("#pgState").textContent')) && (await js('document.querySelector("#pgMain").textContent')) === 'Resume');
+// the main button ignores clicks for 0.9 s after its label changed (so a double click cannot pause and resume):
+// wait for the label, then past that guard, as a person would
+for (let i = 0; i < 20 && (await js('document.querySelector("#pgMain").textContent')) !== 'Resume'; i++) await sleep(250);
+await sleep(1100);
 await js('document.querySelector("#pgMain").click()'); await sleep(1500);
 check('Resume continues it', /Downloading|Waiting/.test(await js('document.querySelector("#pgState").textContent')));
 await call({action: 'limit', id: (await (await fetch(url + 'api/downloads')).json()).items[0].id, limitBytes: 0});
