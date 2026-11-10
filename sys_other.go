@@ -32,7 +32,7 @@ func runUI(url string, showWindow bool) {
 
 func showError(msg string) { fmt.Fprintln(os.Stderr, msg) }
 
-func notify(title, text string) { logf("notification: %s: %s", title, text) }
+func showBalloon(title, text string) { logf("notification: %s: %s", title, text) }
 
 func sysPower(kind string) { logf("power action %q is only done on Windows", kind) }
 
@@ -61,3 +61,6 @@ func sysRun(ctx context.Context, args []string) error {
 	}
 	return exec.CommandContext(ctx, args[0], args[1:]...).Run()
 }
+
+func autoStartGet() (bool, error) { return false, errors.New("only on Windows") }
+func autoStartSet(on bool) error  { return errors.New("only on Windows") }

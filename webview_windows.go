@@ -546,7 +546,7 @@ func mainProc(hwnd, msg, wp, lp uintptr) uintptr {
 		}
 		if !mw.hintShown && !closeHintSeen() {
 			mw.hintShown = true
-			notify(AppName+" is still running", "Downloads continue. Click the icon here to open the window again.")
+			showBalloon(AppName+" is still running", "Downloads continue. Click the icon here to open the window again.")
 		}
 		return 0
 	}

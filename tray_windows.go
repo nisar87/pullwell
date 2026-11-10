@@ -369,8 +369,8 @@ func trayLoop(ready chan struct{}) {
 	}
 }
 
-// notify shows a short notification next to the tray icon (toasts come in a later step).
-func notify(title, text string) {
+// showBalloon shows a short notification next to the tray icon.
+func showBalloon(title, text string) {
 	hwnd := trayWnd.Load()
 	if hwnd == 0 {
 		return

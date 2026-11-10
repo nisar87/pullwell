@@ -2,6 +2,11 @@
 
 ## 0.1.0 (not released)
 
+- **Start with Windows** (Options → General): one entry in the current user's startup list, no administrator rights,
+  no scheduled task. Pullwell then starts in the notification area. A copy started with its own data folder
+  (`-root`) refuses, so a test copy cannot replace the real one.
+- Notifications are grouped: downloads that finish within a few seconds of each other give one notification
+  ("4 downloads finished") instead of one each, and problems are shown separately.
 - **Browser extension** for Chrome, Edge, Brave and Firefox (from NetMerge, renamed): big downloads and "Download
   with Pullwell" from the right-click menu go to Pullwell; if Pullwell is not running the browser downloads as
   usual. The program carries the extension and offers it in **Options → Browser → Connect a browser**, with the

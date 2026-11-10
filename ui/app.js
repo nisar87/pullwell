@@ -514,7 +514,8 @@ const orow = (title, desc, ctl) => `<div class="dnsrow"><div><b>${title}</b>${de
 function optionsBody(tab){
   const c = DL.config;
   const num = (id, vals, v) => `<select class="sel" id="${id}">${vals.map(x => `<option${x == v ? ' selected' : ''}>${x}</option>`).join('')}</select>`;
-  if (tab === 'general') return orow('Save downloads in', 'New downloads go into a folder for their type (Videos, Programs …) when that is on.', `<div class="row" style="flex-wrap:nowrap"><input class="inp" id="dlDir" value="${esc(c.dir)}" style="width:250px" spellcheck="false"><button class="btn" id="dlDirSave">Save</button></div>`)
+  if (tab === 'general') return (APPCFG ? orow('Start with Windows', APPCFG.canAutostart ? `${esc(APP.name)} starts in the notification area when you sign in, so browser downloads are caught right away.` : `Not available for this copy of ${esc(APP.name)}.`, APPCFG.canAutostart ? tog('id="autoTog"', APPCFG.autostart, 'Start with Windows') : '') : '')
+    + orow('Save downloads in', 'New downloads go into a folder for their type (Videos, Programs …) when that is on.', `<div class="row" style="flex-wrap:nowrap"><input class="inp" id="dlDir" value="${esc(c.dir)}" style="width:250px" spellcheck="false"><button class="btn" id="dlDirSave">Save</button></div>`)
     + orow('Sort into folders by type', 'Videos, Programs, Documents and so on.', tog('id="dlCatTog"', c.useCategories, 'Sort into folders'))
     + orow('Folders for types and websites', 'Send Videos to one folder, or everything from one website into its own folder.', `<button class="btn" data-dm="folders">Choose folders…</button>`)
     + orow('If a file with that name is already there', '', `<select class="sel" data-cfg="onExists">${[['rename','Keep both'],['overwrite','Replace the old file'],['skip','Skip the download']].map(o => `<option value="${o[0]}"${(c.onExists || 'rename') === o[0] ? ' selected' : ''}>${o[1]}</option>`).join('')}</select>`)
@@ -542,7 +543,10 @@ function optionsBody(tab){
     + orow('Your list', 'Save the list of downloads to a file, or load one (also a text file with one link per line).', `<div class="row" style="flex-wrap:nowrap"><button class="btn" data-dm="export">Save list…</button><button class="btn" data-dm="import">Load list…</button></div>`)
     + orow('About', `${esc(APP.name)} ${esc(APP.version)}. No telemetry: it contacts only the sites you download from.`, '');
 }
+let APPCFG = null; // {autostart, canAutostart}
+async function loadAppCfg(){ try { APPCFG = await api('app'); } catch(e){ APPCFG = null; } }
 function showOptions(tab){
+  if (!APPCFG && !showOptions.asked) { showOptions.asked = true; loadAppCfg().then(() => { if (optTab && $('.opt')) showOptions(optTab); }); }
   optTab = tab || optTab || 'general';
   const keepFocus = document.activeElement && document.activeElement.id;
   dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Options" style="max-width:720px;padding-bottom:12px"><div class="row"><h3 style="flex:1">Options</h3><button class="btn" id="optClose">Close</button></div>
@@ -597,6 +601,7 @@ document.addEventListener('click', async e => {
   if (t.id === 'dlWinTog') return dlAct({action:'config', config: {...DL.config, window: {...DL.config.window, enabled: !DL.config.window.enabled}}});
   if (t.id === 'dlForget') return dlAct({action:'forgetHosts'}, 'Forgotten');
   if (t.id === 'extCode') return extConnect();
+  if (t.id === 'autoTog') { try { APPCFG = await api('app', {autostart: !APPCFG.autostart}); toast(APPCFG.autostart ? 'Starts with Windows' : 'Does not start with Windows'); } catch(err){ toast(err.message, true); await loadAppCfg(); } return showOptions('general'); }
   if (t.id === 'extOn') return dlAct({action:'extConfig', extMinMB: DL.ext.minMB, extOff: DL.ext.enabled});
   if (t.dataset.extrm) { const r = await askBox({title:'Disconnect this browser?', text:'Its extension stops sending downloads until you connect it again.', ok:'Disconnect'}); if (r.ok) { await dlAct({action:'extRevoke', id: t.dataset.extrm}, 'Disconnected'); showOptions('browser'); } return; }
 });

@@ -34,6 +34,7 @@ func main() {
 	}
 
 	dir := *root
+	customRoot = dir != ""
 	if dir == "" {
 		exe, err := os.Executable()
 		if err != nil {

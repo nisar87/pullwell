@@ -1,0 +1,54 @@
+package main
+
+// The engine's notifications go through the grouper (notify_group.go): finished downloads and problems are
+// collected for a few seconds and shown as one notification each.
+
+import (
+	"strings"
+	"sync"
+	"time"
+)
+
+var (
+	grouper     = newNoticeGrouper()
+	grouperOnce sync.Once
+)
+
+// noticeKind recognises the engine's notification by its title (the titles are written in dm/dl_manager.go).
+func noticeKind(title, text string) string {
+	switch {
+	case title == "Download finished":
+		return "finished"
+	case title == "Download needs attention":
+		return "attention"
+	case title == "Checksum does not match":
+		return "checksum"
+	case title == "Downloads finished" && strings.Contains(strings.ToLower(text), "shut"):
+		return "shutdown"
+	case title == "Downloads finished":
+		return "allDone"
+	}
+	return "attention"
+}
+
+// notify is the engine's Host.Notify.
+func notify(title, text string) {
+	grouperOnce.Do(func() {
+		go func() {
+			for range time.Tick(time.Second) {
+				for _, t := range grouper.Due(time.Now()) {
+					showToast(t)
+				}
+			}
+		}()
+	})
+	n := Notice{Kind: noticeKind(title, text), Title: title, Text: text}
+	for _, t := range grouper.Add(n, time.Now()) {
+		showToast(t)
+	}
+}
+
+// showToast shows one notification as a tray balloon (real toasts with buttons come with the installer).
+func showToast(t toastSpec) {
+	showBalloon(t.Title, strings.Join(t.Lines, "\n"))
+}

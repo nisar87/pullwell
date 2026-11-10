@@ -80,6 +80,7 @@ func routes(port int, host func() string) (http.Handler, error) {
 	mux := http.NewServeMux()
 	dm.Routes(mux)
 	mux.HandleFunc("/extension/", extensionHandler)
+	mux.HandleFunc("/api/app", apiGuard(port)(appHandler))
 	static := http.FileServer(http.FS(sub))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
