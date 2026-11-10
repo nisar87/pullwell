@@ -13,6 +13,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"syscall"
 	"time"
@@ -234,8 +235,17 @@ func trayNotify(msg uintptr) {
 	}
 	t, _ := syscall.UTF16FromString(tip)
 	copy(nid.Tip[:127], t)
-	pShellNotifyIcon.Call(msg, uintptr(unsafe.Pointer(&nid)))
+	r, _, _ := pShellNotifyIcon.Call(msg, uintptr(unsafe.Pointer(&nid)))
+	if msg == nimAdd {
+		if r == 0 {
+			logf("tray: the icon could not be added")
+		} else {
+			trayShownOnce.Do(func() { logf("tray: icon shown") })
+		}
+	}
 }
+
+var trayShownOnce sync.Once
 
 func trayMenu(hwnd uintptr) {
 	menu, _, _ := pCreatePopupMenu.Call()

@@ -111,10 +111,15 @@ func uninstallLater(withData bool) error {
 	if exe == "" {
 		return errors.New("the program's own path is not known")
 	}
-	cmd := `cmd.exe /c ping -n 4 127.0.0.1 >nul & del /f /q "` + exe + `" "` + previousFile() + `"`
+	// Three tries, 3 seconds apart: quitting can take a few seconds (the engine saves its state), and a virus
+	// scanner can hold a file just long enough for one del or rmdir to fail. Failed deletions are repeated
+	// harmlessly; rmdir on a folder that is already gone only prints an error nobody sees.
+	step := ` & del /f /q "` + exe + `" "` + previousFile() + `"`
 	if withData {
-		cmd += ` & rmdir /s /q "` + filepath.Join(appRoot, "data") + `"`
+		step += ` & rmdir /s /q "` + filepath.Join(appRoot, "data") + `"`
 	}
+	wait := ` & ping -n 4 127.0.0.1 >nul`
+	cmd := `cmd.exe /c ping -n 4 127.0.0.1 >nul` + step + wait + step + wait + step
 	c := hiddenCmd(filepath.Join(os.Getenv("SystemRoot"), "System32", "cmd.exe"))
 	c.SysProcAttr.CmdLine = cmd
 	return c.Start()

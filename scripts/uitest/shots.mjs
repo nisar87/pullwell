@@ -87,6 +87,13 @@ await theme('light');
 for (const z of [0.9, 1.15, 1.3]) { await js(`store.set('zoom', ${z}); applyZoom()`); await sleep(600); await shot(`text-${Math.round(z * 100)}`); }
 await js(`store.set('zoom', 1); applyZoom()`);
 await js(`uiPrefs.dense = false; setUiPref('dense')`); await sleep(400); await shot('rows-compact'); await js(`setUiPref('dense')`);
+// high-DPI rendering: the page rasterised at a 150 % and 200 % display scale (the page's own layout is unchanged;
+// this exercises hairlines, badges and the flow line at the scales most Windows laptops use)
+for (const dpr of [1.5, 2]) {
+  await send('Emulation.setDeviceMetricsOverride', {width: 1280, height: 720, deviceScaleFactor: dpr, mobile: false});
+  await sleep(400); await shot(`scale-${Math.round(dpr * 100)}`);
+}
+await size(1280, 720);
 await js(`store.set('theme', 'auto')`);
 fs.writeFileSync(`${out}/shots.json`, JSON.stringify({shots, errors, fonts}, null, 2));
 console.log(`${shots.length} screenshots; script errors: ${errors.length ? errors.join(' | ') : 'none'}`);

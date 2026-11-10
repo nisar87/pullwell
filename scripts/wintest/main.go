@@ -81,6 +81,7 @@ func main() {
 	check("Start menu entry made at start", ok && exists(lnk), lnk)
 	cmd := regQuery(`HKCU\Software\Classes\`+scheme+`\shell\open\command`, "")
 	check(scheme+":// link registered for this program", strings.Contains(strings.ToLower(cmd), strings.ToLower(`\wintest\app\`+*name+`.exe" "%1"`)), cmd)
+	check("the tray icon is shown", waitFor(10*time.Second, func() bool { return logHas("tray: icon shown") }))
 
 	// ---- downloads ----
 	data := pattern(3 << 20)
@@ -93,6 +94,14 @@ func main() {
 		check("the checksum is confirmed", it["verify"] == "ok", it["verify"])
 		got, _ := os.ReadFile(it["path"].(string))
 		check("the file on disk is right", bytes.Equal(got, data), len(got))
+	}
+	// ---- the "download finished" notification ----
+	time.Sleep(3 * time.Second) // notices are grouped for a moment before they are shown
+	check("the finished download notifies without a crash", !logHas("recovered from a crash"))
+	if logHas("refused the toast") {
+		fmt.Println("INFO  Windows refused the real toast; the classic notification was used instead")
+	} else {
+		fmt.Println("INFO  the real toast was accepted by Windows")
 	}
 	post("api/downloads", map[string]any{"action": "add", "url": srv.URL + "/slow/12MB", "force": true})
 	it = waitItem(srv.URL+"/slow/12MB", "downloading", 15*time.Second)
@@ -225,13 +234,17 @@ func main() {
 	base = mainBase
 	check("the installed copy is still running", up())
 
+	// ---- nothing so far crashed a window or tray callback, and the tray icon never failed ----
+	check("no crash was recovered from", !logHas("recovered from a crash"))
+	check("the tray icon never failed", !logHas("tray: the icon could not be added"))
+
 	// ---- Uninstall ----
 	post("api/app", map[string]any{"autostart": true})
 	post("api/app", map[string]any{"uninstall": map[string]any{"data": true}})
 	ok = waitFor(30*time.Second, func() bool { return !exists(exe) })
 	check("Uninstall removes the program file", ok)
 	check("and the previous version", !exists(filepath.Join(dir, *name+"-previous.exe")))
-	check("and the data folder (when asked)", waitFor(10*time.Second, func() bool { return !exists(filepath.Join(dir, "data")) }))
+	check("and the data folder (when asked)", waitFor(25*time.Second, func() bool { return !exists(filepath.Join(dir, "data")) })) // deleted with retries: quitting saves state first, and a virus scanner can hold a file
 	check("and the Start menu entry", !exists(lnk))
 	check("and the startup entry", regQuery(`HKCU\Software\Microsoft\Windows\CurrentVersion\Run`, *name) == "")
 	check("and the link registration", regQuery(`HKCU\Software\Classes\`+scheme+`\shell\open\command`, "") == "")
