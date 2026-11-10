@@ -150,5 +150,47 @@ and 130 %, and with Compact rows. The dialogs reviewed were Add, File info, Rena
 confirmation, Queues, Grab links, Folders, Connect a browser, About, Keyboard shortcuts, Properties, Options and
 Progress.
 
-Not verified yet: rendering on Windows with Segoe UI Variable and Bahnschrift (the Linux screenshots use fallback
-fonts), and the Windows workflow (it runs only on a push, which needs the owner's approval).
+Windows workflow on the pull request (GitHub Actions, windows-latest): tests pass; program checks 56/56 pass,
+including 8 new checks for a separate copy running next to an installed one (see below).
+
+## Screenshots
+
+Taken in headless Chromium on Linux, so the fonts are fallbacks, not Segoe UI Variable and Bahnschrift.
+
+- [Before and after](redesign/before-after.png): main window light and dark, progress window, Downloads menu
+- [Main window, light](redesign/main-light.png) and [dark](redesign/main-dark.png), 1280×720
+- [Progress window](redesign/progress-light.png)
+- [Dialogs, light](redesign/dialogs-light.png) and [dark](redesign/dialogs-dark.png): file info, rename, move,
+  checksum, delete confirmation, queues, grab links, folders, connect a browser, about, keyboard shortcuts
+- [Text sizes](redesign/text-sizes.png): 90 %, 115 %, 130 % and the window at 980×560
+
+## Separate copy (added for testing the redesign safely)
+
+A file named `separate-copy` next to the program makes it behave as if it had been started with `-root` on its own
+folder: its own data folder, single-instance lock and port; it never changes the Start menu entry, the
+`pullwell://` link registration or Start with Windows (it can no longer switch the installed copy's entry off
+either). The window title, tray tip and top bar say "Separate copy". Before this, a plain second copy in another
+folder would have pointed the Start menu entry and the notification links at itself.
+
+## Status and known issues
+
+Done: design system, top bar, command bar, sidebar, list and flow line, progress window, row spacing, all dialogs
+restyled through the shared components, both themes, four text sizes, container-based toolbar collapse, separate
+copy, Windows checks.
+
+Open:
+
+1. Not yet looked at on Windows itself: real WebView2 with Segoe UI Variable and Bahnschrift, display scaling,
+   the progress animation, dialogs and both themes. The test copy is in place on the owner's PC; this is next.
+2. With large text in a narrow window the File name column is squeezed and the list scrolls sideways (the other
+   columns keep their widths; same as before the redesign).
+3. The part line folds the engine's part map by count, not by bytes, so parts of very different sizes are shown
+   approximately.
+4. The progress window shows the state twice (next to the percentage and in the Status row). Kept for now because
+   the Status row also carries error and retry details.
+5. Notifications from a separate copy use the classic balloon (its clicks cannot reach it through `pullwell://`,
+   which belongs to the installed copy). By design.
+6. From before the redesign: speed-limit labels round (250 KB/s shows as 256 KB/s); the classic notification cannot
+   be clicked on Windows 11 when the Start menu entry is off; the Firefox extension is only loaded temporarily.
+7. Test harness: `ext_check.mjs` needs its helper to stop the program when it prints STOP_PROGRAM; run without it,
+   its last check fails on any build.
