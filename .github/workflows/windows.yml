@@ -20,6 +20,8 @@ jobs:
       - run: go vet ./...
       - run: go test -count=1 .
       - run: go test -count=1 -timeout 30m ./dm/
+      - name: Stress the HLS tests (temporary, ci/stress-hls only)
+        run: go test -count=8 -timeout 35m -run 'TestHLS' ./dm/
   program:
     runs-on: windows-latest
     timeout-minutes: 20
