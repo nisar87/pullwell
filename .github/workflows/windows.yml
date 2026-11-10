@@ -1,14 +1,14 @@
 name: Windows
-# The program on a real Windows machine: the tests, then scripts/wintest drives the built program through its command
-# line and local API (single instance, links, Start with Windows, Start menu, pullwell:// link, self-update and
-# Go back, keeping the PC awake, a protected folder, Uninstall). No desktop is needed.
+# The program on a real Windows machine: the tests, and (in parallel) scripts/wintest, which drives the built program
+# through its command line and local API (single instance, links, Start with Windows, Start menu, pullwell:// link,
+# self-update and Go back, keeping the PC awake, a protected folder, Uninstall). No desktop is needed.
 on:
   push:
     branches: [main]
   pull_request:
   workflow_dispatch:
 jobs:
-  windows:
+  tests:
     runs-on: windows-latest
     timeout-minutes: 40
     steps:
@@ -16,12 +16,17 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - name: Vet
-        run: go vet ./...
-      - name: Tests (program)
-        run: go test -count=1 .
-      - name: Tests (download engine)
-        run: go test -count=1 -timeout 30m ./dm/
+      - run: go vet ./...
+      - run: go test -count=1 .
+      - run: go test -count=1 -timeout 30m ./dm/
+  program:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
       - name: Build two versions of the program
         shell: bash
         run: |
