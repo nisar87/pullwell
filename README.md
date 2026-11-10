@@ -47,7 +47,12 @@ downloads the file itself.
   sortable list. It works with the keyboard too: Alt or F10 opens the menus. **Help → Keyboard shortcuts** lists
   the shortcuts.
 - A progress window for each download, with speed, time left, connections and the parts of the file.
+- Windows notifications with **Open** and **Open folder** when a download finishes.
+- Rename a download (F2), a speed limit at a click on the status bar, and a proxy (the same as Windows, none, or
+  one you type, http or socks5).
+- The PC stays awake while something downloads (you can switch that off).
 - Optional: when you copy a link to a file anywhere in Windows, a notification offers to download it.
+- `Pullwell.exe <link>` adds a link from a script or another program.
 - With [NetMerge](https://github.com/nisar87/netmerge) running on the same PC, a download also uses all your
   internet connections. Pullwell doesn't need NetMerge.
 

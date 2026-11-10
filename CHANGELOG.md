@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1 (2026-11-10)
+
+- The "Download this?" offer for a copied link is a real Windows notification with a **Download…** button. The
+  classic notification used before could not be clicked on Windows 11.
+- README: the features added in 0.3 and 0.4.
+
 ## 0.4.0 (2026-11-10)
 
 - **Real Windows notifications.** "Download finished" now has **Open** and **Open folder** buttons, and a click on
