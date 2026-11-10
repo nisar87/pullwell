@@ -2,6 +2,15 @@
 
 ## 0.1.0 (not released)
 
+- **Menu bar** at the top of the window: Tasks (add a link, add with options, torrent file, grab links from a page,
+  load or save the list, quit), Downloads (open, open folder, resume, stop, download again, start/stop all, queue,
+  speed limit, copy link, properties, select all, delete), View (categories panel, toolbar labels, status bar,
+  columns, sort, show, theme, refresh), Tools (scheduler and queues, folders, options, connect a browser, open the
+  download or log folder) and Help (keyboard shortcuts, check for updates, about). It works as in other Windows
+  programs: Alt or F10 goes to it, Alt+T/D/V/O/H opens a menu, arrows move (also into submenus), Enter chooses,
+  Escape closes; with the mouse, moving across the titles switches menus. Entries that do not fit the selection are
+  greyed out. Columns can now be hidden, and **Download again** fetches a finished or failed file once more (the old
+  file is kept).
 - **Updates itself.** Install once; new versions are installed by Pullwell, which then restarts. Options → Updates
   shows the version, checks, installs, and can go back to the previous version. By default an update is installed
   by itself when nothing is downloading (unfinished downloads continue afterwards); it can be switched to "ask

@@ -118,6 +118,8 @@ const COLS = [
   {k:'info', t:'Description', w:200, sort: v => (v.err || v.note || ''), cell: v => `<td title="${esc(v.detail || '')}">${infoOf(v)}</td>`},
 ];
 let widths = store.get('widths', {});
+let hideCols = store.get('hideCols', []);           // columns switched off in View → Columns (never the name)
+const shownCols = () => COLS.filter(c => c.k === 'name' || !hideCols.includes(c.k));
 
 /* ---------- which rows are shown ---------- */
 function inView(v, vw){
@@ -162,12 +164,13 @@ const rowEls = new Map(); // id -> <tr>, kept between refreshes so clicks and do
 function renderTable(){
   const items = shownItems();
   visible = items.map(v => v.id);
-  const hk = JSON.stringify([sortBy, widths]);
+  const SC = shownCols();
+  const hk = JSON.stringify([sortBy, widths, hideCols]);
   if (hk !== headKey) {
     headKey = hk;
-    $('#cg').innerHTML = COLS.map(c => `<col style="width:${c.w ? (widths[c.k] || c.w) + 'px' : 'auto'}">`).join('');
-    $('#tbl').style.minWidth = COLS.reduce((a, c) => a + (c.w ? (widths[c.k] || c.w) : 170), 0) + 'px'; // the name keeps at least 170 px; narrower windows scroll sideways
-    $('#th').innerHTML = `<tr>${COLS.map(c => `<th data-sort="${c.k}"${c.r ? ' class="r"' : ''}>${c.t}${sortBy.c === c.k ? `<span class="ar">${sortBy.d > 0 ? '▲' : '▼'}</span>` : ''}</th>`).join('')}</tr>`;
+    $('#cg').innerHTML = SC.map(c => `<col style="width:${c.w ? (widths[c.k] || c.w) + 'px' : 'auto'}">`).join('');
+    $('#tbl').style.minWidth = SC.reduce((a, c) => a + (c.w ? (widths[c.k] || c.w) : 170), 0) + 'px'; // the name keeps at least 170 px; narrower windows scroll sideways
+    $('#th').innerHTML = `<tr>${SC.map(c => `<th data-sort="${c.k}"${c.r ? ' class="r"' : ''}>${c.t}${sortBy.c === c.k ? `<span class="ar">${sortBy.d > 0 ? '▲' : '▼'}</span>` : ''}</th>`).join('')}</tr>`;
   }
   const tb = $('#tb'), keep = new Set(visible);
   for (const [id, tr] of rowEls) if (!keep.has(id)) { tr.remove(); rowEls.delete(id); }
@@ -175,7 +178,7 @@ function renderTable(){
   for (const v of items) {
     let tr = rowEls.get(v.id);
     if (!tr) { tr = document.createElement('tr'); tr.dataset.id = v.id; rowEls.set(v.id, tr); }
-    const html = COLS.map(c => c.cell(v)).join('');
+    const html = SC.map(c => c.cell(v)).join('');
     if (tr.dataset.h !== html) { tr.dataset.h = html; tr.innerHTML = html; }
     const cls = (sel.has(v.id) ? 'sel' : '') + (cur === v.id ? ' cur' : '');
     if (tr.className !== cls) tr.className = cls;
@@ -283,10 +286,13 @@ async function openItem(v, folder){
 
 /* ---------- context menu ---------- */
 let menuEl = null;
-function closeMenu(){ if (menuEl) { menuEl.remove(); menuEl = null; } }
-function showMenu(x, y, entries){
+function closeMenu(){
+  if (menuEl) { menuEl.remove(); menuEl = null; }
+  $$('#menubar button.open').forEach(b => b.classList.remove('open'));
+}
+function showMenu(x, y, entries, drop){
   closeMenu();
-  const m = document.createElement('div'); m.className = 'ctx'; m.setAttribute('role', 'menu');
+  const m = document.createElement('div'); m.className = 'ctx' + (drop ? ' drop' : ''); m.setAttribute('role', 'menu');
   const build = (box, list) => list.forEach(e => {
     if (e === '-') { box.appendChild(document.createElement('hr')); return; }
     const b = document.createElement('button'); b.setAttribute('role', 'menuitem');
@@ -298,18 +304,19 @@ function showMenu(x, y, entries){
       const open = () => {
         m.querySelectorAll('.ctx.subm').forEach(s => s.remove()); m.querySelectorAll('button.open').forEach(o => o.classList.remove('open'));
         b.classList.add('open');
-        const s = document.createElement('div'); s.className = 'ctx subm'; build(s, e.sub); m.appendChild(s);
+        const s = document.createElement('div'); s.className = 'ctx subm'; s.setAttribute('role', 'menu'); s.opener = b; build(s, e.sub); m.appendChild(s);
         const r = b.getBoundingClientRect(); const sw = s.offsetWidth, sh = s.offsetHeight;
         s.style.left = (r.right + sw > innerWidth ? r.left - sw : r.right) + 'px'; s.style.top = Math.max(4, Math.min(r.top - 4, innerHeight - sh - 4)) + 'px';
       };
-      b.onmouseenter = open; b.onclick = ev => { ev.stopPropagation(); open(); };
+      b.onmouseenter = open; b.onclick = ev => { ev.stopPropagation(); open(); const f = m.querySelector('.ctx.subm button:not(:disabled)'); if (f) f.focus(); };
+      b.openSub = () => b.onclick({stopPropagation(){}});
     } else {
       b.onmouseenter = () => { m.querySelectorAll('.ctx.subm').forEach(s => { if (!s.contains(b)) s.remove(); }); };
       b.onclick = ev => { ev.stopPropagation(); closeMenu(); e.do(); };
     }
     box.appendChild(b);
   });
-  build(m, entries);
+  build(m, entries.filter((e, i, a) => !(e === '-' && (i === 0 || a[i - 1] === '-' || i === a.length - 1))));
   document.body.appendChild(m); menuEl = m;
   const w = m.offsetWidth, h = m.offsetHeight;
   m.style.left = Math.max(4, Math.min(x, innerWidth - w - 4)) + 'px'; m.style.top = Math.max(4, Math.min(y, innerHeight - h - 4)) + 'px';
@@ -351,6 +358,144 @@ function listMenu(x, y){
     {t:'Stop all', off: !DL.items.some(v => v.state === 'downloading' || v.state === 'queued'), do: () => dlAct({action:'pauseAll'})},
   ]);
 }
+/* ---------- menu bar ---------- */
+// The same commands as the toolbar, the right-click menu and the keyboard, grouped so everything can be found from
+// the top of the window. Each entry is built when its menu opens, so what is greyed out matches the selection.
+const BAR_KEYS = {t:'tasks', d:'downloads', v:'view', o:'tools', h:'help'};
+const barKey = e => { const k = BAR_KEYS[(e.code || '').replace(/^Key/, '').toLowerCase()] || BAR_KEYS[(e.key || '').toLowerCase()]; return k ? $(`#menubar [data-mb="${k}"]`) : null; };
+function barStep(b, d){ const bs = $$('#menubar button'); return bs[(bs.indexOf(b) + d + bs.length) % bs.length]; }
+function openBarMenu(b, focusFirst){
+  if (!b || !DL || $('#dlDlg')) return;
+  const r = b.getBoundingClientRect();
+  showMenu(r.left, r.bottom, BAR_MENUS[b.dataset.mb](), true);
+  b.classList.add('open');
+  if (!focusFirst && menuEl) { const f = menuEl.querySelector('button:focus'); if (f) f.blur(); }
+}
+let uiPrefs = Object.assign({side: true, labels: true, status: true}, store.get('ui', {}));
+function applyUiPrefs(){
+  document.body.classList.toggle('noside', !uiPrefs.side);
+  document.body.classList.toggle('notb', !uiPrefs.labels);
+  document.body.classList.toggle('nosb', !uiPrefs.status);
+}
+function setUiPref(k){ uiPrefs[k] = !uiPrefs[k]; store.set('ui', uiPrefs); applyUiPrefs(); }
+const busy = () => DL.items.filter(v => v.state === 'downloading').length;
+async function command(c){
+  if (!DL) return;
+  switch (c) {
+    case 'add': return addDialog('');
+    case 'resume': return doResume();
+    case 'stop': return doStop();
+    case 'stopall': return dlAct({action:'pauseAll'}, 'All stopped');
+    case 'startall': return dlAct({action:'resumeAll'}, 'All started');
+    case 'del': return doDelete(false);
+    case 'delfin': { const n = DL.items.filter(v => v.state === 'done').length; const r = await askBox({title:`Remove ${n} finished download${n === 1 ? '' : 's'} from the list?`, text:'The files stay on your disk.', ok:'Remove'}); if (r.ok) dlAct({action:'clear'}, 'Finished downloads removed'); return; }
+    case 'queues': return dlQueues();
+    case 'grab': return dlGrab();
+    case 'opts': return showOptions('general');
+  }
+}
+async function openFolder(which){ try { await api('app', {open: which}); } catch(e){ toast(e.message, true); } }
+async function quitApp(){
+  const n = busy();
+  const r = await askBox({title:`Quit ${APP.name}?`, text: (n ? `${n} download${n === 1 ? ' stops' : 's stop'} and continue${n === 1 ? 's' : ''} the next time you start ${APP.name}. ` : '') + 'Downloads from the browser are not caught while it is closed.', ok:'Quit'});
+  if (!r.ok) return;
+  try { await api('app', {quit: true}); } catch(e){ return toast(e.message, true); }
+  document.body.innerHTML = `<div class="empty" style="padding-top:20vh">${esc(APP.name)} has been closed. You can close this window.</div>`;
+}
+const canRedo = v => (v.state === 'done' || v.state === 'error') && /^(https?|ftp):\/\/|^magnet:/i.test(v.url || '');
+async function redownload(){
+  const s = selectedItems().filter(canRedo); if (!s.length) return;
+  const r = await askBox({title: s.length === 1 ? `Download "${s[0].name || s[0].url}" again?` : `Download ${s.length} files again?`, text:'The file you already have is kept; the new copy gets a number added to its name if the name is taken.', ok:'Download again'});
+  if (!r.ok) return;
+  let n = 0;
+  for (const v of s) { try { await api('downloads', {action:'add', url: v.url, force: true, start: true, ...(v.name && v.kind !== 'torrent' ? {name: v.name} : {})}); n++; } catch(e){ toast(e.message, true); } }
+  await loadDL(); if (n) toast(n === 1 ? 'Downloading again' : `${n} downloading again`);
+}
+function shortcutsBox(){
+  const K = [['Ctrl+N or Insert','Add a download'],['Ctrl+V','Add the link you copied'],['Enter','Open the file (or its details, when not finished)'],['Alt+Enter','Properties'],['Space','Stop or resume'],['Delete','Delete from the list'],['Shift+Delete','Delete with the file'],['Ctrl+A','Select all'],['↑ ↓ Home End','Move in the list (Shift: select)'],['Ctrl+F','Search'],['F5','Refresh'],['Alt or F10','Menu bar (then arrows, Enter, Escape)'],['Alt+T, D, V, O, H','Open Tasks, Downloads, View, Tools, Help'],['Shift+F10','Menu for the selected downloads'],['Escape','Close a dialog or menu; clear the selection']];
+  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts" style="max-width:520px"><h3>Keyboard shortcuts</h3>
+    <div class="keys-tbl">${K.map(k => `<kbd>${esc(k[0])}</kbd><span>${esc(k[1])}</span>`).join('')}</div>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn pri" id="kbOk" autofocus>Close</button></div></div>`);
+  $('#kbOk').onclick = dlClose;
+}
+function aboutBox(){
+  const u = UPD || {};
+  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="About" style="max-width:440px"><h3>${esc(APP.name)}</h3>
+    <div class="hint2 selectable" style="margin-top:4px">Version ${esc(APP.version)}${APP.build && APP.build !== 'dev' ? ' (build ' + esc(APP.build.slice(0, 7)) + ')' : ''}${u.available ? ` · <b>${esc(u.latest)} is ready</b>` : ''}</div>
+    <p class="hint2" style="margin:10px 0 0">A download manager for Windows. No telemetry and no account: it contacts only the sites you download from, and GitHub to look for updates.</p>
+    ${APP.repo ? `<p class="hint2" style="margin:8px 0 0">Source code and releases: <a href="https://github.com/${esc(APP.repo)}" target="_blank" rel="noopener">github.com/${esc(APP.repo)}</a></p>` : ''}
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn pri" id="abOk" autofocus>Close</button></div></div>`);
+  $('#abOk').onclick = dlClose;
+}
+const limitLabel = l => l ? (l < 1 ? l * 1000 + ' KB/s' : l + ' MB/s') : 'No limit';
+const BAR_MENUS = {
+  tasks: () => [
+    {t:'Add URL…', k:'Ctrl+N', do: () => addDialog('')},
+    {t:'Add with options…', do: () => dlOptions()},
+    {t:'Add a torrent file…', do: pickTorrent},
+    '-',
+    {t:'Grab links from a web page…', do: () => dlGrab()},
+    '-',
+    {t:'Load a list…', do: () => dlImport()},
+    {t:'Save the list…', off: !DL.items.length, do: () => dlExport()},
+    '-',
+    {t:'Quit ' + APP.name, do: quitApp},
+  ],
+  downloads: () => {
+    const s = selectedItems(), one = s.length === 1 ? s[0] : null, any = f => s.some(f);
+    const qs = [{id:'', name:'Main queue'}].concat(DL.config.queues || []);
+    const curQ = one ? (one.queue || '') : null, curLim = one ? one.limit || 0 : -1;
+    return [
+      {t:'Open', k:'Enter', off: !(one && one.state === 'done'), do: () => openItem(one)},
+      {t:'Open folder', off: !(one && one.path), do: () => openItem(one, true)},
+      '-',
+      {t:'Resume', k:'Space', off: !any(v => v.state === 'paused' || v.state === 'error'), do: doResume},
+      {t:'Stop', k:'Space', off: !any(v => v.state === 'downloading' || v.state === 'queued'), do: doStop},
+      {t:'Download again', off: !any(canRedo), do: redownload},
+      '-',
+      {t:'Start all', off: !DL.items.some(v => v.state === 'paused' || v.state === 'error'), do: () => command('startall')},
+      {t:'Stop all', off: !DL.items.some(v => v.state === 'downloading' || v.state === 'queued'), do: () => command('stopall')},
+      '-',
+      {t:'Queue', off: !any(v => v.state !== 'done'), sub: qs.map(qq => ({t: qq.name, chk: curQ === qq.id, do: () => eachSel('setQueue', {queue: qq.id}, 'Moved')}))},
+      {t:'Speed limit', off: !any(v => v.state !== 'done'), sub: LIMITS.map(l => ({t: limitLabel(l), chk: Math.abs(curLim - l * 1048576) < 1, do: () => eachSel('limit', {limitBytes: l * 1048576}, l ? 'Limit set' : 'Limit removed')}))},
+      {t:'Copy link', off: !s.length, do: () => copyText(s.map(v => v.url).join('\n'), s.length > 1 ? 'Links copied' : 'Link copied')},
+      {t:'Properties', k:'Alt+Enter', off: !one, do: () => dlProps(one.id)},
+      '-',
+      {t:'Select all', k:'Ctrl+A', off: !visible.length, do: () => { visible.forEach(id => sel.add(id)); render(); }},
+      {t:'Delete', k:'Del', off: !s.length, do: () => doDelete(false)},
+      {t:'Delete with file', k:'Shift+Del', off: !any(v => v.state === 'done'), do: () => doDelete(true)},
+      {t:'Delete completed', off: !DL.items.some(v => v.state === 'done'), do: () => command('delfin')},
+    ];
+  },
+  view: () => [
+    {t:'Categories panel', chk: uiPrefs.side, do: () => setUiPref('side')},
+    {t:'Toolbar labels', chk: uiPrefs.labels, do: () => setUiPref('labels')},
+    {t:'Status bar', chk: uiPrefs.status, do: () => setUiPref('status')},
+    '-',
+    {t:'Columns', sub: COLS.filter(c => c.k !== 'name').map(c => ({t: c.t, chk: !hideCols.includes(c.k), do: () => { hideCols = hideCols.includes(c.k) ? hideCols.filter(x => x !== c.k) : hideCols.concat(c.k); store.set('hideCols', hideCols); render(); }}))
+      .concat(['-', {t:'Reset widths', do: () => { widths = {}; store.set('widths', widths); headKey = ''; render(); }}])},
+    {t:'Sort by', sub: [{k:'order', t:'Queue order'}].concat(COLS).map(c => ({t: c.t, chk: sortBy.c === c.k, do: () => { sortBy = {c: c.k, d: sortBy.c === c.k ? -sortBy.d : 1}; store.set('sort', sortBy); render(); }}))},
+    {t:'Show', sub: [[{k:'all'},'All downloads'],[{k:'unfinished'},'Unfinished'],[{k:'finished'},'Finished'],[{k:'errors'},'Needs attention']].map(([vw, t]) => ({t, chk: view.k === vw.k, do: () => { view = vw; store.set('view', view); sel.clear(); cur = null; render(); }}))},
+    {t:'Theme', sub: [['auto','Same as Windows'],['light','Light'],['dark','Dark']].map(([k, t]) => ({t, chk: store.get('theme', 'auto') === k, do: () => { store.set('theme', k); applyTheme(); }}))},
+    '-',
+    {t:'Refresh', k:'F5', do: () => loadDL()},
+  ],
+  tools: () => [
+    {t:'Scheduler and queues…', do: () => dlQueues()},
+    {t:'Folders for types and websites…', do: () => dlFolders()},
+    {t:'Options…', do: () => showOptions('general')},
+    '-',
+    {t:'Connect a browser…', do: extConnect},
+    '-',
+    {t:'Open the download folder', do: () => openFolder('downloads')},
+    {t:'Open the log folder', do: () => openFolder('log')},
+  ],
+  help: () => [
+    {t:'Keyboard shortcuts', do: shortcutsBox},
+    {t:'Check for updates', do: () => { showOptions('updates'); updAction({action:'check'}, null); }},
+    {t:'About ' + APP.name, do: aboutBox},
+  ],
+};
 async function copyText(t, msg){
   try { await navigator.clipboard.writeText(t); toast(msg); }
   catch(e){ const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); try { document.execCommand('copy'); toast(msg); } catch(e2){ toast('Could not copy', true); } a.remove(); }
@@ -599,6 +744,8 @@ async function updAction(body, msg){
 
 /* ---------- events ---------- */
 document.addEventListener('click', async e => {
+  const mbb = e.target.closest('#menubar button');
+  if (mbb) { if (mbb.classList.contains('open')) { closeMenu(); return; } return openBarMenu(mbb, e.detail === 0); }
   if (menuEl && !menuEl.contains(e.target)) closeMenu();
   const t = e.target.closest('button, th, [data-view]'); if (!t) return;
   if (t.dataset.view) { view = JSON.parse(t.dataset.view); store.set('view', view); sel.clear(); cur = null; return render(); }
@@ -610,16 +757,7 @@ document.addEventListener('click', async e => {
   if (t.id === 'updAuto') return updAction({action:'settings', auto: !(UPD && UPD.auto)}, null);
   if (t.id === 'updBack') { const r = await askBox({title:'Go back to the previous version?', text:`${APP.name} restarts with the version you had before. Downloads continue afterwards.`, ok:'Go back'}); if (r.ok) updAction({action:'rollback'}, 'Going back…'); return; }
   const tb = t.dataset.tb;
-  if (tb === 'add') return addDialog('');
-  if (tb === 'resume') return doResume();
-  if (tb === 'stop') return doStop();
-  if (tb === 'stopall') return dlAct({action:'pauseAll'}, 'All stopped');
-  if (tb === 'startall') return dlAct({action:'resumeAll'}, 'All started');
-  if (tb === 'del') return doDelete(false);
-  if (tb === 'delfin') { const n = DL.items.filter(v => v.state === 'done').length; const r = await askBox({title:`Remove ${n} finished download${n === 1 ? '' : 's'} from the list?`, text:'The files stay on your disk.', ok:'Remove'}); if (r.ok) dlAct({action:'clear'}, 'Finished downloads removed'); return; }
-  if (tb === 'queues') return dlQueues();
-  if (tb === 'grab') return dlGrab();
-  if (tb === 'opts') return showOptions('general');
+  if (tb) return command(tb);
   // options controls
   if (t.id === 'dlDirSave') return dlAct({action:'config', config: {...DL.config, dir: $('#dlDir').value.trim()}}, 'Folder saved');
   if (t.id === 'dlCatTog') return dlAct({action:'config', config: {...DL.config, useCategories: !DL.config.useCategories}});
@@ -679,20 +817,47 @@ document.addEventListener('pointermove', e => {
   if (th) th.style.cursor = th.getBoundingClientRect().right - e.clientX <= 5 && COLS.find(c => c.k === th.dataset.sort).w ? 'col-resize' : '';
   if (!resize) return;
   widths[resize.col.k] = Math.max(40, Math.min(600, Math.round(resize.w + e.clientX - resize.x)));
-  const i = COLS.indexOf(resize.col); const col = $$('#tbl col')[i]; if (col) col.style.width = widths[resize.col.k] + 'px';
+  const i = shownCols().indexOf(resize.col); const col = $$('#tbl col')[i]; if (col) col.style.width = widths[resize.col.k] + 'px';
 });
 document.addEventListener('pointerup', () => { if (!resize) return; store.set('widths', widths); const th = resize.th; resize = null; setTimeout(() => { delete th.dataset.resizing; headKey = ''; }, 0); });
 
 // keyboard
 document.addEventListener('keydown', e => {
   if (menuEl) {
-    if (e.key === 'Escape') { e.preventDefault(); closeMenu(); return; }
-    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-      e.preventDefault(); const bs = [...menuEl.querySelectorAll(':scope > button:not(:disabled)')]; const i = bs.indexOf(document.activeElement);
-      (bs[(i + (e.key === 'ArrowDown' ? 1 : -1) + bs.length) % bs.length] || bs[0]).focus(); return;
+    const subm = document.activeElement && document.activeElement.closest('.ctx.subm');
+    const box = subm || menuEl;
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      if (subm) { const o = subm.opener; subm.remove(); o.classList.remove('open'); o.focus(); return; }
+      const mb = $('#menubar button.open'); closeMenu(); if (mb) mb.focus(); return;
     }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Home' || e.key === 'End') {
+      e.preventDefault(); const bs = [...box.querySelectorAll(':scope > button:not(:disabled)')]; if (!bs.length) return; const i = bs.indexOf(document.activeElement);
+      const n = e.key === 'Home' ? 0 : e.key === 'End' ? bs.length - 1 : (i + (e.key === 'ArrowDown' ? 1 : -1) + bs.length) % bs.length;
+      (bs[n] || bs[0]).focus(); return;
+    }
+    if (e.key === 'ArrowRight' && document.activeElement && document.activeElement.openSub && !subm) { e.preventDefault(); document.activeElement.openSub(); return; }
+    if (e.key === 'ArrowLeft' && subm) { e.preventDefault(); const o = subm.opener; subm.remove(); o.classList.remove('open'); o.focus(); return; }
+    const mb = $('#menubar button.open');
+    if (mb && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) { e.preventDefault(); return openBarMenu(barStep(mb, e.key === 'ArrowRight' ? 1 : -1), true); }
+    if (mb && e.key.length === 1 && e.key !== ' ' && !e.ctrlKey && !e.altKey) { // a letter jumps to the first entry starting with it
+      const bs = [...box.querySelectorAll(':scope > button:not(:disabled)')], i = bs.indexOf(document.activeElement), ch = e.key.toLowerCase();
+      const hit = bs.slice(i + 1).concat(bs.slice(0, i + 1)).find(b => b.textContent.trim().toLowerCase().startsWith(ch));
+      if (hit) { e.preventDefault(); hit.focus(); }
+      return;
+    }
+    if (e.altKey && barKey(e)) { e.preventDefault(); return openBarMenu(barKey(e), true); }
     return;
   }
+  if (document.activeElement && document.activeElement.closest('#menubar')) {
+    const b = document.activeElement.closest('button');
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); barStep(b, e.key === 'ArrowRight' ? 1 : -1).focus(); return; }
+    if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') { e.preventDefault(); return openBarMenu(b, true); }
+    if (e.key === 'Escape') { e.preventDefault(); b.blur(); $('#menubar').classList.remove('keys'); return; }
+    const hit = BAR_KEYS[e.key.toLowerCase()]; if (hit && !e.ctrlKey) { e.preventDefault(); return openBarMenu($(`#menubar [data-mb="${hit}"]`), true); }
+  }
+  if (e.altKey && !e.ctrlKey && barKey(e)) { e.preventDefault(); return openBarMenu(barKey(e), true); }
+  if (e.key === 'F10' && !e.shiftKey) { e.preventDefault(); $('#menubar').classList.add('keys'); $('#menubar button').focus(); return; }
   if ($('#dlDlg')) return;
   const tag = (e.target.tagName || '').toLowerCase(), typing = tag === 'input' || tag === 'textarea' || tag === 'select';
   const k = e.key, ctrl = e.ctrlKey || e.metaKey;
@@ -716,6 +881,18 @@ document.addEventListener('keydown', e => {
     return rowMenu(r.left + 40, r.bottom);
   }
 });
+let altAlone = false;
+document.addEventListener('keydown', e => { altAlone = e.key === 'Alt' && !e.repeat ? true : (e.key === 'Alt' ? altAlone : false); if (e.altKey) $('#menubar').classList.add('keys'); }, true);
+document.addEventListener('keyup', e => {
+  if (e.key !== 'Alt') return;
+  $('#menubar').classList.toggle('keys', false);
+  if (!altAlone || $('#dlDlg')) return; altAlone = false; e.preventDefault();
+  if (menuEl) return closeMenu();
+  const inBar = document.activeElement && document.activeElement.closest('#menubar');
+  if (inBar) { document.activeElement.blur(); return; }
+  $('#menubar').classList.add('keys'); $('#menubar button').focus();
+});
+document.addEventListener('mousedown', () => { altAlone = false; }, true);
 // Ctrl+V anywhere outside a text box: add the link
 document.addEventListener('paste', e => {
   if ($('#dlDlg')) return;
@@ -738,12 +915,14 @@ window.addEventListener('drop', async e => {
   const links = linksIn(text).filter(s => /^(https?|ftp):\/\/|^magnet:/i.test(s));
   if (links.length) addDialog(links.join('\n'));
 });
+document.addEventListener('mouseover', e => { const b = e.target.closest('#menubar button'); if (b && menuEl && $('#menubar button.open') && !b.classList.contains('open')) openBarMenu(b, false); });
 window.addEventListener('blur', closeMenu);
 window.addEventListener('resize', closeMenu);
 
 /* ---------- theme and start ---------- */
 function applyTheme(){ const t = store.get('theme', 'auto'); if (t === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t; }
 applyTheme();
+applyUiPrefs();
 if (APP.host === 'browser') setTimeout(() => toast(`${APP.name} is shown in your browser. Closing this tab does not stop downloads.`), 800);
 $('#search').value = '';
 loadDL();

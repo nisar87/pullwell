@@ -35,7 +35,20 @@ input,textarea,.sel,.dnsrow .d,.hint2,code,.selectable{user-select:text}
 [hidden]{display:none!important}
 code{font-family:var(--mono);font-size:.92em;background:var(--inset);padding:0 4px;border-radius:4px}
 
-#app{display:grid;grid-template-rows:auto auto 1fr auto;height:100vh}
+#app{display:grid;grid-template-rows:auto auto auto 1fr auto;height:100vh}
+
+/* ---------- menu bar ---------- */
+.mb{display:flex;gap:1px;padding:1px 4px;background:var(--panel);border-bottom:1px solid var(--line)}
+.mb button{padding:3px 9px;border:0;border-radius:4px;background:none;color:var(--text);font-size:12.5px}
+.mb button u{text-decoration:none}
+.mb.keys button u{text-decoration:underline}
+.mb button:hover,.mb button.open,.mb button:focus-visible{background:var(--sel);outline:none}
+.ctx.drop{border-top-left-radius:0}
+.notb .tb .tbtn{min-width:34px;font-size:0;gap:0}
+.noside .body{grid-template-columns:0 1fr} .noside .side{display:none}
+.nosb #status{display:none}
+.keys-tbl{display:grid;grid-template-columns:auto 1fr;gap:4px 18px;margin-top:8px}
+.keys-tbl kbd{font:12px var(--mono);padding:1px 6px;border:1px solid var(--line2);border-bottom-width:2px;border-radius:4px;background:var(--inset);white-space:nowrap;justify-self:start}
 
 /* ---------- toolbar ---------- */
 .tb{display:flex;align-items:stretch;gap:2px;padding:4px 6px;overflow:hidden;background:var(--panel);border-bottom:1px solid var(--line)}

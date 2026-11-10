@@ -9,6 +9,13 @@
 </head>
 <body>
 <div id="app">
+  <nav class="mb" id="menubar" role="menubar" aria-label="Menu">
+    <button role="menuitem" aria-haspopup="menu" data-mb="tasks"><u>T</u>asks</button>
+    <button role="menuitem" aria-haspopup="menu" data-mb="downloads"><u>D</u>ownloads</button>
+    <button role="menuitem" aria-haspopup="menu" data-mb="view"><u>V</u>iew</button>
+    <button role="menuitem" aria-haspopup="menu" data-mb="tools">T<u>o</u>ols</button>
+    <button role="menuitem" aria-haspopup="menu" data-mb="help"><u>H</u>elp</button>
+  </nav>
   <header class="tb" role="toolbar" aria-label="Commands">
     <button class="tbtn" data-tb="add" title="Add a download (Ctrl+N, or Ctrl+V with a link copied)"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add URL</button>
     <span class="sep"></span>
@@ -40,7 +47,7 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 // Set by the program when it serves this page.
-const APP = {name: '{{NAME}}', header: '{{HEADER}}', version: '{{VERSION}}', build: '{{BUILD}}', host: '{{HOST}}'};
+const APP = {name: '{{NAME}}', header: '{{HEADER}}', version: '{{VERSION}}', build: '{{BUILD}}', host: '{{HOST}}', repo: '{{REPO}}'};
 </script>
 <script src="downloads-more.js"></script>
 <script src="app.js"></script>

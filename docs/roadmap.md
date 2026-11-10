@@ -16,13 +16,13 @@ window checks, 8 extension tests, all green.
 
 | | Check | How |
 | --- | --- | --- |
-| ⬜ | Window opens, list, toolbar, dialogs, dark mode | screen |
-| ⬜ | A real download from the internet finishes with the right checksum | Go installer, published SHA-256 |
-| ⬜ | Close keeps it in the tray; tray click and a second start bring it back; no second icon | screen |
-| ⬜ | Open, Show in folder (Explorer comes to the front) | screen |
+| ✅ | Window opens, list, toolbar, dialogs, dark mode | screen |
+| ✅ | A real download from the internet finishes with the right checksum | Go installer, published SHA-256 |
+| ✅ | Close keeps it in the tray; tray click and a second start bring it back; no second icon | screen |
+| ✅ | Open, Show in folder (Explorer comes to the front) | screen |
 | ⬜ | Notification when a download finishes; grouped for several | screen |
 | ⬜ | Quit during a download, start again: it continues, not from 0 | screen + log |
-| ⬜ | **Self-update**: a dropped build installs by itself and restarts; Go back works | drop file + log |
+| 🟡 | **Self-update**: a dropped build installs by itself and restarts (✅ twice, 09:27 and 09:29); Go back works (to check) | drop file + log |
 | ⬜ | Start with Windows writes one startup entry and removes it again | Options + log |
 
 Gate: all rows ✅, or a bug found, fixed, released through the self-update and re-checked.
@@ -31,8 +31,8 @@ Gate: all rows ✅, or a bug found, fixed, released through the self-update and 
 
 | | Item |
 | --- | --- |
-| ⬜ | A menu bar above the toolbar: **Tasks** (Add URL, Add batch, Add torrent, Grabber, Import/Export list, Exit), **Downloads** (Resume, Stop, Stop all, Start all, Delete, Delete completed, Redownload, Properties, Queue, Speed limit), **View** (categories panel, toolbar labels, columns, theme, refresh), **Tools** (Scheduler, Options, Connect a browser, Open download folder, Open log), **Help** (Keyboard shortcuts, Check for updates, About) |
-| ⬜ | Works with the mouse and the keyboard (Alt opens it, arrows move, Enter chooses, Escape closes), shows shortcuts |
+| 🟡 | A menu bar above the toolbar: **Tasks** (Add URL, Add batch, Add torrent, Grabber, Import/Export list, Exit), **Downloads** (Resume, Stop, Stop all, Start all, Delete, Delete completed, Redownload, Properties, Queue, Speed limit), **View** (categories panel, toolbar labels, columns, theme, refresh), **Tools** (Scheduler, Options, Connect a browser, Open download folder, Open log), **Help** (Keyboard shortcuts, Check for updates, About) |
+| 🟡 | Works with the mouse and the keyboard (Alt opens it, arrows move, Enter chooses, Escape closes), shows shortcuts |
 | ⬜ | The design stays our own; IDM was only the reference for how things are found |
 
 Gate: automated window checks extended to the menus; seen on the PC.
@@ -43,10 +43,10 @@ Gate: automated window checks extended to the menus; seen on the PC.
 | --- | --- |
 | ⬜ | Browser extension tested in the owner's Chrome and Edge: big download taken over, right-click "Download with Pullwell", browser keeps the download when Pullwell is closed |
 | ⬜ | Live progress dialog for a download (speed, parts, connections, log), refreshing while open |
-| ⬜ | Redownload a finished or failed file; open the folder of any item |
+| 🟡 | Redownload a finished or failed file (Downloads → Download again); open the folder of any item |
 | ⬜ | Copied links: offer to add a link when one is copied (off by default, switch in Options) |
 | ⬜ | Plain-language messages for every failure (disk full, folder not writable, site refuses, login needed) checked against the engine's texts |
-| ⬜ | Keyboard shortcuts list (Help menu) |
+| 🟡 | Keyboard shortcuts list (Help menu) |
 
 ## Phase 4: looks like an installed program
 

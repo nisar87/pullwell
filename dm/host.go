@@ -340,3 +340,11 @@ func ResumeAll() {
 		safe("resume all", func() { dlMgr.forAll(func(id string) { _ = dlMgr.resume(id) }) })
 	}
 }
+
+// DownloadDir is the folder new downloads go to (the person's choice, or the default).
+func DownloadDir() string {
+	if Enabled() && dlMgr != nil {
+		return dlMgr.config().Dir
+	}
+	return defaultDlDir()
+}

@@ -101,6 +101,6 @@ func routes(port int, host func() string) (http.Handler, error) {
 // fillPage puts the product name and settings into the page. They come from appname.go, never from a request.
 func fillPage(page []byte, host string) []byte {
 	return []byte(strings.NewReplacer(
-		"{{NAME}}", AppName, "{{HEADER}}", appHeader, "{{VERSION}}", appVersion, "{{BUILD}}", appBuild, "{{HOST}}", host,
+		"{{NAME}}", AppName, "{{HEADER}}", appHeader, "{{VERSION}}", appVersion, "{{BUILD}}", appBuild, "{{HOST}}", host, "{{REPO}}", appRepo,
 	).Replace(string(page)))
 }
