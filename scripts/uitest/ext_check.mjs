@@ -23,6 +23,11 @@ check('the program hands out the extension', zip.length > 1000 && zip[0] === 0x5
 fs.rmSync(work, {recursive: true, force: true}); fs.mkdirSync(work + '/ext', {recursive: true});
 fs.writeFileSync(work + '/ext.zip', zip);
 execSync(`${process.platform === 'win32' ? 'python' : 'python3'} -c "import zipfile;zipfile.ZipFile('../ext.zip').extractall('.')"`, {cwd: work + '/ext'});
+// the button over videos only exists where the person allowed "all sites"; a browser test cannot click that permission
+// prompt, so the test copy of the extension has the permission from the start
+const mf = JSON.parse(fs.readFileSync(work + '/ext/manifest.json', 'utf8'));
+mf.host_permissions = [...(mf.host_permissions || []), '<all_urls>']; delete mf.optional_host_permissions;
+fs.writeFileSync(work + '/ext/manifest.json', JSON.stringify(mf, null, 2));
 const ctx = await chromium.launchPersistentContext(work + '/profile', {headless: true, channel: 'chromium', acceptDownloads: true,
   args: [`--disable-extensions-except=${work}/ext`, `--load-extension=${work}/ext`, '--host-resolver-rules=MAP files.example.test 127.0.0.1:8765']});
 let sw = ctx.serviceWorkers()[0] || await ctx.waitForEvent('serviceworker', {timeout: 10000});
@@ -40,6 +45,15 @@ const dl = await (await fetch(url + 'api/downloads')).json();
 check('the program lists the connected browser', JSON.stringify(dl).includes('Chrome'));
 await sw.evaluate(() => refresh()); await sleep(300);
 
+// the default: the program asks first (IDM-style "Download file info" box) and adds nothing until the person agrees
+const post = b => fetch(url + 'api/downloads', {method: 'POST', headers: H, body: JSON.stringify(b)}).then(r => r.json());
+const nA = (await items()).length; const pa = await ctx.newPage();
+await pa.setContent(`<a id="a" href="http://files.example.test/file/22MB">ask</a>`); await pa.click('#a'); await sleep(2500);
+const asked = await post({action: 'takeAsk'});
+check('a browser download waits for the person\'s yes', (await items()).length === nA && asked.ask && asked.ask.url.includes('/file/22MB'), JSON.stringify(asked.ask || {}).slice(0, 120));
+check('the box gets the browser\'s details (the page it came from)', !!(asked.ask && asked.ask.header && asked.ask.header.Referer !== undefined || asked.ask && asked.ask.header && asked.ask.header['User-Agent']), JSON.stringify(Object.keys((asked.ask && asked.ask.header) || {})));
+await pa.close();
+await post({action: 'extConfig', extMinMB: 5, extOff: false, extNoAsk: true}); // the checks below look at the direct hand-over
 // a big download is taken over
 const n0 = (await items()).length;
 const page = await ctx.newPage();
@@ -62,6 +76,18 @@ await pg2.close();
 await page.click('#small'); await sleep(2500);
 its = await items();
 check('a small download stays in the browser', !its.some(v => v.url.includes('/file/1MB') && v.url.includes('example.test')));
+// the small button over a video: it sends the video's link to the program
+const vpage = await ctx.newPage();
+await vpage.route('http://files.example.test/video-page', r => r.fulfill({contentType: 'text/html', body: `<body style="margin:0"><video id="v" controls src="http://files.example.test/file/23MB" style="width:480px;height:270px;display:block"></video></body>`}));
+await vpage.goto('http://files.example.test/video-page');
+await sleep(2500);
+await vpage.mouse.move(200, 120); await sleep(400); await vpage.mouse.move(210, 130); await sleep(600);
+const vb = await vpage.evaluate(() => { const h = [...document.documentElement.children].find(e => e.shadowRoot && e.shadowRoot.querySelector('button')); return h ? {shown: getComputedStyle(h).display !== 'none', text: h.shadowRoot.querySelector('button').textContent} : null; });
+check('a button appears over a video', !!vb && vb.shown && /Download with/.test(vb.text), JSON.stringify(vb));
+const nV = (await items()).length; const askQ0 = await post({action: 'extConfig', extMinMB: 5, extOff: false, extNoAsk: true});
+await vpage.evaluate(() => [...document.documentElement.children].find(e => e.shadowRoot && e.shadowRoot.querySelector('button')).shadowRoot.querySelector('button').click()); await sleep(2500);
+check('clicking it sends the video to the program', (await items()).length === nV + 1 && (await items()).some(v => v.url.includes('/file/23MB')));
+await vpage.close();
 // the right-click menu exists (clicking it is the same "send" as above)
 const menu = await sw.evaluate(() => new Promise(r => chrome.contextMenus.update('nm', {}, () => r(!chrome.runtime.lastError))));
 check('"Download with ..." is in the right-click menu', menu);

@@ -1043,6 +1043,7 @@ func TestBtRefusesTorrentsWhoseFilesCollide(t *testing.T) {
 
 func TestBrowserDuplicateLeavesAWorkingDownload(t *testing.T) {
 	m := newTestMgr(t, newSimEnv())
+	extNoAsk(t)
 	link := "http://example.com/big.zip"
 	first, err := m.add(dlAdd{URL: link, Start: new(bool)})
 	if err != nil {
@@ -1495,6 +1496,7 @@ func TestBrowserLinkIntoTheLocalNetworkIsRefusedUpFront(t *testing.T) {
 		return nil, errors.New("no such host")
 	}
 	m := newTestMgr(t, newSimEnv(newSimLine("A", "127.0.0.1", 0)))
+	extNoAsk(t)
 	for _, bad := range []string{"http://192.168.1.5/a.zip", "http://127.0.0.1/a.zip", "http://nas/a.zip", "http://printer.local/a.zip",
 		"http://files.corp.example/a.zip", "http://mixed.example/a.zip"} {
 		if _, err := m.addFromBrowser(bad, "", "", "", ""); err == nil || !strings.Contains(err.Error(), "inside your own network") {

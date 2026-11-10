@@ -83,6 +83,23 @@ check('Check the checksum confirms a right one', (await items()).find(v => v.id 
 await js(`checksumBox(DL.items.find(v => v.url.endsWith('/file/150KB')))`); await sleep(200);
 await js(`document.querySelector('#ibVal').value = '${'0'.repeat(64)}'; document.querySelector('#ibYes').click()`); await sleep(1500);
 check('and flags a wrong one', (await items()).find(v => v.id === od.id).verify === 'bad');
+// a download the browser handed over: the "Download file info" box, with the browser's name and details
+await js(`openAsk({url: '${fx}/file/70KB', name: 'from-browser.bin', header: {Referer: 'https://site.example/', 'User-Agent': 'TestBrowser'}})`); await sleep(1500);
+check('a browser download opens the Download file info box', await js(`!!document.querySelector('#dlName') && document.querySelector('#dlName').value === 'from-browser.bin'`));
+check('and nothing was added yet', !(await items()).some(v => v.url.endsWith('/file/70KB')));
+await js(`document.querySelector('#dlGo').click()`); await sleep(2000);
+const fromBr = (await items()).find(v => v.url.endsWith('/file/70KB'));
+check('Start download adds it with the chosen name', !!fromBr && fromBr.name === 'from-browser.bin', fromBr && fromBr.name);
+// every dialog is one of four widths, and the Options window keeps its size on every tab
+const cardSize = async () => await js(`(() => { const c = document.querySelector('#dlDlg .card'); if (!c) return null; const r = c.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; })()`);
+const optSizes = [];
+for (const t of ['general', 'connection', 'schedule', 'browser', 'torrents', 'updates', 'advanced']) { await js(`showOptions('${t}')`); await sleep(300); optSizes.push((await cardSize()).join('x')); await js('dlClose()'); }
+check('the Options window is the same size on every tab', new Set(optSizes).size === 1, optSizes.join(' '));
+const widths = {};
+for (const [n, e] of [['add', `addDialog('')`], ['more', `dlOptions()`], ['props', `dlProps(DL.items[0].id)`], ['queues', `dlQueues()`], ['grab', `dlGrab()`], ['folders', `dlFolders()`], ['browser', `extConnect()`], ['about', `aboutBox()`], ['shortcuts', `shortcutsBox()`], ['rename', `renameBox(DL.items[0])`]]) {
+  await js(`void (${e}); 1`); await sleep(400); const z = await cardSize(); if (z) widths[n] = z[0]; await js('dlClose()');
+}
+check('dialogs use only four widths (440, 520, 600, 720)', Object.values(widths).every(w => [440, 520, 600, 720].includes(w)), JSON.stringify(widths));
 await js(`store.set('openDone', false)`);
 check('no script errors', errors.length === 0, errors.join(' ; '));
 console.log(results.join('\n')); console.log(`${results.filter(r => r.startsWith('PASS')).length}/${results.length} passed`);

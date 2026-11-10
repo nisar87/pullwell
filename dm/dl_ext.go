@@ -35,6 +35,7 @@ type extStore struct {
 	Browsers []extBrowser `json:"browsers"`
 	MinMB    int          `json:"minMB"`
 	Off      bool         `json:"off"`
+	NoAsk    bool         `json:"noAsk"` // false (the default): ask before a download from the browser starts
 	code     string
 	codeExp  time.Time
 	tries    int
@@ -150,13 +151,13 @@ func (s *extStore) revoke(id string) {
 	s.saveLocked()
 }
 
-func (s *extStore) setConfig(minMB int, off bool) error {
+func (s *extStore) setConfig(minMB int, off, noAsk bool) error {
 	if minMB < 0 || minMB > 100000 {
 		return errors.New("the minimum size must be between 0 and 100000 MB")
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.MinMB, s.Off = minMB, off
+	s.MinMB, s.Off, s.NoAsk = minMB, off, noAsk
 	s.saveLocked()
 	return nil
 }
@@ -168,7 +169,7 @@ func (s *extStore) view() map[string]any {
 	for _, b := range s.Browsers {
 		bs = append(bs, map[string]any{"id": b.ID, "name": b.Name, "created": b.Created, "lastSeen": b.LastSeen})
 	}
-	return map[string]any{"browsers": bs, "minMB": s.MinMB, "enabled": !s.Off}
+	return map[string]any{"browsers": bs, "minMB": s.MinMB, "enabled": !s.Off, "ask": !s.NoAsk}
 }
 
 func extOrigin(o string) bool {
@@ -293,6 +294,15 @@ func (m *dlManager) addFromBrowser(link, referrer, cookie, ua, name string) (map
 	if err := dlRefuseLocalTarget(link); err != nil {
 		return nil, err
 	}
+	if ext.asks() {
+		// Like IDM: the person sees the "Download file info" box first (a wrong click costs nothing). The browser's own
+		// download is cancelled once we answer ok, so the link waits here until the window takes it.
+		queueAsk(extAsk{URL: link, Name: name, Header: h})
+		if H.ShowWindow != nil {
+			go H.ShowWindow()
+		}
+		return map[string]any{"ok": true, "asked": true}, nil
+	}
 	a := dlAdd{URL: link, Header: h, Name: name, FromWeb: true}
 	it, err := m.add(a)
 	if errors.Is(err, errDlDuplicate) {
@@ -373,4 +383,47 @@ func dlRefuseLocalTarget(link string) error {
 		}
 	}
 	return nil
+}
+
+// extAsk is a browser download waiting for the person's yes: the window shows the "Download file info" box for it.
+type extAsk struct {
+	URL    string            `json:"url"`
+	Name   string            `json:"name"`
+	Header map[string]string `json:"header"`
+}
+
+var (
+	askMu sync.Mutex
+	askQ  []extAsk
+)
+
+func (s *extStore) asks() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return !s.NoAsk
+}
+
+func queueAsk(a extAsk) {
+	askMu.Lock()
+	defer askMu.Unlock()
+	for _, o := range askQ {
+		if o.URL == a.URL {
+			return
+		}
+	}
+	if len(askQ) < 50 {
+		askQ = append(askQ, a)
+	}
+}
+
+// takeAsk hands out the oldest waiting browser download, once.
+func takeAsk() *extAsk {
+	askMu.Lock()
+	defer askMu.Unlock()
+	if len(askQ) == 0 {
+		return nil
+	}
+	a := askQ[0]
+	askQ = askQ[1:]
+	return &a
 }

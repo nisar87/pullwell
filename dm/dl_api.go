@@ -24,6 +24,7 @@ type dlReq struct {
 	// Browser extension settings (actions "extCode", "extRevoke", "extConfig").
 	ExtMinMB int  `json:"extMinMB"`
 	ExtOff   bool `json:"extOff"`
+	ExtNoAsk bool `json:"extNoAsk"`
 	// Text is an exported list to import; Types are the file types the link grabber should keep.
 	Text  string   `json:"text"`
 	Types []string `json:"types"`
@@ -182,7 +183,12 @@ func (m *dlManager) handle(in dlReq) (map[string]any, error) {
 		ext.revoke(in.ID)
 		return nil, nil
 	case "extConfig":
-		return nil, ext.setConfig(in.ExtMinMB, in.ExtOff)
+		return nil, ext.setConfig(in.ExtMinMB, in.ExtOff, in.ExtNoAsk)
+	case "takeAsk":
+		if a := takeAsk(); a != nil {
+			return map[string]any{"ask": a}, nil
+		}
+		return map[string]any{}, nil
 	case "relink":
 		return nil, m.relink(in.ID, in.URL, in.Header)
 	case "setMirrors":

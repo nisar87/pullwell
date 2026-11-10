@@ -32,6 +32,7 @@ func setupEngine(root string, port int) {
 			logf("["+kind+"] "+format, a...)
 		},
 		Notify:           notify,
+		ShowWindow:       showMainWindow,
 		Power:            sysPower,
 		PowerCancel:      sysPowerCancel,
 		OpenPath:         sysOpenPath,

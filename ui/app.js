@@ -77,11 +77,24 @@ async function loadDL(){
   if (++addPolls % 2 === 0 || document.hasFocus()) checkPendingAdd();
 }
 let addPolls = 0, addChecking = false;
+// The headers (cookies, the page it came from) of a download the browser handed over: the box probes and adds with them.
+let askHdr = null;
+async function openAsk(a){
+  askHdr = a.header || null;
+  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Checking the link" style="max-width:600px"><h3>Checking the link…</h3><div class="hint2 selectable" style="margin-top:6px;word-break:break-all">${esc(a.url)}</div></div>`);
+  let p; try { p = await api('downloads', {action:'probe', url: a.url, header: askHdr}); } catch(e){ p = {ok: false, error: e.message}; }
+  if (!$('#dlDlg')) return;
+  p.info = Object.assign({}, p.info || {}); if (a.name) p.info.name = a.name;
+  showProbe(a.url, p);
+}
 // A link chosen from the "Download this?" notification waits in the program until the window asks for it.
 async function checkPendingAdd(){
   if (addChecking || $('#dlDlg')) return;
   addChecking = true;
-  try { const r = await api('app', {take: 'add'}); if (r && r.add) addDialog(r.add.trim());
+  try {
+    const k = DL.ext && DL.ext.browsers && DL.ext.browsers.length ? await api('downloads', {action: 'takeAsk'}) : null; // a download the browser handed over, waiting for a yes
+    if (k && k.ask) { openAsk(k.ask); return; }
+    const r = await api('app', {take: 'add'}); if (r && r.add) addDialog(r.add.trim());
     else if (r && r.view === 'complete') { // "show a finished download": its window, with Open and Open folder
       const top = DL.items.filter(v => v.state === 'done').sort((a, b) => (b.finished || 0) - (a.finished || 0))[0];
       if (top) { sel.clear(); sel.add(top.id); cur = top.id; render(); progressBox(top.id); }
@@ -422,7 +435,7 @@ function listMenu(x, y){
 const canRename = v => !!v && v.kind !== 'torrent' && (v.state === 'done' ? !!v.path : !v.path);
 function renameBox(v){
   if (!canRename(v)) return;
-  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Rename" style="max-width:480px"><h3>Rename</h3>
+  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Rename" style="max-width:520px"><h3>Rename</h3>
     <div class="hint2" style="margin:4px 0 8px">${v.state === 'done' ? 'The file is renamed in its folder.' : 'The download will be saved under this name.'}</div>
     <input class="inp" id="rnName" style="width:100%" spellcheck="false" value="${esc(v.name || '')}">
     <div class="row" style="justify-content:flex-end;gap:8px;margin-top:14px"><button class="btn" id="rnNo">Cancel</button><button class="btn pri" id="rnYes">Rename</button></div></div>`);
@@ -732,7 +745,7 @@ function askBox({title, text, ok = 'OK', danger = false, check = '', checked = f
 /* ---------- adding downloads ---------- */
 const linksIn = text => (text || '').split(/\s*[\r\n]+\s*/).map(s => s.trim()).filter(s => s);
 function addDialog(prefill){
-  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Add a download" style="max-width:560px"><h3>Add a download</h3>
+  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Add a download" style="max-width:600px"><h3>Add a download</h3>
     <div class="hint2" style="margin-bottom:8px">Paste a link (http, https, ftp or magnet). Several links: one per line. <code>file[001-050].jpg</code> adds a numbered series.</div>
     <textarea class="inp" id="addUrl" rows="3" style="width:100%" spellcheck="false" placeholder="https://…" autofocus>${esc(prefill || '')}</textarea>
     <div class="row" style="margin-top:12px"><button class="btn" id="addPaste">Paste</button><button class="btn" id="addTor">Torrent file…</button><button class="btn" id="addMore">More options…</button>
@@ -753,7 +766,8 @@ async function submitLinks(links){
     if (r) { dlClose(); toast(r.duplicate && !(r.added || []).length ? 'Already in your list' : `${(r.added || []).length} added` + (r.skipped ? `, ${r.skipped} already in your list` : '')); }
     return;
   }
-  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Checking the link"><h3>Checking the link…</h3><div class="hint2 selectable" style="margin-top:6px;word-break:break-all">${esc(links[0])}</div></div>`);
+  askHdr = null;
+  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Checking the link" style="max-width:600px"><h3>Checking the link…</h3><div class="hint2 selectable" style="margin-top:6px;word-break:break-all">${esc(links[0])}</div></div>`);
   let p; try { p = await api('downloads', {action:'probe', url: links[0]}); } catch(e){ dlClose(); return toast(e.message, true); }
   if (!$('#dlDlg')) return; // closed while checking
   showProbe(links[0], p);
@@ -767,7 +781,7 @@ function showProbe(link, p){
     : p.locked ? 'This website allows only one connection for this file.'
     : 'The file is split into parts and downloaded with several connections at once.';
   const size = hls ? 'Video stream · about ' + (p.hls.seconds < 90 ? Math.round(p.hls.seconds) + ' s' : Math.round(p.hls.seconds/60) + ' min') + (p.hls.quality ? ' · ' + esc(p.hls.quality) : '') : info.size > 0 ? bytes(info.size) : 'Size not known';
-  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Download file info" style="max-width:580px"><h3>Download file info</h3>
+  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Download file info" style="max-width:600px"><h3>Download file info</h3>
     <div class="hint2 selectable" style="word-break:break-all;margin-bottom:10px">${esc(link)}</div>
     ${fine ? '' : `<div class="note bad" style="margin-bottom:10px">${esc(p.error || 'The link could not be checked.')} You can still add it.</div>`}
     ${info.warning === 'html' ? '<div class="note warn" style="margin-bottom:10px"><b>This looks like a web page, not a file.</b> The site may want you to sign in first.</div>' : ''}
@@ -786,7 +800,7 @@ function showProbe(link, p){
       <label for="dlHash" class="hint2">Checksum</label><input class="inp" id="dlHash" placeholder="SHA-256, SHA-1 or MD5 from the website (optional)" spellcheck="false">
     </div></details>
     <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" id="dlCancel">Cancel</button><button class="btn" id="dlLater">Download later</button><button class="btn pri" id="dlGo">Start download</button></div></div>`);
-  if ($('#dlQual')) $('#dlQual').onchange = async e => { const h = +e.target.value; try { const q2 = await api('downloads', {action:'probe', url: link, height: h}); q2.height = h; showProbe(link, q2); } catch(err){ toast(err.message, true); } };
+  if ($('#dlQual')) $('#dlQual').onchange = async e => { const h = +e.target.value; try { const q2 = await api('downloads', {action:'probe', url: link, height: h, header: askHdr}); q2.height = h; showProbe(link, q2); } catch(err){ toast(err.message, true); } };
   $('#dlGo').onclick = () => confirmAdd(link, p, true);
   $('#dlLater').onclick = () => confirmAdd(link, p, false);
   $('#dlCancel').onclick = dlClose;
@@ -796,6 +810,7 @@ function showProbe(link, p){
 async function confirmAdd(link, p, start){
   const name = $('#dlName').value.trim(), folder = $('#dlFolder').value.trim();
   const body = {action:'add', url: link, start};
+  if (askHdr) body.header = askHdr;
   if (name) body.name = name;
   if (folder && folder !== p.dir) body.dir = folder;
   if (p.duplicate) body.force = true;
@@ -817,7 +832,7 @@ async function addTorrentFile(f){
   const torrent = btoa(bin);
   let p; try { p = await api('downloads', {action:'torrentInfo', torrent}); } catch(e){ return toast(e.message, true); }
   const fl = p.files || [];
-  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Add torrent" style="max-width:640px"><h3 style="word-break:break-all">${esc(p.name)}</h3>
+  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Add torrent" style="max-width:600px"><h3 style="word-break:break-all">${esc(p.name)}</h3>
     <div class="hint2" style="margin:2px 0 10px">${bytes(p.size)} · ${fl.length} file${fl.length === 1 ? '' : 's'}${p.private ? ' · private torrent' : ''}</div>
     ${p.duplicate ? '<div class="note warn" style="margin-bottom:10px"><b>This torrent is already in your list.</b></div>' : ''}
     ${fl.length > 1 ? `<div class="row" style="margin-bottom:6px"><label class="row" style="gap:6px"><input type="checkbox" id="tpAll" checked> All files</label><span class="hint2" id="tpSum"></span></div>` : ''}
@@ -875,6 +890,7 @@ function optionsBody(tab){
     const x = DL.ext || {browsers: [], minMB: 5, enabled: true}, bs = x.browsers || [];
     return orow('Take over downloads from the browser', `Big downloads in Chrome, Edge, Brave or Firefox go to ${esc(APP.name)} once the extension is connected. If ${esc(APP.name)} is not running, the browser downloads as usual.`, tog('id="extOn"', x.enabled, 'Take over browser downloads'))
       + orow('Only files bigger than', 'Smaller files are quicker to leave with the browser.', `<select class="sel" id="extMin">${[0,1,5,10,25,50,100].map(n => `<option value="${n}"${x.minMB === n ? ' selected' : ''}>${n ? n + ' MB' : 'Everything'}</option>`).join('')}</select>`)
+      + orow('Ask before a browser download starts', `Shows the “Download file info” box first, so a wrong click does not start a download. You can change the name and folder there.`, tog('id="extAsk"', x.ask !== false, 'Ask before a browser download starts'))
       + orow('Connected browsers', bs.length ? '' : 'None yet.', `<button class="btn pri" id="extCode">Connect a browser…</button>`)
       + bs.map(b => orow(esc(b.name || 'Browser'), `Connected ${when(b.created)}${b.lastSeen ? ' · last used ' + when(b.lastSeen) : ''}`, `<button class="btn" data-extrm="${esc(b.id)}">Disconnect</button>`)).join('');
   }
@@ -913,7 +929,7 @@ function afterChange(){ if (optTab && $('#dlDlg') && $('.opt')) showOptions(optT
 /* ---------- connecting a browser ---------- */
 async function extConnect(){
   let r; try { r = await api('downloads', {action:'extCode'}); } catch(e){ return toast(e.message, true); }
-  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Connect a browser" style="max-width:580px"><h3>Connect a browser</h3>
+  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Connect a browser" style="max-width:600px"><h3>Connect a browser</h3>
     <div class="hint2" style="margin-bottom:10px">The extension is not in the browser stores yet, so it is added by hand once (about a minute).</div>
     <ol class="hint2" style="margin:0 0 12px;padding-left:18px;display:grid;gap:8px">
       <li><b>Save the extension</b> (it goes into your download folder, which then opens): <button class="btn" data-saveext="chrome-edge">Chrome / Edge / Brave</button> <button class="btn" data-saveext="firefox">Firefox</button></li>
@@ -981,7 +997,7 @@ document.addEventListener('click', async e => {
   }
   if (t.id === 'clipTog') { try { await api('app', {clipboard: !APPCFG.clipboard}); APPCFG = await api('app'); toast(APPCFG.clipboard ? 'Copied links will be offered' : 'Copied links are not offered'); } catch(err){ toast(err.message, true); await loadAppCfg(); } return showOptions('general'); }
   if (t.id === 'autoTog') { try { APPCFG = await api('app', {autostart: !APPCFG.autostart}); toast(APPCFG.autostart ? 'Starts with Windows' : 'Does not start with Windows'); } catch(err){ toast(err.message, true); await loadAppCfg(); } return showOptions('general'); }
-  if (t.id === 'extOn') return dlAct({action:'extConfig', extMinMB: DL.ext.minMB, extOff: DL.ext.enabled});
+  if (t.id === 'extOn') return dlAct({action:'extConfig', extMinMB: DL.ext.minMB, extOff: DL.ext.enabled, extNoAsk: DL.ext.ask === false});
   if (t.dataset.extrm) { const r = await askBox({title:'Disconnect this browser?', text:'Its extension stops sending downloads until you connect it again.', ok:'Disconnect'}); if (r.ok) { await dlAct({action:'extRevoke', id: t.dataset.extrm}, 'Disconnected'); showOptions('browser'); } return; }
 });
 document.addEventListener('change', async e => {
@@ -995,7 +1011,8 @@ document.addEventListener('change', async e => {
     return;
   }
   if (t.id === 'updChannel') return updAction({action:'settings', channel: t.value}, null);
-  if (t.id === 'extMin') return dlAct({action:'extConfig', extMinMB: +t.value, extOff: !DL.ext.enabled});
+  if (t.id === 'extMin') return dlAct({action:'extConfig', extMinMB: +t.value, extOff: !DL.ext.enabled, extNoAsk: DL.ext.ask === false});
+  if (t.id === 'extAsk') return dlAct({action:'extConfig', extMinMB: DL.ext.minMB, extOff: !DL.ext.enabled, extNoAsk: DL.ext.ask !== false});
   if (t.id === 'dlMax') return dlAct({action:'config', config: {...DL.config, maxActive: +t.value}});
   if (t.id === 'dlPer') return dlAct({action:'config', config: {...DL.config, maxPerLine: +t.value}});
   if (t.id === 'dlWinFrom' || t.id === 'dlWinTo') return dlAct({action:'config', config: {...DL.config, window: {...DL.config.window, from: $('#dlWinFrom').value || '22:00', to: $('#dlWinTo').value || '07:00'}}});

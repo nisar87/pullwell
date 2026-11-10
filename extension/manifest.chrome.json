@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Sends big downloads to {{NAME}}, which downloads them with several connections at once and never loses a file.",
   "minimum_chrome_version": "110",
-  "permissions": ["downloads", "storage", "contextMenus", "alarms", "cookies", "webRequest"],
+  "permissions": ["downloads", "storage", "contextMenus", "alarms", "cookies", "webRequest", "scripting"],
   "host_permissions": {{HOSTS}},
   "optional_host_permissions": ["<all_urls>"],
   "background": { "service_worker": "background.js" },

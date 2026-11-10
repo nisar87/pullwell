@@ -8,13 +8,14 @@ async function paint() {
   const ping = await ask({ type: 'ping' });
   if (ping.status === 404) return show('v-off'); // the program runs, but its download manager is switched off
   if (!ping.ok) return show('v-down');
-  const s = await api.storage.local.get(['token', 'localOn', 'ignore', 'types']);
+  const s = await api.storage.local.get(['token', 'localOn', 'ignore', 'types', 'videoBtn']);
   if (!s.token) return show('v-pair');
   const st = await ask({ type: 'refresh' });
   if (!st.ok) return show('v-pair'); // the token was refused: the program forgot this browser
   show('v-on');
   const d = st.data;
   $('stat').textContent = d.active ? d.active + ' downloading · ' + fmt(d.speed) : 'Connected. Nothing downloading now.';
+  $('vbtn').checked = s.videoBtn !== false;
   $('on').checked = s.localOn !== false && d.enabled !== false;
   $('on').disabled = d.enabled === false;
   $('min').textContent = d.enabled === false ? 'Switched off in {{NAME}}.' : 'Files of ' + d.minMB + ' MB and more are sent (change this in {{NAME}}, Options).';
@@ -51,6 +52,7 @@ $('pair').onclick = async () => {
   if (r.ok) paint(); else $('perr').textContent = r.error || 'Could not connect';
 };
 $('code').onkeydown = (e) => { if (e.key === 'Enter') $('pair').click(); };
+$('vbtn').onchange = () => api.storage.local.set({ videoBtn: $('vbtn').checked });
 $('on').onchange = () => api.storage.local.set({ localOn: $('on').checked });
 $('ign').onchange = async () => {
   const list = $('ign').value.split(/[\s,;]+/).map((s) => s.replace(/^https?:\/\//, '').replace(/\/.*$/, '').trim().toLowerCase()).filter(Boolean).slice(0, 200);

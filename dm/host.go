@@ -41,6 +41,7 @@ type Host struct {
 	Log              func(format string, a ...any)           // diagnostic log
 	Note             func(kind, format string, a ...any)     // line for the activity page
 	Notify           func(title, text string)                // desktop notification
+	ShowWindow       func()                                  // bring the product's window forward
 	Power            func(kind string)                       // "sleep" | "hibernate" | "shutdown" | "exit"
 	PowerCancel      func() error                            // cancel a started shutdown
 	OpenPath         func(path string, reveal bool) error    // open a file or show it in the file manager

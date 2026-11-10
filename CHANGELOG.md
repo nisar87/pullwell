@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.7.0 (2026-11-11)
+
+- **Ask before a browser download starts.** A download the browser extension takes over now opens the "Download file
+  info" box first (name, folder, size, Start download / Download later / Cancel), like IDM, so a wrong click does not
+  start a download. Options -> Browser -> "Ask before a browser download starts" turns it off. The box keeps the
+  browser's sign-in details, so links that need them still work.
+- **A download button on videos** in the browser (extension): a small "Download with Pullwell" button appears over a
+  video when the mouse is on it. It works for direct video links and for streams the page loads (HLS). It needs the
+  extension's "Allow for all sites" and can be switched off in the extension's popup. Reload the page after
+  installing or changing it.
+- **Steady window sizes.** The Options window is the same size on every tab (it used to grow and shrink with each
+  tab's content), and all dialogs now use one of four widths, so the window does not change size as you move between
+  related dialogs (Add, Checking the link, Download file info).
+- Browser extension: a download of unknown size whose link has no file ending is taken over by its content type
+  (included since 0.6.2).
+
 ## 0.6.2 (2026-11-11)
 
 - Fixed: the browser extension did not take over a download when the site did not announce its size and the link had

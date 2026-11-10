@@ -258,13 +258,13 @@ input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;margin:0}
 .keys-tbl kbd{font:var(--fs-s) var(--sans);padding:1px 7px;border:1px solid var(--line2);border-bottom-width:2px;border-radius:var(--r-s);background:var(--raised);white-space:nowrap;justify-self:start}
 
 /* Options: sections on the left */
-.opt{display:grid;grid-template-columns:150px 1fr;gap:0;min-height:400px;margin:14px -22px 0;border-top:1px solid var(--line)}
+.opt{display:grid;grid-template-columns:150px minmax(0,1fr);gap:0;height:min(440px,calc(100vh / var(--zoom, 1) - 190px));margin:14px -22px 0;border-top:1px solid var(--line)}
 .opt nav{border-right:1px solid var(--line);padding:8px;background:var(--bg)}
 .opt nav button{position:relative;display:block;width:100%;height:32px;padding:0 12px;border:0;border-radius:var(--r);background:none;text-align:left;color:var(--mute)}
 .opt nav button:hover{background:var(--hover);color:var(--text)}
 .opt nav button.sel{background:var(--sel);color:var(--text);font-weight:600}
 .opt nav button.sel::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:2px;background:var(--accent)}
-.opt section{padding:4px 22px;overflow:auto;max-height:calc(100vh / var(--zoom, 1) - 180px)}
+.opt section{padding:4px 22px;overflow:auto;min-height:0}
 
 /* ---------- the transfer sheet (progress of one download) ---------- */
 .prog{max-width:600px!important;padding:0!important;overflow:hidden}
