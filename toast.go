@@ -77,6 +77,11 @@ func handleAppLink(raw string) {
 			logf("link %s: %v", d.Do, err)
 			showMainWindow()
 		}
+	case "add":
+		if l := offeredLink(d.ItemID); l != "" {
+			setPendingAdd(l)
+		}
+		showMainWindow()
 	case "list":
 		pendingMu.Lock()
 		pendingViewV = "finished"

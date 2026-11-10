@@ -6,6 +6,7 @@ package main
 // magnet links are offered, each one once, and nothing is offered while the person is working in our own window.
 
 import (
+	"fmt"
 	"pullwell/dm"
 
 	"encoding/json"
@@ -222,8 +223,44 @@ func offerCopiedLink(text string, ourWindowInFront bool) {
 		name = name[:117] + "..."
 	}
 	logf("copied link offered: %s", l)
+	if toastsUsable() {
+		key := offerKey(l)
+		if tok, err := toastTokens.issue(key, "add"); err == nil {
+			x := `<toast activationType="protocol" launch="` + xmlEsc(appScheme+"://add?item="+key+"&t="+tok) + `"><visual><binding template="ToastGeneric">` +
+				`<text>` + xmlEsc("Download this with "+AppName+"?") + `</text><text>` + xmlEsc(name) + `</text></binding></visual>` +
+				`<actions><action content="Download…" activationType="protocol" arguments="` + xmlEsc(appScheme+"://add?item="+key+"&t="+tok) + `"/></actions></toast>`
+			if showToastXML(x) == nil {
+				return
+			}
+		}
+	}
 	showBalloon("Download this with "+AppName+"?", name+"\nClick here to add it.")
 	setBalloonLink(l)
+}
+
+// offered links, by a short key that goes into the notification instead of the link itself
+var (
+	offerMu   sync.Mutex
+	offerSeq  int
+	offerKeys = map[string]string{}
+)
+
+func offerKey(l string) string {
+	offerMu.Lock()
+	defer offerMu.Unlock()
+	offerSeq++
+	k := fmt.Sprintf("c%d", offerSeq)
+	if len(offerKeys) > 50 {
+		offerKeys = map[string]string{}
+	}
+	offerKeys[k] = l
+	return k
+}
+
+func offeredLink(key string) string {
+	offerMu.Lock()
+	defer offerMu.Unlock()
+	return offerKeys[key]
 }
 
 // isWebLink accepts any http, https or ftp link with a host, or a magnet link (for the command line, where the

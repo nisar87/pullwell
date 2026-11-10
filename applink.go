@@ -30,7 +30,7 @@ type appLink struct {
 	Token  string
 }
 
-var linkVerbs = map[string]bool{"show": true, "open": true, "reveal": true, "list": true, "cancel-shutdown": true}
+var linkVerbs = map[string]bool{"show": true, "open": true, "reveal": true, "list": true, "cancel-shutdown": true, "add": true}
 
 var errBadLink = errors.New("not a valid link")
 
@@ -169,6 +169,8 @@ func decideLink(l appLink, tokens *linkTokens, fileName func(itemID string) stri
 	switch l.Verb {
 	case "list", "cancel-shutdown":
 		return linkDecision{Do: l.Verb}
+	case "add": // the copied-link offer: the link itself stays in the program, the item is its key
+		return linkDecision{Do: "add", ItemID: l.ItemID}
 	}
 	name := fileName(l.ItemID)
 	if name == "" {

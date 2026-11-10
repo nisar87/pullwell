@@ -39,3 +39,20 @@ func TestToastXML(t *testing.T) {
 		t.Errorf("a problem toast shows the window: %s", p)
 	}
 }
+
+func TestCopiedLinkOfferLink(t *testing.T) {
+	key := offerKey("https://x.org/a.zip")
+	tok, _ := toastTokens.issue(key, "add")
+	l, err := parseAppLink(appScheme + "://add/?item=" + key + "&t=" + tok)
+	if err != nil {
+		t.Fatal(err)
+	}
+	d := decideLink(l, toastTokens, func(string) string { return "" })
+	if d.Do != "add" || offeredLink(d.ItemID) != "https://x.org/a.zip" {
+		t.Fatalf("%+v", d)
+	}
+	l.Token = strings.Repeat("0", 32)
+	if d := decideLink(l, toastTokens, func(string) string { return "" }); d.Do != "show" {
+		t.Fatal("an add link without the right code must only show the window")
+	}
+}
