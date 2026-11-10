@@ -105,7 +105,7 @@ func TestPageServed(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for path, want := range map[string]string{"/": "<title>" + AppName + "</title>", "/downloads.js": "loadDL", "/downloads.css": "{"} {
+	for path, want := range map[string]string{"/": "<title>" + AppName + "</title>", "/app.js": "loadDL", "/app.css": "{", "/downloads-more.js": "dlProps"} {
 		r := httptest.NewRequest("GET", path, nil)
 		r.Host = "127.0.0.1:9197"
 		w := httptest.NewRecorder()

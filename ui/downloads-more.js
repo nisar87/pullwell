@@ -1,5 +1,5 @@
 // Download manager: the extra dialogs (add with options, page link grabber, properties, queues, folders, import/export).
-// Loaded together with downloads.js, only when the manager is on.
+// Loaded before app.js, which provides DL, dlAct, dlDialog, dlClose and the small helpers.
 
 const DL_TYPES = {'All files':[], 'Videos':['mp4','mkv','avi','mov','webm','m4v','wmv','flv','ts'], 'Music':['mp3','flac','wav','aac','ogg','m4a','opus'], 'Archives':['zip','rar','7z','tar','gz','tgz','bz2','xz'], 'Programs':['exe','msi','dmg','iso','apk','deb','rpm'], 'Documents':['pdf','doc','docx','xls','xlsx','ppt','pptx','txt','epub','csv'], 'Images':['jpg','jpeg','png','gif','webp','bmp','svg','tif'], 'Torrents':['torrent','magnet']};
 const DL_DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -224,7 +224,7 @@ async function dlExport(){
   const r = await dlAct({action:'export'}); if (!r || !r.file) return;
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([JSON.stringify(r.file, null, 2)], {type:'application/json'}));
-  a.download = 'netmerge-downloads-' + new Date().toISOString().slice(0,10) + '.json'; document.body.appendChild(a); a.click(); a.remove();
+  a.download = APP.name.toLowerCase() + '-downloads-' + new Date().toISOString().slice(0,10) + '.json'; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
 function dlImport(){

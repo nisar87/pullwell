@@ -2,6 +2,15 @@
 
 ## 0.1.0 (not released)
 
+- **A compact main window in the style of IDM** instead of one long page: a toolbar (Add URL, Resume, Stop, Stop all,
+  Start all, Delete, Delete completed, Scheduler, Grabber, Options), categories and queues on the left, a table of
+  downloads (name, size, status with a progress bar, speed, time left, date added, description) and a status bar
+  with the total speed. Columns can be sorted and resized. Select with click, Ctrl+click, Shift+click or the arrow
+  keys; right-click for Open, Open folder, Resume, Stop, move in the queue, queue, speed limit, copy link,
+  properties and delete. Keys: Ctrl+N or Insert (add), Ctrl+V with a link copied (add it), Enter (open),
+  Alt+Enter (properties), Space (stop or resume), Delete, Shift+Delete (with the file), Ctrl+A, Ctrl+F.
+  Links and .torrent files can be dropped onto the window. Options are in one dialog with tabs. Light and dark
+  follow Windows, or can be chosen.
 - **The first program you can run (Windows).** It starts, shows the downloads page in its own window (Edge or
   Chrome in app mode for now; the built-in WebView2 window comes later), sits in the notification area, and
   downloads. Closing the window keeps it running; the tray icon opens it again, shows what is downloading, and has
