@@ -6,6 +6,8 @@ package main
 // magnet links are offered, each one once, and nothing is offered while the person is working in our own window.
 
 import (
+	"pullwell/dm"
+
 	"encoding/json"
 	"net/url"
 	"os"
@@ -21,6 +23,20 @@ type appSettings struct {
 	Clipboard   bool         `json:"clipboard"`             // offer to download copied links
 	NoStartMenu bool         `json:"noStartMenu,omitempty"` // the person removed the Start menu entry: do not add it back
 	Proxy       proxySetting `json:"proxy"`
+	NoKeepAwake bool         `json:"noKeepAwake,omitempty"` // let the PC sleep even while downloading
+}
+
+func keepAwakeOn() bool {
+	appSetMu.Lock()
+	defer appSetMu.Unlock()
+	return !appSet.NoKeepAwake
+}
+
+// downloadsActive is how many downloads are running now.
+func downloadsActive() int {
+	b := dm.Brief()
+	n, _ := b["active"].(int)
+	return n
 }
 
 var (

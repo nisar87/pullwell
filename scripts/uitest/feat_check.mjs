@@ -74,6 +74,12 @@ check('deleting a queue asks in a Pullwell dialog', /Delete the queue/.test(awai
 await js(`document.querySelector('#askYes').click()`); await sleep(300);
 check('and then shows the queues again without it', /No queues yet/.test(await js('document.querySelector("#dlDlg").textContent')));
 await js('dlClose()');
+await js(`showOptions('schedule')`); await sleep(500);
+check('Options → Schedule has "Keep the PC awake while downloading", on', await js('!!document.querySelector("#awakeTog")') && (await (await fetch(url + 'api/app')).json()).keepAwake === true);
+await js(`document.querySelector('#awakeTog').click()`); await sleep(700);
+check('switching it off is saved', (await (await fetch(url + 'api/app')).json()).keepAwake === false);
+await js(`document.querySelector('#awakeTog').click()`); await sleep(700);
+await js('dlClose()');
 check('no script errors', errors.length === 0, errors.join(' ; '));
 console.log(results.join('\n')); console.log(`${results.filter(r => r.startsWith('PASS')).length}/${results.length} passed`);
 ws.close();

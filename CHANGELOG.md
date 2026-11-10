@@ -1,7 +1,9 @@
 # Changelog
 
-## 0.3.0 (not released)
+## 0.3.0 (2026-11-10)
 
+- **The PC stays awake while downloading** (Options → Schedule, on by default): Windows' sleep timer no longer
+  stops a long download. The screen can still turn off, and the PC may sleep again when nothing downloads.
 - **Proxy.** Options → Connection → Proxy: "Same as Windows" (the default; what Settings → Network → Proxy says,
   including the list of addresses that go direct), "No proxy", or "This proxy" (host:port, or socks5://host:port,
   with user:password@ if the proxy asks for it). Downloads and the update check use it; **Test** checks it works.
@@ -14,6 +16,7 @@
 - `Pullwell.exe <link>` opens the Add dialog with that link (also when Pullwell is already running).
 - **Save the list** now writes the file into your download folder and shows it; in the program's own window the
   old way saved nothing.
+- Loading a list whose downloads are all already there says so, instead of showing an error.
 - Fixed: a numbered series typed in the Add dialog (`file[001-050].jpg`) was checked as one literal link and
   failed; it is now added as a series.
 - Confirmations (shut down when finished, delete a queue, run a program after each download) are Pullwell dialogs

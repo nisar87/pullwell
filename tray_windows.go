@@ -309,7 +309,7 @@ func trayProc(hwnd, msg, wp, lp uintptr) uintptr {
 			if cmd == "show" {
 				go safely("show", func() { openWindow(trayURL) })
 			} else if l, ok := strings.CutPrefix(cmd, "add "); ok && isWebLink(l) {
-				setPendingAdd(l) // started with a link (Pullwell.exe <link>): the Add dialog shows it
+				setPendingAdd(l) // started with a link (the program followed by a link): the Add dialog shows it
 				go safely("show", func() { openWindow(trayURL) })
 			}
 		}

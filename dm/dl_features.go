@@ -686,8 +686,8 @@ func (m *dlManager) importItems(items []dlExportItem, queues []dlQueue) (map[str
 		}
 		added++
 	}
-	if added == 0 {
-		return nil, errors.New("nothing could be added (the links are already in the list or not valid)")
+	if added == 0 && skipped == 0 {
+		return nil, errors.New("there are no downloads in that file")
 	}
 	return map[string]any{"imported": added, "skipped": skipped, "items": m.views(), "config": m.config()}, nil
 }

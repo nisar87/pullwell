@@ -95,3 +95,5 @@ func readSystemProxy() systemProxy {
 	}
 	return systemProxy{Enabled: s != "", Server: strings.TrimPrefix(strings.TrimPrefix(s, "http://"), "https://"), Bypass: os.Getenv("NO_PROXY")}
 }
+
+func keepAwakeLoop() {}

@@ -229,7 +229,7 @@ function dlImport(){
   f.onchange = async () => {
     const file = f.files[0]; if (!file) return; if (file.size > 5e6) return toast('That file is too big', true);
     const r = await dlAct({action:'import', text: await file.text()});
-    if (r) toast(`${r.imported} downloads added` + (r.skipped ? `, ${r.skipped} skipped` : ''));
+    if (r) toast(!r.imported ? 'Everything in that list is already here' : `${r.imported} download${r.imported === 1 ? '' : 's'} added` + (r.skipped ? `, ${r.skipped} already here or not usable` : ''));
   };
   f.click();
 }

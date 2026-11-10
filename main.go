@@ -61,7 +61,7 @@ func main() {
 	go keepStartMenu()
 
 	// One copy per data folder: a second start shows the first one's window and ends.
-	// A link on the command line (Pullwell.exe https://...) opens the Add dialog with it, here or in the running copy.
+	// A link on the command line (the program followed by https://...) opens the Add dialog with it, here or in the running copy.
 	link := ""
 	if a := flag.Args(); len(a) > 0 && isWebLink(a[0]) {
 		link = strings.TrimSpace(a[0])
@@ -97,6 +97,7 @@ func main() {
 	url := fmt.Sprintf("http://127.0.0.1:%d/", port)
 	logf("listening on %s", url)
 	go updateLoop()
+	go keepAwakeLoop()
 	if *updated != "" {
 		go func() {
 			time.Sleep(3 * time.Second)
