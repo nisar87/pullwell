@@ -18,8 +18,9 @@ import (
 
 // appSettings are the program's own settings (not the engine's), kept in data/app.json.
 type appSettings struct {
-	Clipboard   bool `json:"clipboard"`             // offer to download copied links
-	NoStartMenu bool `json:"noStartMenu,omitempty"` // the person removed the Start menu entry: do not add it back
+	Clipboard   bool         `json:"clipboard"`             // offer to download copied links
+	NoStartMenu bool         `json:"noStartMenu,omitempty"` // the person removed the Start menu entry: do not add it back
+	Proxy       proxySetting `json:"proxy"`
 }
 
 var (

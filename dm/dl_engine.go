@@ -109,14 +109,25 @@ func dlCleanHeader(in map[string]string) map[string]string {
 }
 
 func dlLineClient(line dlLine, allowPrivate bool) *http.Client {
+	var proxyHosts sync.Map // addresses of proxies this client used: a proxy may well be inside the own network
 	tr := &http.Transport{
-		Proxy: nil, // downloads go straight out of the chosen line
+		Proxy: func(r *http.Request) (*url.URL, error) {
+			if H.Proxy == nil {
+				return nil, nil // downloads go straight out of the chosen line
+			}
+			u, err := H.Proxy(r)
+			if u != nil {
+				proxyHosts.Store(dlHostPort(u), true)
+			}
+			return u, err
+		},
 		DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
 			c, err := line.Dial(ctx, network, addr)
 			if err != nil {
 				return nil, err
 			}
-			if !allowPrivate {
+			_, viaProxy := proxyHosts.Load(addr)
+			if !allowPrivate && !(viaProxy && H.Proxy != nil) {
 				if ta, ok := c.RemoteAddr().(*net.TCPAddr); ok && dlPrivateIP(ta.IP) {
 					_ = c.Close()
 					return nil, errors.New("refused: the link leads to an address inside your own network")
@@ -1631,4 +1642,18 @@ func (t *dlTask) replaceSlow() {
 			}
 		}
 	}
+}
+
+// dlHostPort is "host:port" of a proxy address, with the scheme's usual port when none is given.
+func dlHostPort(u *url.URL) string {
+	if u.Port() != "" {
+		return u.Host
+	}
+	switch u.Scheme {
+	case "https":
+		return net.JoinHostPort(u.Hostname(), "443")
+	case "socks5", "socks5h":
+		return net.JoinHostPort(u.Hostname(), "1080")
+	}
+	return net.JoinHostPort(u.Hostname(), "80")
 }

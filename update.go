@@ -222,8 +222,11 @@ func httpGet(ctx context.Context, u string) (*http.Response, error) {
 	}
 	req.Header.Set("User-Agent", AppName+"/"+appVersion)
 	req.Header.Set("Accept", "application/vnd.github+json")
-	return http.DefaultClient.Do(req)
+	return updClient.Do(req)
 }
+
+// updClient goes through the same proxy as the downloads.
+var updClient = &http.Client{Transport: &http.Transport{Proxy: proxyFor, TLSHandshakeTimeout: 15 * time.Second, ResponseHeaderTimeout: 30 * time.Second}}
 
 // checkGitHub asks GitHub for the release of the chosen channel. It never changes anything on disk.
 func checkGitHub(manual bool) {

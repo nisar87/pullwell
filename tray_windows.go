@@ -10,6 +10,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"os"
 	"runtime"
 	"strings"
 	"sync/atomic"
@@ -239,6 +240,9 @@ func trayMenu(hwnd uintptr) {
 		pAppendMenu.Call(menu, 0, id, uintptr(unsafe.Pointer(p)))
 	}
 	add(1, "Open "+AppName)
+	add(5, "Add a download...")
+	add(6, "Open the download folder")
+	pAppendMenu.Call(menu, 0x800, 0, 0)
 	add(2, "Pause all")
 	add(3, "Resume all")
 	pAppendMenu.Call(menu, 0x800, 0, 0) // separator
@@ -257,6 +261,19 @@ func trayMenu(hwnd uintptr) {
 		go safely("resume all", dm.ResumeAll)
 	case 4:
 		requestQuit()
+	case 5: // the Add dialog, with the copied link in it when there is one
+		l := copiedLink(clipText(hwnd))
+		if l == "" {
+			l = " "
+		}
+		setPendingAdd(l)
+		go safely("tray add", func() { openWindow(trayURL) })
+	case 6:
+		go safely("tray folder", func() {
+			dir := dm.DownloadDir()
+			_ = os.MkdirAll(dir, 0o755)
+			_ = sysOpenPath(dir, false)
+		})
 	}
 }
 

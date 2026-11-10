@@ -189,6 +189,8 @@ func (m *dlManager) handle(in dlReq) (map[string]any, error) {
 		return nil, m.setMirrors(in.ID, in.URLs)
 	case "setQueue":
 		return nil, m.setQueue(in.ID, in.Queue)
+	case "rename":
+		return nil, m.rename(in.ID, in.Name)
 	case "setConns":
 		return nil, m.setConns(in.ID, in.Count)
 	case "export":

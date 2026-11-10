@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 
 	"pullwell/dm"
@@ -25,18 +26,20 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 	if r.Method == http.MethodPost {
 		var in struct {
-			Autostart *bool  `json:"autostart"`
-			Quit      bool   `json:"quit"`
-			Open      string `json:"open"` // "downloads" | "log": only these fixed folders can be opened from here
-			Clipboard *bool  `json:"clipboard"`
-			Take      string `json:"take"` // "add": the link chosen from a notification, handed over once
-			StartMenu *bool  `json:"startMenu"`
-			SaveExt   string `json:"saveExt"` // "chrome-edge" | "firefox": save the extension in the download folder and show it
+			Autostart *bool         `json:"autostart"`
+			Quit      bool          `json:"quit"`
+			Open      string        `json:"open"` // "downloads" | "log": only these fixed folders can be opened from here
+			Clipboard *bool         `json:"clipboard"`
+			Take      string        `json:"take"` // "add": the link chosen from a notification, handed over once
+			StartMenu *bool         `json:"startMenu"`
+			Proxy     *proxySetting `json:"proxy"`
+			ProxyTest bool          `json:"proxyTest"`
+			SaveExt   string        `json:"saveExt"` // "chrome-edge" | "firefox": save the extension in the download folder and show it
 			Uninstall *struct {
 				Data bool `json:"data"` // also delete the data folder (list, settings, log); downloads are never deleted
 			} `json:"uninstall"`
 		}
-		if json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&in) != nil || (in.Autostart == nil && !in.Quit && in.Open == "" && in.Clipboard == nil && in.Take != "add" && in.StartMenu == nil && in.Uninstall == nil && in.SaveExt == "") {
+		if json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&in) != nil || (in.Autostart == nil && !in.Quit && in.Open == "" && in.Clipboard == nil && in.Take != "add" && in.StartMenu == nil && in.Uninstall == nil && in.SaveExt == "" && in.Proxy == nil && !in.ProxyTest) {
 			w.WriteHeader(400)
 			_ = json.NewEncoder(w).Encode(map[string]string{"error": "bad request"})
 			return
@@ -63,6 +66,37 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 				err = sysOpenPath(dir, false)
 			}
 			if err != nil {
+				w.WriteHeader(409)
+				_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+				return
+			}
+			_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+			return
+		}
+		if in.Proxy != nil {
+			p := *in.Proxy
+			if p.Mode != "none" && p.Mode != "manual" {
+				p.Mode = "system"
+			}
+			p.Addr = strings.TrimSpace(p.Addr)
+			if p.Mode == "manual" {
+				if _, err := parseProxyAddr(p.Addr); err != nil {
+					w.WriteHeader(409)
+					_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+					return
+				}
+			}
+			if err := saveAppSettings(func(a *appSettings) { a.Proxy = p }); err != nil {
+				w.WriteHeader(409)
+				_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+				return
+			}
+			logf("proxy: %s %s", p.Mode, redactProxy(p.Addr))
+			_ = json.NewEncoder(w).Encode(map[string]any{"proxy": proxyConfig()})
+			return
+		}
+		if in.ProxyTest {
+			if err := testProxy(); err != nil {
 				w.WriteHeader(409)
 				_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
 				return
@@ -150,7 +184,8 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	on, err := autoStartGet()
 	out := map[string]any{"autostart": on, "canAutostart": err == nil && !customRoot, "version": appVersion, "clipboard": clipboardOn(),
-		"startMenu": startMenuGet(), "canInstall": !customRoot && runtime.GOOS == "windows"}
+		"startMenu": startMenuGet(), "canInstall": !customRoot && runtime.GOOS == "windows",
+		"proxy": proxyConfig(), "systemProxy": proxyText()}
 	_ = json.NewEncoder(w).Encode(out)
 }
 

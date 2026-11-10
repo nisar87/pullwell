@@ -36,6 +36,7 @@ func setupEngine(root string, port int) {
 		Power:            sysPower,
 		PowerCancel:      sysPowerCancel,
 		OpenPath:         sysOpenPath,
+		Proxy:            proxyFor,
 		FreeSpace:        sysFreeSpace,
 		MarkFromInternet: sysMarkFromInternet,
 		Run: func(args []string) error {

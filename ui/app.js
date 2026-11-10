@@ -75,7 +75,7 @@ let addPolls = 0, addChecking = false;
 async function checkPendingAdd(){
   if (addChecking || $('#dlDlg')) return;
   addChecking = true;
-  try { const r = await api('app', {take: 'add'}); if (r && r.add) addDialog(r.add); } catch(e){} finally { addChecking = false; }
+  try { const r = await api('app', {take: 'add'}); if (r && r.add) addDialog(r.add.trim()); } catch(e){} finally { addChecking = false; }
 }
 async function dlAct(body, okMsg){
   try { const r = await api('downloads', body); await loadDL(); if (okMsg) toast(okMsg); afterChange(); return r || {}; }
@@ -229,7 +229,7 @@ function renderStatus(){
   const selTxt = s.length > 1 ? `<span><b>${s.length}</b> selected · ${bytes(s.reduce((a, v) => a + (v.size > 0 ? v.size : v.done), 0))}</span>` : '';
   const limit = DL.config.limitAll > 0 ? ` · limit ${bytes(DL.config.limitAll)}/s` : '';
   setHTML($('#status'), `<span><b>${it.length}</b> download${it.length === 1 ? '' : 's'}</span><span><b>${act}</b> downloading${que ? `, ${que} waiting` : ''}</span>
-    <span>↓ <b>${bytes(DL.speed || 0)}/s</b>${limit} ${spark()}</span>${selTxt}<span class="sp"></span><span class="selectable" title="Change in Options">Saving to ${esc(DL.config.dir)}</span>`);
+    <span class="stlim" id="stLimit" role="button" tabindex="0" title="Click to set a speed limit for all downloads">↓ <b>${bytes(DL.speed || 0)}/s</b>${limit} ${spark()}</span>${selTxt}<span class="sp"></span><span class="selectable" title="Change in Options">Saving to ${esc(DL.config.dir)}</span>`);
 }
 let UPD = null, updAt = 0;
 async function loadUpd(){ try { UPD = await api('update'); if (UPD.current !== APP.version || (UPD.build || '') !== APP.build) location.reload(); } catch(e){} } // a new version is running: load its page
@@ -351,6 +351,7 @@ function rowMenu(x, y){
     '-',
     {t:'Copy link', do: () => copyText(s.map(v => v.url).join('\n'), s.length > 1 ? 'Links copied' : 'Link copied')},
     {t:'Progress', off: !(one && one.state !== 'done'), do: () => progressBox(one.id)},
+    {t:'Rename…', k:'F2', off: !canRename(one), do: () => renameBox(one)},
     {t:'Properties', k:'Alt+Enter', off: !one, do: () => dlProps(one.id)},
     '-',
     {t:'Delete', k:'Del', do: () => doDelete(false)},
@@ -367,6 +368,23 @@ function listMenu(x, y){
     {t:'Stop all', off: !DL.items.some(v => v.state === 'downloading' || v.state === 'queued'), do: () => dlAct({action:'pauseAll'})},
   ]);
 }
+/* ---------- rename ---------- */
+// A finished file is renamed on disk; one that has not started gets the name it will be saved under.
+const canRename = v => !!v && v.kind !== 'torrent' && (v.state === 'done' ? !!v.path : !v.path);
+function renameBox(v){
+  if (!canRename(v)) return;
+  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Rename" style="max-width:480px"><h3>Rename</h3>
+    <div class="hint2" style="margin:4px 0 8px">${v.state === 'done' ? 'The file is renamed in its folder.' : 'The download will be saved under this name.'}</div>
+    <input class="inp" id="rnName" style="width:100%" spellcheck="false" value="${esc(v.name || '')}">
+    <div class="row" style="justify-content:flex-end;gap:8px;margin-top:14px"><button class="btn" id="rnNo">Cancel</button><button class="btn pri" id="rnYes">Rename</button></div></div>`);
+  const inp = $('#rnName'); inp.focus();
+  const dot = (v.name || '').lastIndexOf('.'); inp.setSelectionRange(0, dot > 0 ? dot : inp.value.length); // the name, not the type
+  $('#rnNo').onclick = dlClose;
+  const go = async () => { const n = inp.value.trim(); if (!n || n === v.name) return dlClose(); const r = await dlAct({action:'rename', id: v.id, name: n}, 'Renamed'); if (r !== null) dlClose(); };
+  $('#rnYes').onclick = go;
+  inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); go(); } };
+}
+
 /* ---------- live progress of one download ---------- */
 // Opened by double-click or Enter on an unfinished download. It is redrawn after every refresh of the list, so it
 // shows the speed, time left, connections and parts as they change; when the download finishes it offers Open.
@@ -478,7 +496,7 @@ async function redownload(){
   await loadDL(); if (n) toast(n === 1 ? 'Downloading again' : `${n} downloading again`);
 }
 function shortcutsBox(){
-  const K = [['Ctrl+N or Insert','Add a download'],['Ctrl+V','Add the link you copied'],['Enter','Open the file (or its details, when not finished)'],['Alt+Enter','Properties'],['Space','Stop or resume'],['Delete','Delete from the list'],['Shift+Delete','Delete with the file'],['Ctrl+A','Select all'],['↑ ↓ Home End','Move in the list (Shift: select)'],['Ctrl+F','Search'],['F5','Refresh'],['Alt or F10','Menu bar (then arrows, Enter, Escape)'],['Alt+T, D, V, O, H','Open Tasks, Downloads, View, Tools, Help'],['Shift+F10','Menu for the selected downloads'],['Escape','Close a dialog or menu; clear the selection']];
+  const K = [['Ctrl+N or Insert','Add a download'],['Ctrl+V','Add the link you copied'],['Enter','Open the file (or its progress, when not finished)'],['F2','Rename'],['Alt+Enter','Properties'],['Space','Stop or resume'],['Delete','Delete from the list'],['Shift+Delete','Delete with the file'],['Ctrl+A','Select all'],['↑ ↓ Home End','Move in the list (Shift: select)'],['Ctrl+F','Search'],['F5','Refresh'],['Alt or F10','Menu bar (then arrows, Enter, Escape)'],['Alt+T, D, V, O, H','Open Tasks, Downloads, View, Tools, Help'],['Shift+F10','Menu for the selected downloads'],['Escape','Close a dialog or menu; clear the selection']];
   dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts" style="max-width:520px"><h3>Keyboard shortcuts</h3>
     <div class="keys-tbl">${K.map(k => `<kbd>${esc(k[0])}</kbd><span>${esc(k[1])}</span>`).join('')}</div>
     <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn pri" id="kbOk" autofocus>Close</button></div></div>`);
@@ -526,6 +544,7 @@ const BAR_MENUS = {
       {t:'Speed limit', off: !any(v => v.state !== 'done'), sub: LIMITS.map(l => ({t: limitLabel(l), chk: Math.abs(curLim - l * 1048576) < 1, do: () => eachSel('limit', {limitBytes: l * 1048576}, l ? 'Limit set' : 'Limit removed')}))},
       {t:'Copy link', off: !s.length, do: () => copyText(s.map(v => v.url).join('\n'), s.length > 1 ? 'Links copied' : 'Link copied')},
       {t:'Progress', off: !(one && one.state !== 'done'), do: () => progressBox(one.id)},
+      {t:'Rename…', k:'F2', off: !canRename(one), do: () => renameBox(one)},
       {t:'Properties', k:'Alt+Enter', off: !one, do: () => dlProps(one.id)},
       '-',
       {t:'Select all', k:'Ctrl+A', off: !visible.length, do: () => { visible.forEach(id => sel.add(id)); render(); }},
@@ -551,6 +570,7 @@ const BAR_MENUS = {
     {t:'Scheduler and queues…', do: () => dlQueues()},
     {t:'Folders for types and websites…', do: () => dlFolders()},
     {t:'Options…', do: () => showOptions('general')},
+    {t:'Speed limit for all downloads', sub: LIMITS.map(l => ({t: limitLabel(l), chk: Math.abs((DL.config.limitAll || 0) - l * 1048576) < 1, do: () => dlAct({action:'config', config: {...DL.config, limitAll: l * 1048576}}, l ? 'All downloads limited to ' + limitLabel(l) : 'No speed limit')}))},
     '-',
     {t:'Connect a browser…', do: extConnect},
     '-',
@@ -743,6 +763,10 @@ function optionsBody(tab){
   if (tab === 'connection') return orow('Downloads at the same time', 'More than 3 can slow each one down. Recommended: 3.', num('dlMax', [1,2,3,4,5,6,8,10], c.maxActive))
     + orow('Connections per download', `How many parallel connections one file uses. Some websites refuse many; ${esc(APP.name)} lowers it by itself. Recommended: 8.`, num('dlPer', [1,2,4,6,8,12,16,24,32], c.maxPerLine))
     + orow('Speed limit for all downloads', 'Keeps some speed free for everything else.', limSel('limitAll', c.limitAll))
+    + (APPCFG ? orow('Proxy', esc(APPCFG.systemProxy || ''), `<div style="display:grid;gap:6px;justify-items:end">
+        <select class="sel" id="pxMode">${[['system','Same as Windows'],['none','No proxy'],['manual','This proxy:']].map(o => `<option value="${o[0]}"${((APPCFG.proxy||{}).mode || 'system') === o[0] ? ' selected' : ''}>${o[1]}</option>`).join('')}</select>
+        <div class="row" style="flex-wrap:nowrap;${((APPCFG.proxy||{}).mode) === 'manual' ? '' : 'display:none'}" id="pxRow"><input class="inp" id="pxAddr" value="${esc((APPCFG.proxy||{}).addr || '')}" placeholder="host:port or socks5://host:port" style="width:220px" spellcheck="false"><button class="btn" id="pxSave">Save</button></div>
+        <button class="btn" id="pxTest">Test</button></div>`) : '')
     + orow(`What ${esc(APP.name)} learned about websites`, `Some websites only accept one connection per file. ${DL.knownSites ? DL.knownSites + ' site' + (DL.knownSites === 1 ? '' : 's') + ' remembered.' : 'Nothing remembered.'}`, `<button class="btn" id="dlForget"${DL.knownSites ? '' : ' disabled'}>Forget</button>`);
   if (tab === 'schedule') return orow('Only download at certain hours', 'For example at night. Downloads outside these hours wait.', `<div class="row" style="flex-wrap:nowrap"><input type="time" class="inp" id="dlWinFrom" value="${esc(c.window.from)}"><span class="hint2">to</span><input type="time" class="inp" id="dlWinTo" value="${esc(c.window.to)}">${tog('id="dlWinTog"', c.window.enabled, 'Download hours')}</div>`)
     + orow('When everything is finished', 'Done once, after the last download. A shutdown gives you one minute to cancel.', `<select class="sel" data-cfg="afterAll">${[['','Do nothing'],['sleep','Put the PC to sleep'],['shutdown','Shut the PC down']].map(o => `<option value="${o[0]}"${(c.afterAll || '') === o[0] ? ' selected' : ''}>${o[1]}</option>`).join('')}</select>`)
@@ -813,7 +837,14 @@ async function updAction(body, msg){
 }
 
 /* ---------- events ---------- */
+// the speed in the status bar: a quick speed limit for all downloads
+function limitMenu(){
+  const r = $('#stLimit').getBoundingClientRect(), cur = DL.config.limitAll || 0;
+  showMenu(r.left, r.top, LIMITS.map(l => ({t: limitLabel(l), chk: Math.abs(cur - l * 1048576) < 1, do: () => dlAct({action:'config', config: {...DL.config, limitAll: l * 1048576}}, l ? 'All downloads limited to ' + limitLabel(l) : 'No speed limit')})));
+  if (menuEl) { const h = menuEl.getBoundingClientRect().height; menuEl.style.top = Math.max(4, r.top - h - 2) + 'px'; }
+}
 document.addEventListener('click', async e => {
+  if (e.target.closest('#stLimit')) return limitMenu();
   const mbb = e.target.closest('#menubar button');
   if (mbb) { if (mbb.classList.contains('open')) { closeMenu(); return; } return openBarMenu(mbb, e.detail === 0); }
   if (menuEl && !menuEl.contains(e.target)) closeMenu();
@@ -834,6 +865,8 @@ document.addEventListener('click', async e => {
   if (t.id === 'dlWinTog') return dlAct({action:'config', config: {...DL.config, window: {...DL.config.window, enabled: !DL.config.window.enabled}}});
   if (t.id === 'dlForget') return dlAct({action:'forgetHosts'}, 'Forgotten');
   if (t.id === 'extCode') return extConnect();
+  if (t.id === 'pxSave') { try { await api('app', {proxy: {mode: 'manual', addr: $('#pxAddr').value}}); APPCFG = await api('app'); toast('Proxy saved'); } catch(err){ toast(err.message, true); } return; }
+  if (t.id === 'pxTest') { t.disabled = true; try { await api('app', {proxyTest: true}); toast('The proxy setting works: github.com answered'); } catch(err){ toast(err.message, true); } t.disabled = false; return; }
   if (t.id === 'smTog') { try { await api('app', {startMenu: !APPCFG.startMenu}); APPCFG = await api('app'); toast(APPCFG.startMenu ? 'Added to the Start menu' : 'Removed from the Start menu'); } catch(err){ toast(err.message, true); await loadAppCfg(); } return showOptions('general'); }
   if (t.id === 'uninst') {
     const r = await askBox({title:`Uninstall ${APP.name}?`, text:`${APP.name} closes and removes its Start menu entry, its startup entry and the program file. Downloaded files are not touched.`, ok:'Uninstall', danger:true, check:'Also delete the download list, settings and log', checked:false});
@@ -851,6 +884,12 @@ document.addEventListener('change', async e => {
   const t = e.target; if (!DL) return;
   if (t.id === 'torFile') { const f = t.files && t.files[0]; return addTorrentFile(f); }
   if (t.id === 'optTheme') { store.set('theme', t.value); applyTheme(); return; }
+  if (t.id === 'pxMode') {
+    $('#pxRow').style.display = t.value === 'manual' ? '' : 'none';
+    if (t.value === 'manual') { $('#pxAddr').focus(); return; } // saved with its address
+    try { await api('app', {proxy: {mode: t.value}}); APPCFG = await api('app'); toast(t.value === 'none' ? 'No proxy' : 'Using the same proxy as Windows'); } catch(err){ toast(err.message, true); }
+    return;
+  }
   if (t.id === 'updChannel') return updAction({action:'settings', channel: t.value}, null);
   if (t.id === 'extMin') return dlAct({action:'extConfig', extMinMB: +t.value, extOff: !DL.ext.enabled});
   if (t.id === 'dlMax') return dlAct({action:'config', config: {...DL.config, maxActive: +t.value}});
@@ -859,7 +898,10 @@ document.addEventListener('change', async e => {
   if (t.dataset && t.dataset.cfg) {
     const k = t.dataset.cfg, c = {...DL.config};
     if (k === 'limitAll' || k === 'uploadLimit') c[k] = +t.value * 1048576;
-    else if (k === 'afterAll') { if (t.value === 'shutdown' && !confirm('Shut the PC down when all downloads are finished? You get one minute to cancel.')) { afterChange(); return; } c.afterAll = t.value; }
+    else if (k === 'afterAll') {
+      if (t.value === 'shutdown') { const r = await askBox({title:'Shut the PC down when all downloads are finished?', text:'You get one minute to cancel.', ok:'Shut down when finished'}); if (r.ok) { c.afterAll = t.value; await dlAct({action:'config', config: c}); } return showOptions('schedule'); }
+      c.afterAll = t.value;
+    }
     else c[k] = t.value;
     return dlAct({action:'config', config: c});
   }
@@ -953,6 +995,7 @@ document.addEventListener('keydown', e => {
   if (k === 'Escape') { sel.clear(); cur = null; return render(); }
   if (!sel.size) return;
   if (k === 'Delete') { e.preventDefault(); return doDelete(e.shiftKey); }
+  if (k === 'F2') { e.preventDefault(); const s1 = selectedItems(); if (s1.length === 1) renameBox(s1[0]); return; }
   if (k === 'Enter') { e.preventDefault(); const v = DL.items.find(x => x.id === cur) || selectedItems()[0]; if (!v) return; return e.altKey ? dlProps(v.id) : openItem(v); }
   if (k === ' ') { e.preventDefault(); return selectedItems().some(v => v.state === 'downloading' || v.state === 'queued') ? doStop() : doResume(); }
   if (k === 'ContextMenu' || (e.shiftKey && k === 'F10')) {

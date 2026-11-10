@@ -703,3 +703,45 @@ func (m *dlManager) startQueue(id string) {
 	}
 	m.dirty = true
 }
+
+// rename gives a download another file name: a finished file is renamed on disk (in its folder); one that has not
+// started yet simply gets the name. A download in progress keeps its name until it is finished.
+func (m *dlManager) rename(id, name string) error {
+	clean := dlSafeName(strings.TrimSpace(name))
+	if clean == "" || clean == "download" && strings.TrimSpace(name) != "download" {
+		return errors.New("that is not a usable file name")
+	}
+	return m.edit(id, func(e *dlEntry) error {
+		if e.Kind == "torrent" {
+			return errors.New("a torrent keeps the names inside it")
+		}
+		if clean == e.Name {
+			return nil
+		}
+		switch {
+		case e.State == "done":
+			if e.Path == "" {
+				return errors.New("the file's place is not known")
+			}
+			to := filepath.Join(filepath.Dir(e.Path), clean)
+			if _, err := os.Lstat(to); err == nil {
+				return fmt.Errorf("there is already a file called %q in that folder", clean)
+			}
+			if err := os.Rename(e.Path, to); err != nil {
+				if os.IsNotExist(err) {
+					return errors.New("the file is not there any more (moved or deleted)")
+				}
+				return fmt.Errorf("could not rename the file: %v", err)
+			}
+			m.elog(e, "Renamed to %s", clean)
+			e.Path = to
+		case e.running || e.Path != "":
+			return errors.New("the download has started; rename it when it is finished")
+		default:
+			m.elog(e, "Name set to %s", clean)
+		}
+		e.Name, e.Named = clean, true
+		e.Category = e.cat(clean)
+		return nil
+	})
+}

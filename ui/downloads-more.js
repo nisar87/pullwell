@@ -178,7 +178,7 @@ function dlQueues(){
     $$('[data-q]').forEach(b => b.onclick = async () => {
       sync();
       if (b.dataset.q === 'add') qs.push({id:'', name:'Queue ' + (qs.length + 1), maxActive:0, window:{enabled:false, from:'23:00', to:'06:00'}, days:[], paused:false});
-      else if (b.dataset.q === 'del') { if (!confirm('Delete this queue? Its downloads move to the main queue.')) return; qs.splice(+b.dataset.i, 1); }
+      else if (b.dataset.q === 'del') { const i = +b.dataset.i; if ((await askBox({title:`Delete the queue "${qs[i].name}"?`, text:'Its downloads move to the main queue. Nothing is deleted from your disk.', ok:'Delete queue'})).ok) qs.splice(i, 1); }
       else if (b.dataset.q === 'start') { await dlAct({action:'startQueue', queue: b.dataset.id}, 'Started'); return; }
       draw();
     });
@@ -252,8 +252,10 @@ document.addEventListener('click', async e => {
   if (a === 'notifyTog') return void dlAct({action:'config', config: {...DL.config, noNotify: !DL.config.noNotify}});
   if (a === 'afterSave') {
     const v = $('#dlAfterCmd').value.trim();
-    if (v && !confirm('Run this after every finished download?\n\n' + v + '\n\nOnly use a program you trust.')) return;
-    return void dlAct({action:'config', config: {...DL.config, afterCmd: v}}, v ? 'Saved' : 'Cleared');
+    if (v && !(await askBox({title:'Run this after every finished download?', text: v + ' — only use a program you trust.', ok:'Save'})).ok) return showOptions('advanced');
+    await dlAct({action:'config', config: {...DL.config, afterCmd: v}}, v ? 'Saved' : 'Cleared');
+    if (v) showOptions('advanced');
+    return;
   }
 });
 document.addEventListener('change', e => {

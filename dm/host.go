@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime/debug"
@@ -46,6 +47,9 @@ type Host struct {
 	FreeSpace        func(dir string) (int64, error)         // free bytes in a folder
 	MarkFromInternet func(path, link string)                 // mark a file as downloaded from the internet
 	Run              func(args []string) error               // run a program (no window) and wait for it
+	// Proxy picks the proxy for a request (nil or a nil URL = straight out). The program offers: none, Windows' settings,
+	// or one the person typed. BitTorrent does not use it.
+	Proxy func(*http.Request) (*url.URL, error)
 }
 
 var H = Host{

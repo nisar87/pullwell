@@ -13,6 +13,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -80,3 +81,15 @@ func clipWatch(on bool) {}
 func startMenuGet() bool                 { return false }
 func startMenuSet(on bool) error         { return errors.New("only on Windows") }
 func uninstallLater(withData bool) error { return errors.New("only on Windows") }
+
+// readSystemProxy: on other systems, the usual environment variables.
+func readSystemProxy() systemProxy {
+	s := os.Getenv("HTTPS_PROXY")
+	if s == "" {
+		s = os.Getenv("https_proxy")
+	}
+	if s == "" {
+		s = os.Getenv("HTTP_PROXY")
+	}
+	return systemProxy{Enabled: s != "", Server: strings.TrimPrefix(strings.TrimPrefix(s, "http://"), "https://"), Bypass: os.Getenv("NO_PROXY")}
+}

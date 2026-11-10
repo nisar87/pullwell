@@ -3,9 +3,14 @@ package dm
 import (
 	"encoding/json"
 	"errors"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -293,5 +298,84 @@ func TestDLChosenNameKept(t *testing.T) {
 	}
 	if !strings.HasPrefix(filepath.Base(b.Path), "sim file") {
 		t.Errorf("server's name not used: %s", b.Path)
+	}
+}
+
+// With a proxy set by the program, downloads go through it, also for links from the browser (which may not reach
+// the own network): the proxy itself may sit in the own network. (Pullwell)
+func TestDLThroughProxy(t *testing.T) {
+	site := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { io.WriteString(w, "via proxy") }))
+	defer site.Close()
+	var hits atomic.Int32
+	proxy := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hits.Add(1)
+		r.URL.Host = strings.TrimPrefix(site.URL, "http://")
+		resp, err := http.DefaultTransport.RoundTrip(r)
+		if err != nil {
+			w.WriteHeader(502)
+			return
+		}
+		defer resp.Body.Close()
+		w.WriteHeader(resp.StatusCode)
+		io.Copy(w, resp.Body)
+	}))
+	defer proxy.Close()
+	pu, _ := url.Parse(proxy.URL)
+	old := H.Proxy
+	H.Proxy = func(*http.Request) (*url.URL, error) { return pu, nil }
+	defer func() { H.Proxy = old }()
+	c := dlLineClient(newSimLine("A", "127.0.0.1", 0).line(), false)
+	resp, err := c.Get("http://files.example.test/a.bin")
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, _ := io.ReadAll(resp.Body)
+	resp.Body.Close()
+	if string(b) != "via proxy" || hits.Load() != 1 {
+		t.Fatalf("%q, %d requests at the proxy", b, hits.Load())
+	}
+	H.Proxy = nil
+	if _, err := c.Get(proxy.URL + "/x"); err == nil {
+		t.Fatal("without a proxy, a local address must still be refused for such a client")
+	}
+}
+
+func TestDLRename(t *testing.T) {
+	s := newSim(MiB)
+	defer s.Close()
+	m := newTestMgr(t, newSimEnv(newSimLine("A", "127.0.0.1", 0)))
+	it, _ := m.add(dlAdd{URL: s.URL + "/file.bin", Force: true})
+	v := waitState(t, m, it.ID, "done", 20*time.Second)
+	if err := m.rename(it.ID, "renamed.bin"); err != nil {
+		t.Fatal(err)
+	}
+	m.mu.Lock()
+	e := m.find(it.ID)
+	path, name := e.Path, e.Name
+	m.mu.Unlock()
+	if name != "renamed.bin" || filepath.Base(path) != "renamed.bin" {
+		t.Fatalf("%s %s", name, path)
+	}
+	if _, err := os.Stat(path); err != nil {
+		t.Fatal("the renamed file is not there")
+	}
+	if _, err := os.Stat(v.Path); !os.IsNotExist(err) {
+		t.Fatal("the old file is still there")
+	}
+	os.WriteFile(filepath.Join(filepath.Dir(path), "taken.bin"), []byte("x"), 0o644)
+	if err := m.rename(it.ID, "taken.bin"); err == nil {
+		t.Fatal("renamed over another file")
+	}
+	if err := m.rename(it.ID, "../escape.bin"); err != nil || filepath.Dir(func() string { m.mu.Lock(); defer m.mu.Unlock(); return m.find(it.ID).Path }()) != filepath.Dir(path) {
+		t.Fatalf("a name with a folder in it must stay in the same folder: %v", err)
+	}
+	later, _ := m.add(dlAdd{URL: s.URL + "/file.bin?2", Force: true, Start: new(bool)})
+	if err := m.rename(later.ID, "chosen.bin"); err != nil {
+		t.Fatal(err)
+	}
+	m.resume(later.ID)
+	w := waitState(t, m, later.ID, "done", 20*time.Second)
+	if filepath.Base(w.Path) != "chosen.bin" {
+		t.Fatalf("a name set before the start was not used: %s", w.Path)
 	}
 }
