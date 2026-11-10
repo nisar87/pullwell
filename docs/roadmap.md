@@ -33,7 +33,7 @@ Gate: all rows ✅, or a bug found, fixed, released through the self-update and 
 | --- | --- |
 | ✅ | A menu bar above the toolbar: **Tasks** (Add URL, Add batch, Add torrent, Grabber, Import/Export list, Exit), **Downloads** (Resume, Stop, Stop all, Start all, Delete, Delete completed, Redownload, Properties, Queue, Speed limit), **View** (categories panel, toolbar labels, columns, theme, refresh), **Tools** (Scheduler, Options, Connect a browser, Open download folder, Open log), **Help** (Keyboard shortcuts, Check for updates, About) |
 | ✅ | Works with the mouse and the keyboard (Alt opens it, arrows move, Enter chooses, Escape closes), shows shortcuts |
-| ⬜ | The design stays our own; IDM was only the reference for how things are found |
+| ✅ | The design stays our own; IDM was only the reference for how things are found |
 
 Gate: automated window checks extended to the menus; seen on the PC.
 
@@ -41,11 +41,11 @@ Gate: automated window checks extended to the menus; seen on the PC.
 
 | | Item |
 | --- | --- |
-| 🟡 | Browser extension: 10 checks pass in Chromium with the extension as Pullwell hands it out (pairing, big download taken over, small one left, right-click entry, browser keeps the download when Pullwell is closed); still to try in the owner's Chrome and Edge. Was:: big download taken over, right-click "Download with Pullwell", browser keeps the download when Pullwell is closed |
-| 🟡 | Live progress dialog for a download (speed, parts, connections, log), refreshing while open |
+| 🟡 | Browser extension: 10 checks pass in Chromium with the extension as Pullwell hands it out (pairing, big download taken over, small one left, right-click entry, browser keeps the download when Pullwell is closed); still to try in the owner's Chrome and Edge. The program saves the extension into the download folder and opens it there (✅ on the PC, 16:12). |
+| 🟡 | Live progress dialog for a download (speed, parts, connections, log), refreshing while open: 12 automated checks; not yet opened on the PC |
 | ✅ | Redownload a finished or failed file (Downloads → Download again); open the folder of any item |
-| 🟡 | Copied links: offer to add a link when one is copied (off by default, switch in Options) |
-| 🟡 | Plain-language messages for every failure (disk full, folder not writable, site refuses, login needed) checked against the engine's texts |
+| 🟡 | Copied links: offer to add a link when one is copied (off by default, switch in Options). On the PC the switch works and the listener starts; the notification itself needs a link copied in another program, which only the owner can do (copies made in Pullwell's own window are ignored on purpose) |
+| 🟡 | Plain-language messages for every failure (disk full, folder not writable, site refuses, login needed) checked against the engine's texts; two added (path too long, folder gone); "cannot write" seen on the PC |
 | ✅ | Keyboard shortcuts list (Help menu) |
 
 ## Phase 4: looks like an installed program
