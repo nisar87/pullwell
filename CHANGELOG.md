@@ -2,6 +2,16 @@
 
 ## 0.4.2 (not released)
 
+- **Open when finished**: a tick in the "Download file info" dialog (remembered for the next download), or
+  right-click → Open when finished. A program or installer is never started by itself: it is shown in its folder
+  instead. A file with a checksum is only opened when the checksum matched.
+- **Move to another folder** (right-click, or the Downloads menu): moves a finished file, also to another drive.
+- **Check the checksum** of a finished file afterwards: paste the checksum from the website.
+- Unfinished files are now called `name.pullwell-part` (and `.pullwell-state`) instead of `.nmpart` and `.nmdl`;
+  downloads that were running during the update are taken over and continue.
+- Tests now also run on a Windows machine at GitHub, which starts the real program and checks Start with Windows, the
+  Start menu entry, the link registration, the self-update and Go back, keeping the PC awake, a protected folder and
+  Uninstall.
 - Pullwell is a standalone program: it needs nothing from NetMerge and no longer follows NetMerge's copy of the
   download engine. The engine notes about keeping the two in step are removed. A download list saved by NetMerge can
   still be loaded (Tasks → Load a list), so existing downloads can be moved over.

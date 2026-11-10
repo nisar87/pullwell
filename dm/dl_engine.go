@@ -304,8 +304,25 @@ type dlState struct {
 	Have      []int64 `json:"have"`
 }
 
-func dlPartPath(final string) string  { return final + ".nmpart" }
-func dlStatePath(final string) string { return final + ".nmdl" }
+// The unfinished file and its progress record sit next to the final file: "setup.exe.pullwell-part" and
+// "setup.exe.pullwell-state". Files from older versions (".nmpart", ".nmdl") are renamed when they are next used, so
+// a download that was running during an update continues.
+func dlPartPath(final string) string  { return dlSideFile(final, "-part", ".nmpart") }
+func dlStatePath(final string) string { return dlSideFile(final, "-state", ".nmdl") }
+
+func dlSideFile(final, suffix, old string) string {
+	tag := strings.ToLower(H.Name)
+	if tag == "" {
+		tag = "download"
+	}
+	p := final + "." + tag + suffix
+	if _, err := os.Stat(p); os.IsNotExist(err) {
+		if _, err := os.Stat(final + old); err == nil {
+			_ = os.Rename(final+old, p)
+		}
+	}
+	return p
+}
 
 func dlWriteFileAtomic(path string, b []byte) error { return dlWriteFileAtomicMode(path, b, 0o644) }
 

@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 	"time"
 )
@@ -33,6 +34,11 @@ func TestDLBasicMultiLine(t *testing.T) {
 func TestDLPhase0SpeedGain(t *testing.T) {
 	if testing.Short() {
 		t.Skip()
+	}
+	if runtime.GOOS == "windows" {
+		// measures throttled test servers against the clock; Windows' coarse sleep makes the numbers meaningless,
+		// and the program uses one line anyway (this checks spreading a download over several)
+		t.Skip("timing test, not meaningful on Windows")
 	}
 	size := int64(16 * MiB)
 	run := func(name string, spec dlSpec, ls ...*simLine) (time.Duration, *simSrv) {

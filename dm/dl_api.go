@@ -189,6 +189,12 @@ func (m *dlManager) handle(in dlReq) (map[string]any, error) {
 		return nil, m.setMirrors(in.ID, in.URLs)
 	case "setQueue":
 		return nil, m.setQueue(in.ID, in.Queue)
+	case "checkFile":
+		return nil, m.checkFile(in.ID, in.Hash)
+	case "moveTo":
+		return nil, m.moveTo(in.ID, in.Dir)
+	case "openWhenDone":
+		return nil, m.edit(in.ID, func(e *dlEntry) error { e.OpenDone = in.Open; return nil })
 	case "rename":
 		return nil, m.rename(in.ID, in.Name)
 	case "setConns":

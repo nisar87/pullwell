@@ -1,8 +1,11 @@
 package dm
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -391,4 +394,99 @@ func TestDLUniquePathDoubleExtension(t *testing.T) {
 	if got := filepath.Base(dlUniquePath(dir, "a.zip", taken)); got != "a (2).zip" {
 		t.Errorf("got %q", got)
 	}
+}
+
+// A partial file from an older version (".nmpart") is taken over under the new name, so the download continues.
+func TestDLPartFileOldNameTakenOver(t *testing.T) {
+	old := H.Name
+	H.Name = "Tester"
+	defer func() { H.Name = old }()
+	final := filepath.Join(t.TempDir(), "a.bin")
+	os.WriteFile(final+".nmpart", []byte("half"), 0o644)
+	os.WriteFile(final+".nmdl", []byte("{}"), 0o644)
+	if p := dlPartPath(final); filepath.Base(p) != "a.bin.tester-part" {
+		t.Fatalf("part file %s", p)
+	}
+	if b, _ := os.ReadFile(final + ".tester-part"); string(b) != "half" {
+		t.Fatal("the old partial file was not taken over")
+	}
+	if p := dlStatePath(final); filepath.Base(p) != "a.bin.tester-state" {
+		t.Fatalf("state file %s", p)
+	}
+	if _, err := os.Stat(final + ".nmdl"); !os.IsNotExist(err) {
+		t.Fatal("the old state file is still there")
+	}
+}
+
+func TestDLOpenWhenDoneCheckAndMove(t *testing.T) {
+	s := newSim(MiB)
+	defer s.Close()
+	m := newTestMgr(t, newSimEnv(newSimLine("A", "127.0.0.1", 0)))
+	var opened []string
+	oldOpen := H.OpenPath
+	H.OpenPath = func(p string, reveal bool) error {
+		opened = append(opened, fmt.Sprintf("%s %v", filepath.Base(p), reveal))
+		return nil
+	}
+	defer func() { H.OpenPath = oldOpen }()
+	a, _ := m.add(dlAdd{URL: s.URL + "/doc.pdf", Name: "doc.pdf", Force: true, Open: true})
+	b, _ := m.add(dlAdd{URL: s.URL + "/setup.exe", Name: "setup.exe", Force: true, Open: true})
+	waitState(t, m, a.ID, "done", 20*time.Second)
+	waitState(t, m, b.ID, "done", 20*time.Second)
+	for i := 0; i < 50 && len(opened) < 2; i++ {
+		time.Sleep(50 * time.Millisecond)
+	}
+	got := strings.Join(opened, ",")
+	if !strings.Contains(got, "doc.pdf false") || !strings.Contains(got, "setup.exe true") {
+		t.Fatalf("a document is opened, a program only shown in its folder: %s", got)
+	}
+	// a checksum given afterwards
+	m.mu.Lock()
+	path := m.find(a.ID).Path
+	m.mu.Unlock()
+	body, _ := os.ReadFile(path)
+	sum := sha256.Sum256(body)
+	if err := m.checkFile(a.ID, hex.EncodeToString(sum[:])); err != nil {
+		t.Fatal(err)
+	}
+	if v := waitVerify(m, a.ID); v != "ok" {
+		t.Fatalf("right checksum: %s", v)
+	}
+	m.checkFile(a.ID, strings.Repeat("ab", 32))
+	if v := waitVerify(m, a.ID); v != "bad" {
+		t.Fatalf("wrong checksum: %s", v)
+	}
+	if m.checkFile(a.ID, "not a checksum") == nil {
+		t.Fatal("nonsense accepted as a checksum")
+	}
+	// move to another folder, twice to the same one (the second gets a number)
+	to := t.TempDir()
+	if err := m.moveTo(a.ID, to); err != nil {
+		t.Fatal(err)
+	}
+	m.mu.Lock()
+	moved := m.find(a.ID).Path
+	m.mu.Unlock()
+	if filepath.Dir(moved) != to {
+		t.Fatalf("moved to %s", moved)
+	}
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		t.Fatal("the original is still there")
+	}
+	if m.moveTo(a.ID, "relative/dir") == nil {
+		t.Fatal("a relative folder must be refused")
+	}
+}
+
+func waitVerify(m *dlManager, id string) string {
+	for i := 0; i < 100; i++ {
+		m.mu.Lock()
+		v := m.find(id).Verify
+		m.mu.Unlock()
+		if v != "checking" {
+			return v
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	return "checking"
 }

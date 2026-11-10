@@ -746,3 +746,124 @@ func (m *dlManager) rename(id, name string) error {
 		return nil
 	})
 }
+
+// openWhenDone opens a finished file the person asked to open. A program or script is not started by itself (it is
+// only shown in its folder), and a file with a checksum is opened only when the checksum matched.
+func (m *dlManager) openWhenDone(id string, hashed bool) {
+	for i := 0; hashed && i < 600; i++ { // wait for the checksum (big files take a while)
+		m.mu.Lock()
+		e := m.find(id)
+		v := ""
+		if e != nil {
+			v = e.Verify
+		}
+		m.mu.Unlock()
+		if v != "checking" {
+			if v != "ok" {
+				return
+			}
+			break
+		}
+		time.Sleep(time.Second)
+	}
+	m.mu.Lock()
+	e := m.find(id)
+	path := ""
+	if e != nil {
+		path = e.Path
+	}
+	m.mu.Unlock()
+	if path == "" {
+		return
+	}
+	_ = m.openItem(id, dlRunsAsProgram(path))
+}
+
+// dlRunsAsProgram: file types Windows runs (or installs) when opened.
+func dlRunsAsProgram(p string) bool {
+	switch strings.ToLower(filepath.Ext(p)) {
+	case ".exe", ".msi", ".msix", ".appx", ".bat", ".cmd", ".com", ".scr", ".ps1", ".vbs", ".js", ".jse", ".wsf", ".hta", ".lnk", ".reg", ".jar", ".cpl", ".pif":
+		return true
+	}
+	return false
+}
+
+// checkFile compares a finished file with a checksum the person gives afterwards ("sha256:…" or bare hex).
+func (m *dlManager) checkFile(id, want string) error {
+	h, err := dlCleanHash(want)
+	if err != nil || h == "" {
+		return errors.New("paste an MD5, SHA-1, SHA-256 or SHA-512 checksum")
+	}
+	m.mu.Lock()
+	e := m.find(id)
+	if e == nil || e.State != "done" || e.Path == "" {
+		m.mu.Unlock()
+		return errors.New("only a finished download can be checked")
+	}
+	e.Hash, e.Verify = h, "checking"
+	path := e.Path
+	m.dirty = true
+	m.mu.Unlock()
+	goSafe("verify", func() { m.verify(id, path, h) })
+	return nil
+}
+
+// moveTo moves a finished file into another folder (made if needed), keeping its name, or adding a number when
+// that name is taken there.
+func (m *dlManager) moveTo(id, dir string) error {
+	dir = strings.TrimSpace(dir)
+	if dir == "" || !filepath.IsAbs(dir) {
+		return errors.New(`type the full path of a folder, for example D:\Setup`)
+	}
+	m.mu.Lock()
+	e := m.find(id)
+	if e == nil || e.State != "done" || e.Path == "" || e.Kind == "torrent" {
+		m.mu.Unlock()
+		return errors.New("only a finished file can be moved")
+	}
+	from := e.Path
+	m.mu.Unlock()
+	if filepath.Clean(filepath.Dir(from)) == filepath.Clean(dir) {
+		return nil
+	}
+	if _, err := os.Stat(from); err != nil {
+		return errors.New("the file is not there any more (moved or deleted)")
+	}
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return fmt.Errorf("could not make that folder: %v", err)
+	}
+	to := dlUniquePath(dir, filepath.Base(from), func(p string) bool { _, err := os.Lstat(p); return err == nil })
+	if err := os.Rename(from, to); err != nil {
+		// another drive: copy, then remove the original
+		if cerr := dlCopyFile(from, to); cerr != nil {
+			_ = os.Remove(to)
+			return fmt.Errorf("could not move the file: %v", cerr)
+		}
+		_ = os.Remove(from)
+	}
+	m.mu.Lock()
+	if e := m.find(id); e != nil {
+		e.Path, e.Name = to, filepath.Base(to)
+		m.elog(e, "Moved to %s", dir)
+		m.dirty = true
+	}
+	m.mu.Unlock()
+	return nil
+}
+
+func dlCopyFile(from, to string) error {
+	in, err := os.Open(from)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+	out, err := os.OpenFile(to, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o644)
+	if err != nil {
+		return err
+	}
+	if _, err := io.Copy(out, in); err != nil {
+		out.Close()
+		return err
+	}
+	return out.Close()
+}

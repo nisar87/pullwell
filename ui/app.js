@@ -361,7 +361,10 @@ function rowMenu(x, y){
     '-',
     {t:'Copy link', do: () => copyText(s.map(v => v.url).join('\n'), s.length > 1 ? 'Links copied' : 'Link copied')},
     {t:'Progress', off: !(one && one.state !== 'done'), do: () => progressBox(one.id)},
+    {t:'Open when finished', chk: !!(one && one.openDone), off: !(one && one.state !== 'done' && one.kind !== 'torrent'), do: () => dlAct({action:'openWhenDone', id: one.id, openWhenDone: !one.openDone}, one.openDone ? 'Will not open by itself' : 'Opens when finished')},
     {t:'Rename…', k:'F2', off: !canRename(one), do: () => renameBox(one)},
+    {t:'Move to another folder…', off: !(one && one.state === 'done' && one.path && one.kind !== 'torrent'), do: () => moveBox(one)},
+    {t:'Check the checksum…', off: !(one && one.state === 'done' && one.path), do: () => checksumBox(one)},
     {t:'Properties', k:'Alt+Enter', off: !one, do: () => dlProps(one.id)},
     '-',
     {t:'Delete', k:'Del', do: () => doDelete(false)},
@@ -393,6 +396,27 @@ function renameBox(v){
   const go = async () => { const n = inp.value.trim(); if (!n || n === v.name) return dlClose(); const r = await dlAct({action:'rename', id: v.id, name: n}, 'Renamed'); if (r !== null) dlClose(); };
   $('#rnYes').onclick = go;
   inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); go(); } };
+}
+
+// a small dialog with one text box (move, checksum)
+function inputBox({title, text, value = '', placeholder = '', ok, run}){
+  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="${esc(title)}" style="max-width:520px"><h3>${esc(title)}</h3>
+    <div class="hint2" style="margin:4px 0 8px">${esc(text)}</div>
+    <input class="inp" id="ibVal" style="width:100%" spellcheck="false" value="${esc(value)}" placeholder="${esc(placeholder)}">
+    <div class="row" style="justify-content:flex-end;gap:8px;margin-top:14px"><button class="btn" id="ibNo">Cancel</button><button class="btn pri" id="ibYes">${esc(ok)}</button></div></div>`);
+  const inp = $('#ibVal'); inp.focus(); inp.select();
+  $('#ibNo').onclick = dlClose;
+  const go = async () => { const v = inp.value.trim(); if (!v) return; const r = await run(v); if (r !== null) dlClose(); };
+  $('#ibYes').onclick = go; inp.onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); go(); } };
+}
+const dirOf = p => p.replace(/[\\/][^\\/]*$/, '');
+function moveBox(v){
+  inputBox({title: 'Move to another folder', text: `"${v.name}" is moved into the folder you type (it is made if needed).`, value: dirOf(v.path), ok: 'Move',
+    run: d => dlAct({action:'moveTo', id: v.id, dir: d}, 'Moved')});
+}
+function checksumBox(v){
+  inputBox({title: 'Check the checksum', text: 'Paste the checksum the website gives for this file (SHA-256, SHA-1, MD5 or SHA-512). The result shows in the Description column.', placeholder: 'e.g. 3a7bd3e2360a3d…', ok: 'Check',
+    run: h => dlAct({action:'checkFile', id: v.id, hash: h}, 'Checking…')});
 }
 
 /* ---------- live progress of one download ---------- */
@@ -562,6 +586,8 @@ const BAR_MENUS = {
       {t:'Copy link', off: !s.length, do: () => copyText(s.map(v => v.url).join('\n'), s.length > 1 ? 'Links copied' : 'Link copied')},
       {t:'Progress', off: !(one && one.state !== 'done'), do: () => progressBox(one.id)},
       {t:'Rename…', k:'F2', off: !canRename(one), do: () => renameBox(one)},
+      {t:'Move to another folder…', off: !(one && one.state === 'done' && one.path && one.kind !== 'torrent'), do: () => moveBox(one)},
+      {t:'Check the checksum…', off: !(one && one.state === 'done' && one.path), do: () => checksumBox(one)},
       {t:'Properties', k:'Alt+Enter', off: !one, do: () => dlProps(one.id)},
       '-',
       {t:'Select all', k:'Ctrl+A', off: !visible.length, do: () => { visible.forEach(id => sel.add(id)); render(); }},
@@ -704,6 +730,7 @@ function showProbe(link, p){
       <span class="hint2">Size</span><span><b>${size}</b>${hls ? '' : info.type ? ' <span class="hint2">· ' + esc(info.type) + '</span>' : ''}</span>
       ${hls && (p.hls.heights || []).length > 1 ? `<label for="dlQual" class="hint2">Quality</label><select class="sel" id="dlQual"><option value="0"${!p.height ? ' selected' : ''}>Best (${p.hls.heights[0]}p)</option>${p.hls.heights.slice(1).map(h => `<option value="${h}"${p.height === h ? ' selected' : ''}>${h}p</option>`).join('')}</select>` : ''}
       <label for="dlQ" class="hint2">Queue</label><select class="sel" id="dlQ">${dlQueueOpts('')}</select>
+      <span></span><label class="row" style="gap:6px"><input type="checkbox" id="dlOpenDone"${store.get('openDone', false) ? ' checked' : ''}> Open it when it has finished</label>
     </div>
     ${how ? `<div class="hint2" style="margin-top:10px">${esc(how + audio)}</div>` : ''}
     <details style="margin-top:8px"><summary class="hint2" style="cursor:pointer">More</summary><div style="display:grid;grid-template-columns:90px 1fr;gap:8px 10px;align-items:center;margin-top:8px">
@@ -729,6 +756,8 @@ async function confirmAdd(link, p, start){
   const tm = $('#dlTime').value;
   if (tm) { const [h, mi] = tm.split(':').map(Number); const d = new Date(); d.setHours(h, mi, 0, 0); if (d.getTime() <= Date.now()) d.setDate(d.getDate() + 1); body.startAt = Math.floor(d.getTime()/1000); }
   const hs = $('#dlHash').value.trim(); if (hs) body.hash = hs;
+  if ($('#dlOpenDone').checked) body.openWhenDone = true;
+  store.set('openDone', $('#dlOpenDone').checked); // remembered for the next download
   const r = await dlAct(body, start ? 'Download started' : 'Added');
   if (r) { dlClose(); const v = (r.added || [])[0]; if (v && v.id) { sel.clear(); sel.add(v.id); cur = anchor = v.id; render(); } }
 }

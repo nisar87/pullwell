@@ -81,11 +81,12 @@ type dlItem struct {
 	Conns    int               `json:"conns,omitempty"`   // connections per line for this download (0 = automatic)
 	Height   int               `json:"height,omitempty"`  // streams: tallest picture wanted (0 = best)
 	Log      []dlLogLine       `json:"log,omitempty"`
-	TUp      int64             `json:"tup,omitempty"`    // torrents: bytes uploaded in earlier runs
-	Kind     string            `json:"kind,omitempty"`   // "" = a file, "torrent"
-	Named    bool              `json:"named,omitempty"`  // the person (or the browser) chose the file name: the server's name does not replace it
-	Files    []dlTFile         `json:"files,omitempty"`  // torrents: what is inside
-	Select   []bool            `json:"select,omitempty"` // torrents: which files to download (nil = all)
+	TUp      int64             `json:"tup,omitempty"`      // torrents: bytes uploaded in earlier runs
+	Kind     string            `json:"kind,omitempty"`     // "" = a file, "torrent"
+	Named    bool              `json:"named,omitempty"`    // the person (or the browser) chose the file name: the server's name does not replace it
+	OpenDone bool              `json:"openDone,omitempty"` // open the file as soon as it has finished
+	Files    []dlTFile         `json:"files,omitempty"`    // torrents: what is inside
+	Select   []bool            `json:"select,omitempty"`   // torrents: which files to download (nil = all)
 }
 
 type dlEntry struct {
@@ -466,8 +467,9 @@ type dlAdd struct {
 	Height  int               `json:"height"` // streams: tallest picture wanted
 	User    string            `json:"user"`   // a site that asks for a user name and password (HTTP Basic)
 	Pass    string            `json:"pass"`
-	Torrent string            `json:"torrent"` // the contents of a .torrent file (base64)
-	Select  []bool            `json:"select"`  // torrents: which files to download
+	Torrent string            `json:"torrent"`      // the contents of a .torrent file (base64)
+	Select  []bool            `json:"select"`       // torrents: which files to download
+	Open    bool              `json:"openWhenDone"` // open the file when it has finished
 }
 
 var errDlDuplicate = errors.New("this link is already in your list")
@@ -571,6 +573,7 @@ func (m *dlManager) add(a dlAdd) (*dlItem, error) {
 		e.Name = dlSafeName(a.Name)
 		e.Named = e.Name != ""
 	}
+	e.OpenDone = a.Open
 	e.Category = e.cat(e.Name)
 	e.State = "queued"
 	if a.Start != nil && !*a.Start {
@@ -780,6 +783,10 @@ func (m *dlManager) finishRun(e *dlEntry, t dlRunner, err error) {
 		if e.Hash != "" {
 			e.Verify = "checking"
 			goSafe("verify", func() { m.verify(e.ID, e.Path, e.Hash) })
+		}
+		if e.OpenDone {
+			id, hashed := e.ID, e.Hash != ""
+			goSafe("open when done", func() { m.openWhenDone(id, hashed) })
 		}
 	case e.wantPause:
 		e.State = "paused"
