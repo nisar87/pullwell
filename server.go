@@ -81,6 +81,7 @@ func routes(port int, host func() string) (http.Handler, error) {
 	dm.Routes(mux)
 	mux.HandleFunc("/extension/", extensionHandler)
 	mux.HandleFunc("/api/app", apiGuard(port)(appHandler))
+	mux.HandleFunc("/api/update", apiGuard(port)(updateHandler))
 	static := http.FileServer(http.FS(sub))
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
@@ -100,6 +101,6 @@ func routes(port int, host func() string) (http.Handler, error) {
 // fillPage puts the product name and settings into the page. They come from appname.go, never from a request.
 func fillPage(page []byte, host string) []byte {
 	return []byte(strings.NewReplacer(
-		"{{NAME}}", AppName, "{{HEADER}}", appHeader, "{{VERSION}}", appVersion, "{{HOST}}", host,
+		"{{NAME}}", AppName, "{{HEADER}}", appHeader, "{{VERSION}}", appVersion, "{{BUILD}}", appBuild, "{{HOST}}", host,
 	).Replace(string(page)))
 }

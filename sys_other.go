@@ -14,6 +14,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"syscall"
+	"time"
 )
 
 func instanceStart(root string, tray bool) (release func(), first bool) { return func() {}, true }
@@ -64,3 +65,12 @@ func sysRun(ctx context.Context, args []string) error {
 
 func autoStartGet() (bool, error) { return false, errors.New("only on Windows") }
 func autoStartSet(on bool) error  { return errors.New("only on Windows") }
+
+func swapAndRestart(newFile string) error { return errors.New("updating itself works on Windows only") }
+
+func waitForExit(pid int, limit time.Duration) {
+	deadline := time.Now().Add(limit)
+	for time.Now().Before(deadline) && syscall.Kill(pid, 0) == nil {
+		time.Sleep(200 * time.Millisecond)
+	}
+}

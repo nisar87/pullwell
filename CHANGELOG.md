@@ -2,6 +2,13 @@
 
 ## 0.1.0 (not released)
 
+- **Updates itself.** Install once; new versions are installed by Pullwell, which then restarts. Options → Updates
+  shows the version, checks, installs, and can go back to the previous version. By default an update is installed
+  by itself when nothing is downloading (unfinished downloads continue afterwards); it can be switched to "ask
+  first". Updates come from GitHub releases (or test builds) once the project is public, and, while testing, from a
+  `Pullwell-update.exe` placed next to the program. Every update is checked against its SHA-256 fingerprint. No
+  script or PowerShell is used: Pullwell renames its own file to `Pullwell-previous.exe`, puts the new one in its
+  place, starts it and closes; the new copy waits until the old one has ended.
 - **Start with Windows** (Options → General): one entry in the current user's startup list, no administrator rights,
   no scheduled task. Pullwell then starts in the notification area. A copy started with its own data folder
   (`-root`) refuses, so a test copy cannot replace the real one.

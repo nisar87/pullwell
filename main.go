@@ -26,6 +26,8 @@ func main() {
 	version := flag.Bool("version", false, "print the version and exit")
 	ui := flag.String("ui", "auto", "how to show the window: auto, webview2, app (Edge or Chrome) or browser")
 	debug := flag.Bool("debug", false, "allow the browser developer tools in the window")
+	waitPid := flag.Int("wait-pid", 0, "after an update: wait until this process (the old version) has ended")
+	updated := flag.String("updated", "", "after an update: the version that was replaced")
 	flag.Parse()
 	uiMode, debugMode = *ui, *debug
 	if *version {
@@ -46,6 +48,14 @@ func main() {
 	appRoot = dir
 	logInit(dir)
 	logf("%s %s starting; data folder %s", AppName, appVersion, filepath.Join(dir, "data"))
+
+	if *waitPid > 0 { // the old version is still closing: wait for it to release the port and the lock
+		waitForExit(*waitPid, 60*time.Second)
+	}
+	if *updated != "" {
+		logf("updated from %s", *updated)
+	}
+	loadUpdateCfg()
 
 	// One copy per data folder: a second start shows the first one's window and ends.
 	release, first := instanceStart(dir, *tray)
@@ -75,6 +85,13 @@ func main() {
 	}()
 	url := fmt.Sprintf("http://127.0.0.1:%d/", port)
 	logf("listening on %s", url)
+	go updateLoop()
+	if *updated != "" {
+		go func() {
+			time.Sleep(3 * time.Second)
+			showBalloon(AppName+" updated", "Now version "+appVersion+" ("+appBuild+").")
+		}()
+	}
 
 	runUI(url, !*tray) // returns when the person quits
 

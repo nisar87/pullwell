@@ -1,0 +1,44 @@
+name: Release
+# To publish a version: change VERSION and appVersion in appname.go (the tests check they match), add a "## x.y.z"
+# section to CHANGELOG.md and push to main. This builds Pullwell.exe, publishes release vX.Y.Z with its .sha256, and
+# every installed Pullwell on the "Releases" channel finds it (once the repository is public).
+on:
+  push:
+    branches: [main]
+    paths: [VERSION]
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Work out the version
+        id: v
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VER="$(tr -d ' \r\n' < VERSION)"
+          echo "ver=${VER}" >> "$GITHUB_OUTPUT"
+          if gh release view "v${VER}" >/dev/null 2>&1; then echo "exists=true" >> "$GITHUB_OUTPUT"; else echo "exists=false" >> "$GITHUB_OUTPUT"; fi
+      - name: Check
+        if: steps.v.outputs.exists == 'false'
+        run: |
+          go vet ./... && GOOS=windows go vet ./... && go test ./...
+          node --test extension/core.test.js
+      - name: Build
+        if: steps.v.outputs.exists == 'false'
+        run: |
+          GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -H=windowsgui -X main.appBuild=$(git rev-parse --short HEAD)" -o Pullwell.exe .
+          sha256sum Pullwell.exe | cut -d' ' -f1 > Pullwell.exe.sha256
+      - name: Publish
+        if: steps.v.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VER: ${{ steps.v.outputs.ver }}
+        run: |
+          awk -v v="## ${VER}" '$0 ~ "^## " { if (p) exit; if (index($0, v) == 1) { p = 1; next } } p' CHANGELOG.md > notes.md
+          gh release create "v${VER}" Pullwell.exe Pullwell.exe.sha256 --title "Pullwell ${VER}" --notes-file notes.md

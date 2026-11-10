@@ -63,7 +63,7 @@ async function loadDL(){
   if (loading) return;
   loading = true;
   try { const d = await api('downloads'); d.items = d.items || []; d.config = d.config || {}; d.config.queues = d.config.queues || []; d.config.window = d.config.window || {from:'22:00', to:'07:00'}; DL = d; loadErrors = 0; if ($('#banner').dataset.down) { delete $('#banner').dataset.down; setHTML($('#banner'), ''); } }
-  catch(e){ loadErrors++; if (loadErrors === 3) { $('#banner').dataset.down = '1'; } if (loadErrors >= 3) setHTML($('#banner'), `<div class="bn bad">${esc(APP.name)} is not answering. If you closed it from the notification area, start it again.</div>`); return; }
+  catch(e){ loadErrors++; if (UPD && UPD.status === 'installing' && loadErrors < 60) return; if (loadErrors === 3) { $('#banner').dataset.down = '1'; } if (loadErrors >= 3) setHTML($('#banner'), `<div class="bn bad">${esc(APP.name)} is not answering. If you closed it from the notification area, start it again.</div>`); return; }
   finally { loading = false; }
   for (const v of DL.items) { if (prevState[v.id] && prevState[v.id] !== 'done' && v.state === 'done' && !document.hidden) toast('Finished: ' + v.name); prevState[v.id] = v.state; }
   speedHist.push(DL.speed || 0); if (speedHist.length > 60) speedHist.shift();
@@ -220,8 +220,13 @@ function renderStatus(){
   setHTML($('#status'), `<span><b>${it.length}</b> download${it.length === 1 ? '' : 's'}</span><span><b>${act}</b> downloading${que ? `, ${que} waiting` : ''}</span>
     <span>↓ <b>${bytes(DL.speed || 0)}/s</b>${limit} ${spark()}</span>${selTxt}<span class="sp"></span><span class="selectable" title="Change in Options">Saving to ${esc(DL.config.dir)}</span>`);
 }
+let UPD = null, updAt = 0;
+async function loadUpd(){ try { UPD = await api('update'); if (UPD.current !== APP.version || (UPD.build || '') !== APP.build) location.reload(); } catch(e){} } // a new version is running: load its page
 function renderBanner(){
+  if (Date.now() - updAt > 10000 || (UPD && UPD.status !== 'idle' && Date.now() - updAt > 1500)) { updAt = Date.now(); loadUpd().then(() => { if (optTab === 'updates' && $('.opt')) showOptions('updates'); }); }
   let h = '';
+  if (UPD && UPD.status === 'installing') h += `<div class="bn warn"><b>Installing version ${esc(UPD.latest)}.</b> ${esc(APP.name)} restarts in a moment; downloads continue afterwards.</div>`;
+  else if (UPD && UPD.available && UPD.status === 'idle' && !UPD.auto) h += `<div class="bn warn"><b>Version ${esc(UPD.latest)} is ready.</b><span style="flex:1"></span><button class="btn" data-act="updInstall">Install and restart</button></div>`;
   if (DL.powerAt && (Date.now()/1000 - DL.powerAt) < 70) h += `<div class="bn bad"><b>The PC shuts down in less than a minute</b> because your downloads finished.<span style="flex:1"></span><button class="btn" data-act="cancelPower">Cancel shutdown</button></div>`;
   if (DL.hold) h += `<div class="bn warn"><b>Downloads are waiting:</b> ${esc(DL.hold.replace(/^Waiting: /, ''))}</div>`;
   setHTML($('#banner'), h);
@@ -504,7 +509,7 @@ async function addTorrentFile(f){
 
 /* ---------- options ---------- */
 let optTab = null;
-const OPT_TABS = [['general','General'],['connection','Connection'],['schedule','Schedule'],['browser','Browser'],['torrents','Torrents'],['advanced','Advanced']];
+const OPT_TABS = [['general','General'],['connection','Connection'],['schedule','Schedule'],['browser','Browser'],['torrents','Torrents'],['updates','Updates'],['advanced','Advanced']];
 function limSel(key, cur){
   const near = LIMITS.reduce((b, x) => Math.abs(x*1048576 - cur) < Math.abs(b*1048576 - cur) ? x : b, 0);
   return `<select class="sel" data-cfg="${esc(key)}" data-lim2="1" aria-label="Speed limit">${LIMITS.map(x => `<option value="${x}"${x === near ? ' selected' : ''}>${x ? (x < 1 ? x*1000 + ' KB/s' : x + ' MB/s') : 'No limit'}</option>`).join('')}</select>`;
@@ -534,6 +539,16 @@ function optionsBody(tab){
       + orow('Only files bigger than', 'Smaller files are quicker to leave with the browser.', `<select class="sel" id="extMin">${[0,1,5,10,25,50,100].map(n => `<option value="${n}"${x.minMB === n ? ' selected' : ''}>${n ? n + ' MB' : 'Everything'}</option>`).join('')}</select>`)
       + orow('Connected browsers', bs.length ? '' : 'None yet.', `<button class="btn pri" id="extCode">Connect a browser…</button>`)
       + bs.map(b => orow(esc(b.name || 'Browser'), `Connected ${when(b.created)}${b.lastSeen ? ' · last used ' + when(b.lastSeen) : ''}`, `<button class="btn" data-extrm="${esc(b.id)}">Disconnect</button>`)).join('');
+  }
+  if (tab === 'updates') {
+    const u = UPD || {};
+    const state = u.status === 'downloading' ? `Downloading… ${u.progress || 0}%` : u.status === 'installing' ? `Installing: ${esc(APP.name)} restarts in a moment.`
+      : u.available ? `<b>Version ${esc(u.latest)} is ready.</b>` : u.checked ? 'You have the newest version.' : 'Not checked yet.';
+    return orow('Version', `${esc(APP.name)} ${esc(u.current || APP.version)}${u.build && u.build !== 'dev' ? ' (build ' + esc(u.build.slice(0, 7)) + ')' : ''} · ${state}${u.error ? `<br><span class="bad">${esc(u.error)}</span>` : ''}`,
+        `<div class="row" style="flex-wrap:nowrap"><button class="btn" id="updCheck"${u.status && u.status !== 'idle' ? ' disabled' : ''}>Check now</button>${u.available ? `<button class="btn pri" id="updInstall"${u.status !== 'idle' ? ' disabled' : ''}>Install and restart</button>` : ''}</div>`)
+      + orow('Install updates by themselves', `When an update is ready and nothing is downloading, ${esc(APP.name)} installs it and restarts. Unfinished downloads continue afterwards.`, tog('id="updAuto"', u.auto, 'Install updates by themselves'))
+      + orow('Which versions', 'Test builds are every change as soon as it is made; releases are the tested versions.', `<select class="sel" id="updChannel"><option value="release"${u.channel !== 'test' ? ' selected' : ''}>Releases</option><option value="test"${u.channel === 'test' ? ' selected' : ''}>Test builds</option></select>`)
+      + (u.previous ? orow('Go back to the previous version', 'If the new version gives trouble. You can come back to this one the same way.', `<button class="btn" id="updBack">Go back</button>`) : '');
   }
   if (tab === 'torrents') return orow('Torrents and magnet links', 'Turn off to refuse magnet links and .torrent files.', tog('data-dm="torTog"', !c.noTorrents, 'Allow torrents'))
     + (c.noTorrents ? '' : orow('Share while downloading', 'Pieces you already have go out to others while the rest comes in.', tog('data-dm="upTog"', !c.noUpload, 'Share while downloading'))
@@ -576,6 +591,12 @@ async function extConnect(){
   tick();
 }
 
+async function updAction(body, msg){
+  try { UPD = await api('update', body); if (msg) toast(msg); }
+  catch(e){ toast(e.message, true); await loadUpd(); }
+  updAt = Date.now(); renderBanner(); if (optTab === 'updates' && $('.opt')) showOptions('updates');
+}
+
 /* ---------- events ---------- */
 document.addEventListener('click', async e => {
   if (menuEl && !menuEl.contains(e.target)) closeMenu();
@@ -584,6 +605,10 @@ document.addEventListener('click', async e => {
   if (t.dataset.sort) { if (t.dataset.resizing) return; sortBy = sortBy.c === t.dataset.sort ? {c: t.dataset.sort, d: -sortBy.d} : {c: t.dataset.sort, d: 1}; store.set('sort', sortBy); return render(); }
   if (t.dataset.opt) return showOptions(t.dataset.opt);
   if (t.dataset.act === 'cancelPower') return dlAct({action:'cancelPower'}, 'Shutdown cancelled');
+  if (t.dataset.act === 'updInstall' || t.id === 'updInstall') return updAction({action:'install'}, 'Installing the update…');
+  if (t.id === 'updCheck') return updAction({action:'check'}, null);
+  if (t.id === 'updAuto') return updAction({action:'settings', auto: !(UPD && UPD.auto)}, null);
+  if (t.id === 'updBack') { const r = await askBox({title:'Go back to the previous version?', text:`${APP.name} restarts with the version you had before. Downloads continue afterwards.`, ok:'Go back'}); if (r.ok) updAction({action:'rollback'}, 'Going back…'); return; }
   const tb = t.dataset.tb;
   if (tb === 'add') return addDialog('');
   if (tb === 'resume') return doResume();
@@ -609,6 +634,7 @@ document.addEventListener('change', async e => {
   const t = e.target; if (!DL) return;
   if (t.id === 'torFile') { const f = t.files && t.files[0]; return addTorrentFile(f); }
   if (t.id === 'optTheme') { store.set('theme', t.value); applyTheme(); return; }
+  if (t.id === 'updChannel') return updAction({action:'settings', channel: t.value}, null);
   if (t.id === 'extMin') return dlAct({action:'extConfig', extMinMB: +t.value, extOff: !DL.ext.enabled});
   if (t.id === 'dlMax') return dlAct({action:'config', config: {...DL.config, maxActive: +t.value}});
   if (t.id === 'dlPer') return dlAct({action:'config', config: {...DL.config, maxPerLine: +t.value}});
