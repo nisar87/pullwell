@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -169,7 +170,7 @@ func (s *extStore) view() map[string]any {
 	for _, b := range s.Browsers {
 		bs = append(bs, map[string]any{"id": b.ID, "name": b.Name, "created": b.Created, "lastSeen": b.LastSeen})
 	}
-	return map[string]any{"browsers": bs, "minMB": s.MinMB, "enabled": !s.Off, "ask": !s.NoAsk}
+	return map[string]any{"browsers": bs, "minMB": s.MinMB, "enabled": !s.Off, "ask": !s.NoAsk, "asked": askedTotal.Load()}
 }
 
 func extOrigin(o string) bool {
@@ -392,6 +393,9 @@ type extAsk struct {
 	Header map[string]string `json:"header"`
 }
 
+// askedTotal counts the browser downloads that were held for the box (shown in the extension view, for tests).
+var askedTotal atomic.Int64
+
 var (
 	askMu sync.Mutex
 	askQ  []extAsk
@@ -404,6 +408,7 @@ func (s *extStore) asks() bool {
 }
 
 func queueAsk(a extAsk) {
+	askedTotal.Add(1)
 	askMu.Lock()
 	defer askMu.Unlock()
 	for _, o := range askQ {

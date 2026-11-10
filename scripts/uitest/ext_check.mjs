@@ -47,11 +47,13 @@ await sw.evaluate(() => refresh()); await sleep(300);
 
 // the default: the program asks first (IDM-style "Download file info" box) and adds nothing until the person agrees
 const post = b => fetch(url + 'api/downloads', {method: 'POST', headers: H, body: JSON.stringify(b)}).then(r => r.json());
-const nA = (await items()).length; const pa = await ctx.newPage();
+const askedNow = async () => (await (await fetch(url + 'api/downloads')).json()).ext.asked;
+const nA = (await items()).length, a0 = await askedNow(); const pa = await ctx.newPage();
 await pa.setContent(`<a id="a" href="http://files.example.test/file/22MB">ask</a>`); await pa.click('#a'); await sleep(2500);
+// (on Windows the program's own window may already have taken it and shown the box, so the box's queue can be empty)
 const asked = await post({action: 'takeAsk'});
-check('a browser download waits for the person\'s yes', (await items()).length === nA && asked.ask && asked.ask.url.includes('/file/22MB'), JSON.stringify(asked.ask || {}).slice(0, 120));
-check('the box gets the browser\'s details (the page it came from)', !!(asked.ask && asked.ask.header && asked.ask.header.Referer !== undefined || asked.ask && asked.ask.header && asked.ask.header['User-Agent']), JSON.stringify(Object.keys((asked.ask && asked.ask.header) || {})));
+check('a browser download waits for the person\'s yes', (await items()).length === nA && (await askedNow()) === a0 + 1, 'held: ' + ((await askedNow()) - a0));
+if (asked.ask) check('the box gets the browser\'s details', asked.ask.url.includes('/file/22MB') && !!(asked.ask.header && asked.ask.header['User-Agent']), JSON.stringify(Object.keys(asked.ask.header || {})));
 await pa.close();
 await post({action: 'extConfig', extMinMB: 5, extOff: false, extNoAsk: true}); // the checks below look at the direct hand-over
 // a big download is taken over
