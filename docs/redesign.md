@@ -16,7 +16,7 @@ Branch `feature/pullwell-ui-redesign`, started from `main` at `1ee4490` (version
 | `more_check.mjs` | 13/13 |
 | Windows workflow (tests + 48 program checks) | pass |
 
-Pre-existing issues noted: speed-limit labels round (250 KB/s is 256 KB/s); the classic notification fallback cannot
+Pre-existing issues noted: the classic notification fallback cannot
 be clicked on Windows 11.
 
 ## How the window works today
@@ -214,7 +214,7 @@ Open:
    approximately.
 3. Notifications from a separate copy use the classic balloon (its clicks cannot reach it through `pullwell://`,
    which belongs to the installed copy). By design.
-4. From before the redesign: speed-limit labels round (250 KB/s shows as 256 KB/s); the classic notification cannot
+4. From before the redesign: the classic notification cannot
    be clicked on Windows 11 when the Start menu entry is off; the Firefox extension is only loaded temporarily.
 5. Not covered by automation: a real Windows theme switch, dragging the window, display scaling above 100 %,
    toasts and the tray icon as Windows draws them (see "Results on Windows").

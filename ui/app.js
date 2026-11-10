@@ -393,7 +393,7 @@ function rowMenu(x, y){
     {t:'Move up', off: !movable, do: () => eachSel('move', {move:'up'})},
     {t:'Move down', off: !movable, do: () => eachSel('move', {move:'down'})},
     {t:'Queue', off: !any(v => v.state !== 'done'), sub: qs.map(qq => ({t: qq.name, chk: curQ === qq.id, do: () => eachSel('setQueue', {queue: qq.id}, 'Moved')}))},
-    {t:'Speed limit', off: !any(v => v.state !== 'done'), sub: LIMITS.map(l => ({t: l ? (l < 1 ? l * 1000 + ' KB/s' : l + ' MB/s') : 'No limit', chk: Math.abs(curLim - l * 1048576) < 1, do: () => eachSel('limit', {limitBytes: l * 1048576}, l ? 'Limit set' : 'Limit removed')}))},
+    {t:'Speed limit', off: !any(v => v.state !== 'done'), sub: LIMITS.map(l => ({t: limitLabel(l), chk: Math.abs(curLim - l * 1048576) < 1, do: () => eachSel('limit', {limitBytes: l * 1048576}, l ? 'Limit set' : 'Limit removed')}))},
     '-',
     {t:'Copy link', do: () => copyText(s.map(v => v.url).join('\n'), s.length > 1 ? 'Links copied' : 'Link copied')},
     {t:'Progress', off: !(one && one.state !== 'done'), do: () => progressBox(one.id)},
@@ -598,7 +598,7 @@ function aboutBox(){
     <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn pri" id="abOk" autofocus>Close</button></div></div>`);
   $('#abOk').onclick = dlClose;
 }
-const limitLabel = l => l ? (l < 1 ? l * 1000 + ' KB/s' : l + ' MB/s') : 'No limit';
+const limitLabel = l => l ? (l < 1 ? Math.round(l * 1024) + ' KB/s' : l + ' MB/s') : 'No limit'; // the limit is in binary units, so 0.25 is 256 KB/s
 const BAR_MENUS = {
   tasks: () => [
     {t:'New download…', k:'Ctrl+N', do: () => addDialog('')},
@@ -842,7 +842,7 @@ let optTab = null;
 const OPT_TABS = [['general','General'],['connection','Connection'],['schedule','Schedule'],['browser','Browser'],['torrents','Torrents'],['updates','Updates'],['advanced','Advanced']];
 function limSel(key, cur){
   const near = LIMITS.reduce((b, x) => Math.abs(x*1048576 - cur) < Math.abs(b*1048576 - cur) ? x : b, 0);
-  return `<select class="sel" data-cfg="${esc(key)}" data-lim2="1" aria-label="Speed limit">${LIMITS.map(x => `<option value="${x}"${x === near ? ' selected' : ''}>${x ? (x < 1 ? x*1000 + ' KB/s' : x + ' MB/s') : 'No limit'}</option>`).join('')}</select>`;
+  return `<select class="sel" data-cfg="${esc(key)}" data-lim2="1" aria-label="Speed limit">${LIMITS.map(x => `<option value="${x}"${x === near ? ' selected' : ''}>${limitLabel(x)}</option>`).join('')}</select>`;
 }
 const tog = (attr, on, label) => `<button class="tog${on ? ' on' : ''}" ${attr} role="switch" aria-checked="${!!on}" aria-label="${esc(label)}"></button>`;
 const orow = (title, desc, ctl) => `<div class="dnsrow"><div><b>${title}</b>${desc ? `<div class="d">${desc}</div>` : ''}</div>${ctl}</div>`;

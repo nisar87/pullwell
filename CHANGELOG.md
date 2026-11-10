@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.6.1 (2026-11-11)
+
+- Fixed: the speed limit list said "250 KB/s" for a limit that is really 256 KB/s (limits count in binary units, as
+  the sizes do); it now says 256 KB/s everywhere.
+- Fixed: Uninstall with "also delete data" could leave the data folder behind when the window's helper processes were
+  slow to let go of it; it now tries six times instead of three.
+- Tests only: steadier Windows checks (Space to resume, uninstall).
+
 ## 0.6.0 (2026-11-11)
 
 - **New look, "Precision flow".** A redesigned window: calmer light and dark themes, Segoe UI Variable text with
