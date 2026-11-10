@@ -135,6 +135,7 @@ check('Tools → Options opens Options', /Start with Windows|Save downloads in/.
 await key('Escape'); await sleep(100);
 p = await center('#menubar [data-mb="tools"]'); await click(p[0], p[1]); await sleep(120); await clickEntry('Open the download folder'); await sleep(300);
 check('Tools → Open the download folder does not fail', !(await js('document.querySelector("#toast").classList.contains("bad")')), await js('document.querySelector("#toast").textContent'));
+await sleep(2000); // on Windows a real Explorer window opens and takes the focus a moment later, which closes any open menu
 p = await center('#menubar [data-mb="help"]'); await click(p[0], p[1]); await sleep(120); await clickEntry('Keyboard shortcuts'); await sleep(200);
 check('Help → Keyboard shortcuts', /Alt or F10/.test(await js('document.querySelector("#dlDlg") ? document.querySelector("#dlDlg").textContent : ""')));
 await shot('m04-shortcuts');
