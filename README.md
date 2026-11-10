@@ -98,6 +98,7 @@ Every push builds a test version (the `test-build` pre-release). Changing `VERSI
 
 - [Road to 1.0](docs/roadmap.md): what is done and what was checked on a real Windows PC
 - [Changelog](CHANGELOG.md)
+- [Publishing: the steps only the owner can take](docs/publishing.md) (browser stores, winget, code signing)
 - [Window, tray and notifications design](docs/window-tray-notifications-design.md)
 - [How the engine is kept in step with NetMerge](docs/engine-sync.md), and
   [problems found that also affect NetMerge](docs/netmerge-reports.md)
