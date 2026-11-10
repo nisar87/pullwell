@@ -507,6 +507,13 @@ function shortcutsBox(){
     <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn pri" id="kbOk" autofocus>Close</button></div></div>`);
   $('#kbOk').onclick = dlClose;
 }
+// Report a problem: the issue page on GitHub, with the version filled in; the log folder is opened too, so the log
+// can be attached if the person wants (nothing is sent by Pullwell itself).
+function reportProblem(){
+  const body = encodeURIComponent(`**What happened**\n\n\n**What you expected**\n\n\n**Version:** ${APP.version}${APP.build && APP.build !== 'dev' ? ' (' + APP.build.slice(0, 7) + ')' : ''}\n**Windows:** ${navigator.userAgent.match(/Windows NT [\d.]+/) || ''}\n\nThe log (${APP.name.toLowerCase()}.log in the data folder) helps; look through it first, it lists the addresses you downloaded from.`);
+  window.open(`https://github.com/${APP.repo}/issues/new?body=${body}`, '_blank', 'noopener');
+  openFolder('log');
+}
 function aboutBox(){
   const u = UPD || {};
   dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="About" style="max-width:440px"><h3>${esc(APP.name)}</h3>
@@ -585,6 +592,9 @@ const BAR_MENUS = {
   help: () => [
     {t:'Keyboard shortcuts', do: shortcutsBox},
     {t:'Check for updates', do: () => { showOptions('updates'); updAction({action:'check'}, null); }},
+    '-',
+    {t:"What's new", off: !APP.repo, do: () => window.open(`https://github.com/${APP.repo}/releases`, '_blank', 'noopener')},
+    {t:'Report a problem…', off: !APP.repo, do: reportProblem},
     {t:'About ' + APP.name, do: aboutBox},
   ],
 };
