@@ -31,11 +31,12 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 			Clipboard *bool  `json:"clipboard"`
 			Take      string `json:"take"` // "add": the link chosen from a notification, handed over once
 			StartMenu *bool  `json:"startMenu"`
+			SaveExt   string `json:"saveExt"` // "chrome-edge" | "firefox": save the extension in the download folder and show it
 			Uninstall *struct {
 				Data bool `json:"data"` // also delete the data folder (list, settings, log); downloads are never deleted
 			} `json:"uninstall"`
 		}
-		if json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&in) != nil || (in.Autostart == nil && !in.Quit && in.Open == "" && in.Clipboard == nil && in.Take != "add" && in.StartMenu == nil && in.Uninstall == nil) {
+		if json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&in) != nil || (in.Autostart == nil && !in.Quit && in.Open == "" && in.Clipboard == nil && in.Take != "add" && in.StartMenu == nil && in.Uninstall == nil && in.SaveExt == "") {
 			w.WriteHeader(400)
 			_ = json.NewEncoder(w).Encode(map[string]string{"error": "bad request"})
 			return
@@ -67,6 +68,19 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+			return
+		}
+		if in.SaveExt != "" {
+			// The window cannot be relied on to save files (WebView2's download handling differs between
+			// versions), so the program writes the file itself and shows it in Explorer.
+			path, err := saveExtension(in.SaveExt)
+			if err != nil {
+				w.WriteHeader(409)
+				_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+				return
+			}
+			logf("extension saved: %s", path)
+			_ = json.NewEncoder(w).Encode(map[string]string{"path": path})
 			return
 		}
 		if in.StartMenu != nil {
@@ -138,4 +152,24 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 	out := map[string]any{"autostart": on, "canAutostart": err == nil && !customRoot, "version": appVersion, "clipboard": clipboardOn(),
 		"startMenu": startMenuGet(), "canInstall": !customRoot && runtime.GOOS == "windows"}
 	_ = json.NewEncoder(w).Encode(out)
+}
+
+func saveExtension(kind string) (string, error) {
+	if kind != "chrome-edge" && kind != "firefox" {
+		return "", errors.New("unknown browser")
+	}
+	b, err := extensionZip(kind)
+	if err != nil {
+		return "", err
+	}
+	dir := dm.DownloadDir()
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return "", err
+	}
+	path := filepath.Join(dir, AppName+"-extension-"+kind+".zip")
+	if err := os.WriteFile(path, b, 0o644); err != nil {
+		return "", err
+	}
+	_ = sysOpenPath(path, true)
+	return path, nil
 }

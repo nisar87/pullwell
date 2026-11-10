@@ -271,3 +271,27 @@ func TestDLFriendlyMessages(t *testing.T) {
 		}
 	}
 }
+
+// A name typed in the Add dialog is kept even when the server suggests another one (Content-Disposition); without a
+// typed name the server's name is used. (Pullwell fix; NetMerge 3.11.20 always used the server's name.)
+func TestDLChosenNameKept(t *testing.T) {
+	s := newSim(MiB)
+	defer s.Close()
+	m := newTestMgr(t, newSimEnv(newSimLine("A", "127.0.0.1", 0)))
+	mine, err := m.add(dlAdd{URL: s.URL + "/redir", Name: "my name.bin", Force: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	theirs, err := m.add(dlAdd{URL: s.URL + "/redir?2", Force: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	a := waitState(t, m, mine.ID, "done", 20*time.Second)
+	b := waitState(t, m, theirs.ID, "done", 20*time.Second)
+	if filepath.Base(a.Path) != "my name.bin" {
+		t.Errorf("typed name lost: %s", a.Path)
+	}
+	if !strings.HasPrefix(filepath.Base(b.Path), "sim file") {
+		t.Errorf("server's name not used: %s", b.Path)
+	}
+}

@@ -789,11 +789,10 @@ function afterChange(){ if (optTab && $('#dlDlg') && $('.opt')) showOptions(optT
 /* ---------- connecting a browser ---------- */
 async function extConnect(){
   let r; try { r = await api('downloads', {action:'extCode'}); } catch(e){ return toast(e.message, true); }
-  const zip = k => `/extension/${encodeURIComponent(APP.name)}-extension-${k}.zip`;
   dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Connect a browser" style="max-width:580px"><h3>Connect a browser</h3>
     <div class="hint2" style="margin-bottom:10px">The extension is not in the browser stores yet, so it is added by hand once (about a minute).</div>
     <ol class="hint2" style="margin:0 0 12px;padding-left:18px;display:grid;gap:8px">
-      <li><b>Save the extension:</b> <a class="btn" href="${zip('chrome-edge')}" download>Chrome / Edge / Brave</a> <a class="btn" href="${zip('firefox')}" download>Firefox</a></li>
+      <li><b>Save the extension</b> (it goes into your download folder, which then opens): <button class="btn" data-saveext="chrome-edge">Chrome / Edge / Brave</button> <button class="btn" data-saveext="firefox">Firefox</button></li>
       <li><b>Chrome, Edge, Brave:</b> unzip it into a folder you keep. Open <code>chrome://extensions</code> (Edge: <code>edge://extensions</code>) <button class="btn" id="extCopy" style="padding:1px 8px;min-height:0">Copy</button>, switch on <b>Developer mode</b>, click <b>Load unpacked</b> and choose that folder.<br><b>Firefox:</b> open <code>about:debugging#/runtime/this-firefox</code>, click <b>Load Temporary Add-on</b> and choose the zip (Firefox forgets it when it closes).</li>
       <li><b>Pin the ${esc(APP.name)} icon</b> (the puzzle piece in the toolbar), click it and type this code:</li>
     </ol>
@@ -802,6 +801,7 @@ async function extConnect(){
     <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn pri" id="extDone">Done</button></div></div>`);
   $('#extDone').onclick = () => showOptions('browser');
   $('#extCopy').onclick = () => copyText('chrome://extensions', 'Copied: paste it in a new browser tab');
+  $$('[data-saveext]').forEach(b => b.onclick = async () => { try { const r = await api('app', {saveExt: b.dataset.saveext}); toast('Saved: ' + r.path); } catch(e){ toast(e.message, true); } });
   const tick = () => { const el = $('#extLeft'); if (!el) return; const left = r.expires - Math.floor(Date.now()/1000); if (left <= 0) { el.textContent = 'The code has expired. Close this and connect again.'; return; } el.textContent = `Valid for ${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}, one use only.`; setTimeout(tick, 1000); };
   tick();
 }

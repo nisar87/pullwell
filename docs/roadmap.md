@@ -41,19 +41,19 @@ Gate: automated window checks extended to the menus; seen on the PC.
 
 | | Item |
 | --- | --- |
-| ⬜ | Browser extension tested in the owner's Chrome and Edge: big download taken over, right-click "Download with Pullwell", browser keeps the download when Pullwell is closed |
+| 🟡 | Browser extension: 10 checks pass in Chromium with the extension as Pullwell hands it out (pairing, big download taken over, small one left, right-click entry, browser keeps the download when Pullwell is closed); still to try in the owner's Chrome and Edge. Was:: big download taken over, right-click "Download with Pullwell", browser keeps the download when Pullwell is closed |
 | 🟡 | Live progress dialog for a download (speed, parts, connections, log), refreshing while open |
-| 🟡 | Redownload a finished or failed file (Downloads → Download again); open the folder of any item |
+| ✅ | Redownload a finished or failed file (Downloads → Download again); open the folder of any item |
 | 🟡 | Copied links: offer to add a link when one is copied (off by default, switch in Options) |
 | 🟡 | Plain-language messages for every failure (disk full, folder not writable, site refuses, login needed) checked against the engine's texts |
-| 🟡 | Keyboard shortcuts list (Help menu) |
+| ✅ | Keyboard shortcuts list (Help menu) |
 
 ## Phase 4: looks like an installed program
 
 | | Item |
 | --- | --- |
-| ⬜ | Program icon in Explorer, taskbar and Alt+Tab (icon resource built without extra tools) |
-| ⬜ | Start menu entry (so Windows search finds Pullwell) and an "uninstall" that removes it, the startup entry and the data on request |
+| ✅ | Program icon in Explorer, taskbar and Alt+Tab (icon resource built without extra tools; seen in the taskbar and title bar, 14:53) |
+| ✅ | Start menu entry (so Windows search finds Pullwell; notifications now say "Pullwell" with its icon, seen 15:47). 🟡 Uninstall: written, not run on the PC (it would remove the test copy) |
 | ⬜ | First public release v0.2.0 on GitHub with notes; the self-update from GitHub proven on the PC |
 
 ## Phase 5: trust
@@ -62,6 +62,6 @@ Gate: automated window checks extended to the menus; seen on the PC.
 | --- | --- |
 | ⬜ | Unpleasant cases on the PC: cable pulled mid-download, disk nearly full, read-only folder, very long file names, PC sleep and wake, hundreds of items |
 | ⬜ | A day of normal use with the log checked afterwards |
-| ⬜ | README with screenshots, privacy note, how to install the extension |
+| ✅ | README with screenshots, privacy note, how to install the extension |
 
 When phases 1-5 are ✅, Pullwell is 1.0.

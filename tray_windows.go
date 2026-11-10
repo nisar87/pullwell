@@ -393,6 +393,9 @@ func showBalloon(title, text string) {
 	}
 	setBalloonLink("") // a new notification replaces any copied-link offer on screen
 	nid := notifyIconData{Wnd: hwnd, ID: 1, Flags: nifInfo, InfoFlags: 1}
+	if ic := balloonIcon(); ic != 0 {
+		nid.InfoFlags, nid.BalloonIcon = 4|0x20, ic // NIIF_USER | NIIF_LARGE_ICON: the program's own icon
+	}
 	nid.Size = uint32(unsafe.Sizeof(nid))
 	t, _ := syscall.UTF16FromString(text)
 	copy(nid.Info[:255], t)
@@ -412,4 +415,17 @@ func safely(what string, f func()) {
 		}
 	}()
 	f()
+}
+
+var balloonIco uintptr
+
+// balloonIcon is the program's icon at the size Windows uses for large notification icons (loaded once; 0 when the
+// program was built without its icon resource, and then Windows shows its "information" icon).
+func balloonIcon() uintptr {
+	if balloonIco == 0 {
+		inst, _, _ := pGetModuleHandle.Call(0)
+		n := int(32 * dpiScale(0))
+		balloonIco, _, _ = pLoadImage.Call(inst, 1, 1, uintptr(n), uintptr(n), 0)
+	}
+	return balloonIco
 }

@@ -1,7 +1,16 @@
 # Changelog
 
-## 0.1.0 (not released)
+## 0.2.0 (2026-11-10)
 
+The first public version. Download `Pullwell.exe`, put it in a folder of its own and start it; from then on it
+updates itself. See the README for connecting your browser.
+
+- **A file name you type is kept.** A name you type in the "Download file info" dialog was replaced by the website's
+  own name whenever the website suggested one. This is fixed (it was inherited from NetMerge's engine and is reported
+  there).
+- **Connect a browser** saves the extension straight into your download folder and opens it, instead of relying on
+  the window to download the file.
+- Notifications show Pullwell's own icon.
 - **Looks installed.** The program has its own icon (in Explorer, the taskbar, Alt+Tab and the title bar) and version
   details (Explorer → Properties → Details, Task Manager). Pullwell adds itself to your Start menu, so Windows search
   finds it and notifications show "Pullwell" with its icon; the entry follows the program if you move its folder,
