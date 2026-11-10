@@ -2,8 +2,9 @@
 
 A fast, reliable download manager for Windows, with a browser extension and no telemetry.
 
-> **Status: early development. There is nothing to install yet.** The download engine is being moved here from
-> [NetMerge](https://github.com/nisar87/netmerge), where it has been in daily use. "Pullwell" is a working name;
+> **Status: early development.** A first Windows build runs and downloads, but it has not been released or tested
+> on Windows by anyone yet. The download engine comes from [NetMerge](https://github.com/nisar87/netmerge), where it
+> has been in daily use. "Pullwell" is a working name;
 > it may change after a trademark check.
 
 ## What it will do
@@ -28,10 +29,12 @@ Go 1.24, standard library only, no other modules.
 ```
 go vet ./...
 go test ./...
-GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -o Pullwell.exe .
+GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags "-s -w -H=windowsgui" -o Pullwell.exe .
 ```
 
-The full test suite takes about 7 minutes, most of it the download engine in `dm/`.
+The full test suite takes about 7 minutes, most of it the download engine in `dm/`. On Linux the program runs
+without a window for development: `go run . -root /tmp/pw` and open `http://127.0.0.1:9197/`. End-to-end check:
+`python3 scripts/dmtest/fixtures.py` in one terminal, then `python3 scripts/dmtest/smoke.py`.
 
 ## Documents
 

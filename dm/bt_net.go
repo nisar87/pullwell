@@ -89,7 +89,7 @@ func btHTTPAnnounce(ctx context.Context, ln dlLine, tracker string, a btAnnArgs)
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("User-Agent", "NetMerge/"+H.Version)
+	req.Header.Set("User-Agent", hName()+"/"+H.Version)
 	resp, err := cl.Do(req)
 	if err != nil {
 		return nil, err

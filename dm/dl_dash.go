@@ -150,11 +150,11 @@ func dlDASHInspect(ctx context.Context, c *http.Client, link string, hdr map[str
 	}
 	switch {
 	case strings.EqualFold(doc.Type, "dynamic"):
-		return nil, dlStreamErr("This is a live stream (it has no end). NetMerge only downloads recorded videos.")
+		return nil, dlStreamErr("This is a live stream (it has no end). " + hName() + " only downloads recorded videos.")
 	case len(doc.Periods) == 0:
 		return nil, dlStreamErr("The video description has no content.")
 	case len(doc.Periods) > 1:
-		return nil, dlStreamErr("This stream has several periods (for example ads in between). NetMerge cannot download that yet.")
+		return nil, dlStreamErr("This stream has several periods (for example ads in between). " + hName() + " cannot download that yet.")
 	}
 	per := doc.Periods[0]
 	total := mpdSeconds(per.Duration)
@@ -205,11 +205,11 @@ func dlDASHInspect(ctx context.Context, c *http.Client, link string, hdr map[str
 		}
 	}
 	if video == nil && audio == nil {
-		return nil, dlStreamErr("The video description lists no picture or sound that NetMerge can download.")
+		return nil, dlStreamErr("The video description lists no picture or sound that " + hName() + " can download.")
 	}
 	track := func(p *pick) (*hlsMedia, error) {
 		if len(p.set.Protection) > 0 || len(p.rep.Protection) > 0 {
-			return nil, dlStreamErr("This stream is copy-protected. NetMerge cannot download it.")
+			return nil, dlStreamErr("This stream is copy-protected. " + hName() + " cannot download it.")
 		}
 		base, err := mpdJoin(link, firstBase(doc.BaseURL), firstBase(per.BaseURL), firstBase(p.set.BaseURL), firstBase(p.rep.BaseURL))
 		if err != nil {
@@ -409,7 +409,7 @@ func (t *dlTask) mux(audio string) {
 	t.mu.Unlock()
 	ff := dlFindFFmpeg()
 	if ff == "" {
-		t.setNote("Picture and sound are two files: " + filepath.Base(video) + " and " + filepath.Base(audio) + ". Install ffmpeg (put it in the PATH or next to NetMerge) and NetMerge joins them into one file.")
+		t.setNote("Picture and sound are two files: " + filepath.Base(video) + " and " + filepath.Base(audio) + ". Install ffmpeg (put it in the PATH or next to " + hName() + ") and " + hName() + " joins them into one file.")
 		return
 	}
 	t.setNote("Joining picture and sound")

@@ -267,7 +267,7 @@ func (p *btPeer) loop() {
 		if t.isPrivate() { // a private torrent finds its peers at its own tracker only: no peer exchange, not even offered
 			delete(ext, "ut_pex")
 		}
-		m := map[string]any{"m": ext, "v": "NetMerge", "reqq": 128}
+		m := map[string]any{"m": ext, "v": hName(), "reqq": 128}
 		t.mu.Lock()
 		if t.meta != nil {
 			m["metadata_size"] = len(t.meta.Raw)

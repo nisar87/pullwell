@@ -473,19 +473,19 @@ func dlHLSInspect(ctx context.Context, c *http.Client, link string, hdr map[stri
 				return nil, dlStreamErr("The sound playlist is not what it should be.")
 			}
 			if am.protectd {
-				return nil, dlStreamErr("This stream is copy-protected. NetMerge cannot download it.")
+				return nil, dlStreamErr("This stream is copy-protected. " + hName() + " cannot download it.")
 			}
 			if !am.endList {
-				return nil, dlStreamErr("This is a live stream (it has no end). NetMerge only downloads recorded videos.")
+				return nil, dlStreamErr("This is a live stream (it has no end). " + hName() + " only downloads recorded videos.")
 			}
 			out.audioMed, out.Audio = am, true
 		}
 	}
 	switch {
 	case md.protectd:
-		return nil, dlStreamErr("This stream is copy-protected. NetMerge cannot download it.")
+		return nil, dlStreamErr("This stream is copy-protected. " + hName() + " cannot download it.")
 	case !md.endList:
-		return nil, dlStreamErr("This is a live stream (it has no end). NetMerge only downloads recorded videos.")
+		return nil, dlStreamErr("This is a live stream (it has no end). " + hName() + " only downloads recorded videos.")
 	case len(md.segs) == 0:
 		return nil, dlStreamErr("The video playlist has no parts.")
 	}
@@ -911,7 +911,7 @@ func (j *hlsJob) key(r *dlRun, uri string) ([]byte, error) {
 		return nil, err
 	}
 	if len(b) != 16 {
-		return nil, dlStreamErr("This stream is copy-protected. NetMerge cannot download it.")
+		return nil, dlStreamErr("This stream is copy-protected. " + hName() + " cannot download it.")
 	}
 	j.keys[uri] = b
 	return b, nil

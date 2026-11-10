@@ -430,7 +430,7 @@ func dlParseImport(text string) ([]dlExportItem, []dlQueue, error) {
 	if strings.HasPrefix(text, "{") {
 		var f dlExportFile
 		if err := json.Unmarshal([]byte(text), &f); err != nil || f.App != "netmerge-downloads" {
-			return nil, nil, errors.New("that is not a NetMerge download list")
+			return nil, nil, errors.New("that is not a download list")
 		}
 		return f.Items, f.Queues, nil
 	}

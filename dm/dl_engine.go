@@ -82,7 +82,7 @@ var errDlChanged = errors.New("the file on the server changed while downloading"
 // dlNoLineGrace: how long a download waits with every line down before it reports that no connection is available.
 var dlNoLineGrace = 25 * time.Second
 
-func dlUA() string { return "Mozilla/5.0 (Windows NT 10.0; Win64; x64) NetMerge/" + H.Version }
+func dlUA() string { return "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " + hName() + "/" + H.Version }
 
 const (
 	dlMinPiece  = 512 << 10

@@ -824,7 +824,7 @@ func dlFriendly(err error) (string, bool) {
 		case 404, 410:
 			return "The file was not found on the website. The link may be old.", false
 		case 429, 503:
-			return "The website is busy or limits downloads. NetMerge will try again.", true
+			return "The website is busy or limits downloads. " + hName() + " will try again.", true
 		}
 		return he.Error(), he.Code >= 500
 	}
@@ -835,7 +835,7 @@ func dlFriendly(err error) (string, bool) {
 	case strings.Contains(s, "not enough space"), strings.Contains(s, "no space left"), strings.Contains(s, "disk is full"), strings.Contains(s, "There is not enough space"):
 		return "The disk is full. Free some space and press Resume.", false
 	case strings.Contains(s, "cannot write"), strings.Contains(s, "cannot create the folder"), strings.Contains(s, "Access is denied"), strings.Contains(s, "permission denied"):
-		return "NetMerge cannot write to the download folder. Choose another folder in the Downloads settings.", false
+		return hName() + " cannot write to the download folder. Choose another folder in the Downloads settings.", false
 	case strings.Contains(s, "only http and https"), strings.Contains(s, "refused: the link leads"):
 		return s, false
 	}
@@ -846,7 +846,7 @@ func dlFriendly(err error) (string, bool) {
 	case strings.Contains(low, "connection refused"):
 		return "The website refused the connection.", true
 	case strings.Contains(low, "certificate"), strings.Contains(low, "x509"):
-		return "The website's security certificate is not trusted, so NetMerge stopped. Open the link in your browser to see why.", false
+		return "The website's security certificate is not trusted, so " + hName() + " stopped. Open the link in your browser to see why.", false
 	case strings.Contains(low, "timeout"), strings.Contains(low, "deadline exceeded"), strings.Contains(low, "stopped sending"):
 		return "The website did not answer in time.", true
 	case strings.Contains(low, "connection reset"), strings.Contains(low, "unexpected eof"), strings.Contains(low, "broken pipe"):
@@ -959,7 +959,7 @@ func (m *dlManager) loop() {
 		m.mu.Unlock()
 		if power != "" {
 			hNote("info", "Downloads finished: %s", map[string]string{"sleep": "the PC goes to sleep", "shutdown": "the PC shuts down in one minute"}[power])
-			hNotify("Downloads finished", map[string]string{"sleep": "The PC is going to sleep.", "shutdown": "The PC shuts down in one minute. Open NetMerge to cancel."}[power])
+			hNotify("Downloads finished", map[string]string{"sleep": "The PC is going to sleep.", "shutdown": "The PC shuts down in one minute. Open " + hName() + " to cancel."}[power])
 			if power == "shutdown" {
 				m.mu.Lock()
 				m.powerAt = time.Now().Unix()
@@ -1237,7 +1237,7 @@ func (m *dlManager) setConfig(c dlConfig) error {
 	}
 	f, err := os.CreateTemp(c.Dir, ".nm-test-*")
 	if err != nil {
-		return fmt.Errorf("NetMerge cannot write into that folder: %v", err)
+		return fmt.Errorf("%s cannot write into that folder: %v", hName(), err)
 	}
 	f.Close()
 	_ = os.Remove(f.Name())

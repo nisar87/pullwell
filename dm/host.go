@@ -28,6 +28,7 @@ type Lines struct {
 
 // Host is everything the manager needs from the product. Every field is optional.
 type Host struct {
+	Name             string                                  // product name shown in messages (default "the program")
 	Repo             string                                  // "owner/name" of the project on GitHub (where the extension files are published)
 	Root             string                                  // the product's folder (the manager keeps its files in Root/data)
 	Version          string                                  // product version, for the browser extension
@@ -64,6 +65,14 @@ func Setup(h Host) {
 	if h.CallActive != nil {
 		dlMgr.callInfo = h.CallActive
 	}
+}
+
+// hName is the product name for messages to the person.
+func hName() string {
+	if H.Name != "" {
+		return H.Name
+	}
+	return "the program"
 }
 
 func hLog(format string, a ...any) {
@@ -318,3 +327,16 @@ func Routes(mux *http.ServeMux) {
 }
 
 func dlFreeSpaceDefault(string) (int64, error) { return 0, errors.New("unknown") }
+
+// PauseAll and ResumeAll are the tray menu's actions (the same as the page's buttons).
+func PauseAll() {
+	if Enabled() {
+		safe("pause all", func() { dlMgr.forAll(func(id string) { _ = dlMgr.pause(id) }) })
+	}
+}
+
+func ResumeAll() {
+	if Enabled() {
+		safe("resume all", func() { dlMgr.forAll(func(id string) { _ = dlMgr.resume(id) }) })
+	}
+}
