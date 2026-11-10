@@ -289,13 +289,11 @@ func trayProc(hwnd, msg, wp, lp uintptr) uintptr {
 	case wmTray:
 		switch lp & 0xffff {
 		case ninBalloonUp:
+			logf("tray: notification clicked")
 			balloonClicked() // the Add dialog for a copied link, or the finished / problem downloads
 			go safely("tray open", func() { openWindow(trayURL) })
 		case wmLBtnUp:
 			go safely("tray open", func() { openWindow(trayURL) })
-		case 0x0403, 0x0404: // NIN_BALLOONHIDE, NIN_BALLOONTIMEOUT: the notification went away unused
-			setBalloonLink("")
-			setBalloonView("")
 		case wmRBtnUp:
 			trayMenu(hwnd)
 		}
