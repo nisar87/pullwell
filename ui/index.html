@@ -10,7 +10,7 @@
 <body>
 <div id="app">
   <header class="top">
-    <div class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--accent)"/><path d="M16 7.5v12.5m0 0l-5-5m5 5l5-5M9.5 24.5h13" stroke="var(--accent-ink)" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>{{NAME}}</span></div>
+    <div class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--accent)"/><path d="M16 7.5v12.5m0 0l-5-5m5 5l5-5M9.5 24.5h13" stroke="var(--accent-ink)" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>{{NAME}}</span><em class="copy" title="This copy has its own data folder and leaves the installed copy alone">{{COPY}}</em></div>
     <nav class="mb" id="menubar" role="menubar" aria-label="Menu">
       <button role="menuitem" aria-haspopup="menu" data-mb="tasks"><u>T</u>asks</button>
       <button role="menuitem" aria-haspopup="menu" data-mb="downloads"><u>D</u>ownloads</button>
@@ -49,7 +49,7 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 // Set by the program when it serves this page.
-const APP = {name: '{{NAME}}', header: '{{HEADER}}', version: '{{VERSION}}', build: '{{BUILD}}', host: '{{HOST}}', repo: '{{REPO}}'};
+const APP = {name: '{{NAME}}', header: '{{HEADER}}', version: '{{VERSION}}', build: '{{BUILD}}', host: '{{HOST}}', repo: '{{REPO}}', copy: '{{COPY}}'};
 </script>
 <script src="downloads-more.js"></script>
 <script src="app.js"></script>

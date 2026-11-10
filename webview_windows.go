@@ -311,7 +311,7 @@ func createMain() bool {
 	wc.Size = uint32(unsafe.Sizeof(wc))
 	pRegisterClassEx.Call(uintptr(unsafe.Pointer(&wc))) // fails harmlessly when already registered
 	r := startRect()
-	title, _ := syscall.UTF16PtrFromString(AppName)
+	title, _ := syscall.UTF16PtrFromString(shownName())
 	hwnd, _, err := pCreateWindowEx.Call(0, uintptr(unsafe.Pointer(cls)), uintptr(unsafe.Pointer(title)), wsOverlappedWin,
 		uintptr(r.L), uintptr(r.T), uintptr(r.w()), uintptr(r.h()), 0, 0, inst, 0)
 	if hwnd == 0 {

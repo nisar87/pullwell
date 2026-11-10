@@ -196,6 +196,35 @@ func main() {
 	check("and remembers not to install the other one by itself", bytes.Contains(uc, []byte(`"skip"`)), string(uc))
 	check("the restart says it went back", waitFor(10*time.Second, func() bool { return logHas("going back to the previous version") }))
 
+	// ---- a separate copy (a file named separate-copy next to it) running next to the installed one ----
+	runKey := `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`
+	post("api/app", map[string]any{"autostart": true})
+	runMain := regQuery(runKey, *name)
+	cmdMain := regQuery(`HKCU\Software\Classes\`+scheme+`\shell\open\command`, "")
+	lnkBefore, _ := os.Stat(lnk)
+	sdir := filepath.Join(work, "separate")
+	os.MkdirAll(sdir, 0o755)
+	sexe := filepath.Join(sdir, *name+".exe")
+	must(copyFile(*exeSrc, sexe))
+	must(os.WriteFile(filepath.Join(sdir, "separate-copy"), nil, 0o644))
+	start(sexe, "-tray")
+	mainBase := base
+	base = "http://127.0.0.1:9297/"
+	check("a separate copy starts next to the installed one, on the next port", waitUp(30*time.Second))
+	sa := getJSON("api/app")
+	check("it knows it is a separate copy", sa["canInstall"] == false && sa["canAutostart"] == false, sa)
+	time.Sleep(3 * time.Second) // the Start menu upkeep runs just after the start
+	off := post("api/app", map[string]any{"autostart": false})
+	check("it cannot switch off the installed copy's Start with Windows", off["error"] != nil && runMain != "" && regQuery(runKey, *name) == runMain, off)
+	lnkAfter, _ := os.Stat(lnk)
+	check("it leaves the Start menu entry alone", lnkBefore != nil && lnkAfter != nil && lnkAfter.ModTime().Equal(lnkBefore.ModTime()))
+	check("and the link registration", cmdMain != "" && regQuery(`HKCU\Software\Classes\`+scheme+`\shell\open\command`, "") == cmdMain)
+	check("its data is in its own folder", exists(filepath.Join(sdir, "data", scheme+".log")))
+	post("api/app", map[string]any{"quit": true})
+	check("it quits on its own", waitFor(15*time.Second, func() bool { return !up() }))
+	base = mainBase
+	check("the installed copy is still running", up())
+
 	// ---- Uninstall ----
 	post("api/app", map[string]any{"autostart": true})
 	post("api/app", map[string]any{"uninstall": map[string]any{"data": true}})

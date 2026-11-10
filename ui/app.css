@@ -75,6 +75,8 @@ code{font-family:var(--mono);font-size:.92em;background:var(--sunk);padding:0 4p
 .top{display:flex;align-items:center;gap:6px;padding:0 8px 0 10px;height:38px;background:var(--surface);border-bottom:1px solid var(--line)}
 .brand{display:flex;align-items:center;gap:7px;padding-right:10px;margin-right:2px;border-right:1px solid var(--line);font:600 var(--fs-m)/1 var(--display);letter-spacing:-.01em;white-space:nowrap}
 .brand svg{width:18px;height:18px;flex:none}
+.brand .copy{font:500 var(--fs-xs)/1 var(--sans);font-style:normal;color:var(--warn);padding:3px 6px;border-radius:var(--r-s);background:color-mix(in srgb,var(--warn) 14%,transparent)}
+.brand .copy:empty{display:none}
 .mb{display:flex;gap:1px}
 .mb button{padding:5px 9px;border:0;border-radius:var(--r);background:none;color:var(--mute);font-size:var(--fs)}
 .mb button:hover,.mb button.open,.mb button:focus-visible{background:var(--hover);color:var(--text);outline:none}

@@ -44,7 +44,12 @@ func main() {
 			fail("cannot find the program's own folder: %v", err)
 		}
 		dir = filepath.Dir(exe)
-		if !writableDir(filepath.Join(dir, "data")) {
+		// a file named "separate-copy" next to the program makes it a separate copy (a test copy, for example),
+		// exactly as if it had been started with -root on its own folder: its own data, and it leaves the Start
+		// menu entry, the link registration and Start with Windows of the installed copy alone
+		if _, err := os.Stat(filepath.Join(dir, separateMarker)); err == nil {
+			customRoot = true
+		} else if !writableDir(filepath.Join(dir, "data")) {
 			// a protected folder (Program Files, for example): keep the data in the person's own app data folder
 			if la := os.Getenv("LOCALAPPDATA"); la != "" {
 				dir = filepath.Join(la, appDataDir)
