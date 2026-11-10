@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.6.0 (2026-11-11)
+
+- **New look, "Precision flow".** A redesigned window: calmer light and dark themes, Segoe UI Variable text with
+  Bahnschrift numbers, a flow line showing how each download is split into parts, a clearer progress window with a
+  speed graph, and tidier menus and dialogs. View -> Row spacing switches between comfortable and compact rows.
+- **Separate copy**: a copy of Pullwell with a `separate-copy` file next to it keeps its own data and never touches
+  the Start menu entry, the `pullwell://` link or Start with Windows, so it can be tried next to the installed one.
+- Tests: the real window, the tray icon, finished-download notifications and the browser extension are now checked on
+  a Windows machine at GitHub, including 150 % and 200 % screen scales.
+- Fixed: Uninstall could leave the data folder behind when the program was still closing.
+- Fixed: a timing check of the download engine that failed at random on Windows (tests only).
+
 ## 0.5.0 (2026-11-10)
 
 - **Downloads that cannot resume are marked.** Some websites do not allow continuing a download; stopping one throws
