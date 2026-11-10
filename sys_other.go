@@ -97,3 +97,5 @@ func readSystemProxy() systemProxy {
 }
 
 func keepAwakeLoop() {}
+
+func showMainWindow() {}

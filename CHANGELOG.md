@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.0 (not released)
+
+- **Show a finished download** (Options → General, off by default): when a download finishes, the window comes up
+  with that download, Complete, and Open and Open folder buttons, also when the window was closed.
+- Help → **What's new** (the release notes) and **Report a problem** (GitHub, with the version filled in).
+- A full disk says how much space the file needs and how much is free.
+- When the program's folder is protected (Program Files, for example), the data goes to your own app data folder,
+  and Updates explains why it cannot replace itself there.
+- A failed automatic update waits an hour before it is tried again (it was tried every 15 seconds).
+- While a download waits to try again (the site did not answer), the list keeps showing how much was already
+  downloaded instead of 0%; it continues from there.
+
 ## 0.3.0 (2026-11-10)
 
 - **The PC stays awake while downloading** (Options → Schedule, on by default): Windows' sleep timer no longer

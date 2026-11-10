@@ -76,6 +76,10 @@ async function checkPendingAdd(){
   if (addChecking || $('#dlDlg')) return;
   addChecking = true;
   try { const r = await api('app', {take: 'add'}); if (r && r.add) addDialog(r.add.trim());
+    else if (r && r.view === 'complete') { // "show a finished download": its window, with Open and Open folder
+      const top = DL.items.filter(v => v.state === 'done').sort((a, b) => (b.finished || 0) - (a.finished || 0))[0];
+      if (top) { sel.clear(); sel.add(top.id); cur = top.id; render(); progressBox(top.id); }
+    }
     else if (r && r.view) { // a notification was clicked: show what it was about, newest first
       view = {k: r.view}; store.set('view', view); q = ''; if ($('#search')) $('#search').value = '';
       sel.clear(); const top = DL.items.filter(v => inView(v, view)).sort((a, b) => (b.finished || b.added || 0) - (a.finished || a.added || 0))[0];
@@ -773,6 +777,7 @@ function optionsBody(tab){
     + orow('Folders for types and websites', 'Send Videos to one folder, or everything from one website into its own folder.', `<button class="btn" data-dm="folders">Choose folders…</button>`)
     + orow('If a file with that name is already there', '', `<select class="sel" data-cfg="onExists">${[['rename','Keep both'],['overwrite','Replace the old file'],['skip','Skip the download']].map(o => `<option value="${o[0]}"${(c.onExists || 'rename') === o[0] ? ' selected' : ''}>${o[1]}</option>`).join('')}</select>`)
     + orow('Notify me when a download finishes', 'Problems are always shown.', tog('data-dm="notifyTog"', !c.noNotify, 'Notify when finished'))
+    + (APPCFG ? orow('Show a finished download', 'Bring up its window with Open and Open folder as soon as it finishes (also when the window is closed).', tog('id="doneTog"', APPCFG.showDone, 'Show a finished download')) : '')
     + (APPCFG && APPCFG.canInstall ? orow('Start menu entry', `So Windows search and the Start menu find ${esc(APP.name)}, and notifications show its name and icon.`, tog('id="smTog"', APPCFG.startMenu, 'Start menu entry')) : '')
     + (APPCFG ? orow('Offer links I copy', `When you copy a link to a file (a program, archive, video, PDF …) anywhere, a notification asks whether to download it. Nothing is downloaded unless you click it and confirm.`, tog('id="clipTog"', APPCFG.clipboard, 'Offer copied links')) : '')
     + orow('Appearance', '', `<select class="sel" id="optTheme">${[['auto','Same as Windows'],['light','Light'],['dark','Dark']].map(o => `<option value="${o[0]}"${store.get('theme', 'auto') === o[0] ? ' selected' : ''}>${o[1]}</option>`).join('')}</select>`);
@@ -884,6 +889,7 @@ document.addEventListener('click', async e => {
   if (t.id === 'extCode') return extConnect();
   if (t.id === 'pxSave') { try { await api('app', {proxy: {mode: 'manual', addr: $('#pxAddr').value}}); APPCFG = await api('app'); toast('Proxy saved'); } catch(err){ toast(err.message, true); } return; }
   if (t.id === 'pxTest') { t.disabled = true; try { await api('app', {proxyTest: true}); toast('Works: github.com answered' + (((APPCFG.proxy || {}).mode || 'system') === 'none' ? '' : ' through this setting')); } catch(err){ toast(err.message, true); } t.disabled = false; return; }
+  if (t.id === 'doneTog') { try { await api('app', {showDone: !APPCFG.showDone}); APPCFG = await api('app'); } catch(err){ toast(err.message, true); } return showOptions('general'); }
   if (t.id === 'awakeTog') { try { await api('app', {keepAwake: !APPCFG.keepAwake}); APPCFG = await api('app'); toast(APPCFG.keepAwake ? 'The PC stays awake while downloading' : 'The PC may sleep while downloading'); } catch(err){ toast(err.message, true); } return showOptions('schedule'); }
   if (t.id === 'smTog') { try { await api('app', {startMenu: !APPCFG.startMenu}); APPCFG = await api('app'); toast(APPCFG.startMenu ? 'Added to the Start menu' : 'Removed from the Start menu'); } catch(err){ toast(err.message, true); await loadAppCfg(); } return showOptions('general'); }
   if (t.id === 'uninst') {

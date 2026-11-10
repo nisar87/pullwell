@@ -43,6 +43,13 @@ func notify(title, text string) {
 		}()
 	})
 	n := Notice{Kind: noticeKind(title, text), Title: title, Text: text}
+	if n.Kind == "finished" && showCompleteOn() {
+		// "Show the finished download": the window comes up with its progress window, which offers Open and Open folder
+		pendingMu.Lock()
+		pendingViewV = "complete"
+		pendingMu.Unlock()
+		go showMainWindow()
+	}
 	for _, t := range grouper.Add(n, time.Now()) {
 		showToast(t)
 	}

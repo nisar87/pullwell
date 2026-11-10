@@ -24,6 +24,13 @@ type appSettings struct {
 	NoStartMenu bool         `json:"noStartMenu,omitempty"` // the person removed the Start menu entry: do not add it back
 	Proxy       proxySetting `json:"proxy"`
 	NoKeepAwake bool         `json:"noKeepAwake,omitempty"` // let the PC sleep even while downloading
+	ShowDone    bool         `json:"showDone,omitempty"`    // bring up the window when a download finishes
+}
+
+func showCompleteOn() bool {
+	appSetMu.Lock()
+	defer appSetMu.Unlock()
+	return appSet.ShowDone
 }
 
 func keepAwakeOn() bool {

@@ -449,3 +449,6 @@ func balloonIcon() uintptr {
 	}
 	return balloonIco
 }
+
+// showMainWindow brings up the main window (from any goroutine).
+func showMainWindow() { safely("show window", func() { openWindow(trayURL) }) }

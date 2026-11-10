@@ -37,12 +37,13 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 			ProxyTest bool          `json:"proxyTest"`
 			SaveExt   string        `json:"saveExt"` // "chrome-edge" | "firefox": save the extension in the download folder and show it
 			SaveList  bool          `json:"saveList"`
-			KeepAwake *bool         `json:"keepAwake"` // write the download list to a file in the download folder and show it
+			KeepAwake *bool         `json:"keepAwake"`
+			ShowDone  *bool         `json:"showDone"` // write the download list to a file in the download folder and show it
 			Uninstall *struct {
 				Data bool `json:"data"` // also delete the data folder (list, settings, log); downloads are never deleted
 			} `json:"uninstall"`
 		}
-		if json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&in) != nil || (in.Autostart == nil && !in.Quit && in.Open == "" && in.Clipboard == nil && in.Take != "add" && in.StartMenu == nil && in.Uninstall == nil && in.SaveExt == "" && in.Proxy == nil && !in.ProxyTest && !in.SaveList && in.KeepAwake == nil) {
+		if json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&in) != nil || (in.Autostart == nil && !in.Quit && in.Open == "" && in.Clipboard == nil && in.Take != "add" && in.StartMenu == nil && in.Uninstall == nil && in.SaveExt == "" && in.Proxy == nil && !in.ProxyTest && !in.SaveList && in.KeepAwake == nil && in.ShowDone == nil) {
 			w.WriteHeader(400)
 			_ = json.NewEncoder(w).Encode(map[string]string{"error": "bad request"})
 			return
@@ -105,6 +106,16 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
+			return
+		}
+		if in.ShowDone != nil {
+			on := *in.ShowDone
+			if err := saveAppSettings(func(a *appSettings) { a.ShowDone = on }); err != nil {
+				w.WriteHeader(409)
+				_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+				return
+			}
+			_ = json.NewEncoder(w).Encode(map[string]bool{"showDone": showCompleteOn()})
 			return
 		}
 		if in.KeepAwake != nil {
@@ -209,7 +220,7 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 	on, err := autoStartGet()
 	out := map[string]any{"autostart": on, "canAutostart": err == nil && !customRoot, "version": appVersion, "clipboard": clipboardOn(),
 		"startMenu": startMenuGet(), "canInstall": !customRoot && runtime.GOOS == "windows",
-		"proxy": proxyConfig(), "systemProxy": proxyText(), "keepAwake": keepAwakeOn()}
+		"proxy": proxyConfig(), "systemProxy": proxyText(), "keepAwake": keepAwakeOn(), "showDone": showCompleteOn()}
 	_ = json.NewEncoder(w).Encode(out)
 }
 
