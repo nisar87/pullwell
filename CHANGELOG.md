@@ -1,7 +1,14 @@
 # Changelog
 
-## 0.4.0 (not released)
+## 0.4.0 (2026-11-10)
 
+- **Real Windows notifications.** "Download finished" now has **Open** and **Open folder** buttons, and a click on
+  a notification brings up Pullwell (several finished downloads: the Finished list). They also stay in the
+  notification centre. The buttons work through `pullwell://` links that only Pullwell itself can make valid (each
+  carries a one-time code), and a program file is never opened from a notification. Without the Start menu entry
+  Windows does not allow such notifications, and the classic ones are used.
+- The empty list offers **Connect a browser**.
+- A second copy of a file keeps double endings together: `go.src (2).tar.gz` instead of `go.src.tar (2).gz`.
 - **Show a finished download** (Options → General, off by default): when a download finishes, the window comes up
   with that download, Complete, and Open and Open folder buttons, also when the window was closed.
 - Help → **What's new** (the release notes) and **Report a problem** (GitHub, with the version filled in).

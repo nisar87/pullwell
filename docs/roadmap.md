@@ -77,5 +77,6 @@ When phases 1-5 are ✅, Pullwell is 1.0.
 | ✅ | Keep the PC awake while downloading (Options → Schedule, on by default) |
 | ✅ | Help → What's new (opens the releases page in the default browser, PC) and Report a problem |
 | 🟡 | Tray menu: Add a download, Open the download folder (written; the tray menu needs a right-click, which the remote control here cannot do) |
-| 🟡 | A click on a notification shows the finished downloads. On the owner's Windows 11 the click on a classic notification does not reach the program (logged: shown, timed out, never "clicked"); real Windows toasts would be needed |
+| ✅ | Real Windows notifications: "Download finished" with Open and Open folder (seen on the PC, 18:21: Open folder raised Explorer with the file); a click brings up the window (18:20). The classic balloon is the fallback |
+| ✅ | Show a finished download (option): the window comes up with Complete, Open and Open folder (PC, 18:15) |
 | ✅ | Fixed: a numbered series typed in the Add dialog failed; a typed file name was replaced by the site's; the shown progress dropped to 0 while a retry waited |
