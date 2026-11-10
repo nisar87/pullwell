@@ -112,6 +112,39 @@ func main() {
 	}
 	check("the PC may sleep again when nothing downloads", waitFor(45*time.Second, func() bool { return logHas("the PC may sleep again") }))
 
+	// ---- rename, move to another drive, check a checksum afterwards ----
+	if it := waitItem(srv.URL+"/file/3MB", "done", time.Second); it != nil {
+		id := it["id"].(string)
+		r := post("api/downloads", map[string]any{"action": "rename", "id": id, "name": "renamed.bin"})
+		it2 := waitItem(srv.URL+"/file/3MB", "done", time.Second)
+		check("rename a finished file on disk", r["error"] == nil && it2 != nil && strings.HasSuffix(it2["path"].(string), `\renamed.bin`) && exists(it2["path"].(string)), r, it2["path"])
+		other := `D:\wintest-move`
+		if !exists(`D:\`) {
+			other = filepath.Join(work, "moved")
+		}
+		r = post("api/downloads", map[string]any{"action": "moveTo", "id": id, "dir": other})
+		it3 := waitItem(srv.URL+"/file/3MB", "done", time.Second)
+		got := ""
+		if it3 != nil {
+			got, _ = it3["path"].(string)
+		}
+		check("move a finished file to another drive ("+other+")", r["error"] == nil && strings.HasPrefix(strings.ToLower(got), strings.ToLower(other)) && exists(got), r, got)
+		r = post("api/downloads", map[string]any{"action": "checkFile", "id": id, "hash": hex.EncodeToString(sum[:])})
+		check("check its checksum afterwards", r["error"] == nil && waitFor(10*time.Second, func() bool {
+			v := waitItem(srv.URL+"/file/3MB", "done", time.Second)
+			return v != nil && v["verify"] == "ok"
+		}), r)
+	}
+
+	// ---- a typed proxy carries the downloads ----
+	px := startProxy()
+	post("api/app", map[string]any{"proxy": map[string]any{"mode": "manual", "addr": px.addr}})
+	// a made-up name: local addresses never go through a proxy, so the proxy maps this name to the test server
+	far := strings.Replace(srv.URL, "127.0.0.1", "files.example.test", 1) + "/file/1MB"
+	post("api/downloads", map[string]any{"action": "add", "url": far, "force": true})
+	check("a download goes through a typed proxy", waitItem(far, "done", 30*time.Second) != nil && px.hits() > 0, px.hits())
+	post("api/app", map[string]any{"proxy": map[string]any{"mode": "system"}})
+
 	// ---- one copy only, and what a second start hands over ----
 	t0 := time.Now()
 	code := run(exe)
@@ -137,9 +170,9 @@ func main() {
 	post("api/app", map[string]any{"startMenu": true})
 	check("and back", exists(lnk))
 
-	// ---- proxy test against the real internet (GitHub) ----
-	px := post("api/app", map[string]any{"proxyTest": true})
-	check("the connection test reaches github.com", px["ok"] == true, px)
+	// ---- the connection test against the real internet (GitHub) ----
+	ct := post("api/app", map[string]any{"proxyTest": true})
+	check("the connection test reaches github.com", ct["ok"] == true, ct)
 
 	// ---- save the list ----
 	sl := post("api/app", map[string]any{"saveList": true})
@@ -405,4 +438,33 @@ func (w slowWriter) Write(b []byte) (int, error) {
 	return n, nil
 }
 
-var _ = io.EOF
+// startProxy is a small forward proxy (plain HTTP), counting the requests it carried.
+type proxy struct {
+	addr string
+	n    *int64
+}
+
+func (p proxy) hits() int64 { return *p.n }
+
+func startProxy() proxy {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	must(err)
+	var n int64
+	go http.Serve(ln, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		n++
+		r.RequestURI = ""
+		r.URL.Host = strings.Replace(r.URL.Host, "files.example.test", "127.0.0.1", 1)
+		resp, err := http.DefaultTransport.RoundTrip(r)
+		if err != nil {
+			w.WriteHeader(502)
+			return
+		}
+		defer resp.Body.Close()
+		for k, v := range resp.Header {
+			w.Header()[k] = v
+		}
+		w.WriteHeader(resp.StatusCode)
+		io.Copy(w, resp.Body)
+	}))
+	return proxy{addr: ln.Addr().String(), n: &n}
+}
