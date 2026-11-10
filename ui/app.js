@@ -589,7 +589,7 @@ function reportProblem(){
 }
 function aboutBox(){
   const u = UPD || {};
-  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="About" style="max-width:440px"><h3>${esc(APP.name)}</h3>
+  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="About" style="max-width:440px"><h3 class="row" style="gap:10px;align-items:center">${document.querySelector('.brand svg') ? document.querySelector('.brand svg').outerHTML.replace('<svg', '<svg style="width:28px;height:28px;flex:none"') : ''}${esc(APP.name)}</h3>
     <div class="hint2 selectable" style="margin-top:4px">Version ${esc(APP.version)}${APP.build && APP.build !== 'dev' ? ' (build ' + esc(APP.build.slice(0, 7)) + ')' : ''}${u.available ? ` · <b>${esc(u.latest)} is ready</b>` : ''}</div>
     <p class="hint2" style="margin:10px 0 0">A download manager for Windows. No telemetry and no account: it contacts only the sites you download from, and GitHub to look for updates.</p>
     ${APP.repo ? `<p class="hint2" style="margin:8px 0 0">Source code and releases: <a href="https://github.com/${esc(APP.repo)}" target="_blank" rel="noopener">github.com/${esc(APP.repo)}</a></p>` : ''}

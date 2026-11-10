@@ -111,3 +111,44 @@ files), Progress, Rename, Move, Checksum, Queues, Folders, Grabber, Connect a br
 updates, uninstall), Keyboard shortcuts, About, confirmations (askBox), Quit.
 
 Engine, API, Windows integration, update and release files: not touched.
+
+## What changed (on the branch)
+
+- `ui/app.css`: rewritten around tokens (colour, type, radius, row height, shadows) for light and dark; the
+  Windows theme setting still decides between them, and View > Theme still overrides it.
+- `ui/index.html`: a top bar (mark, name, menus, search) and a command bar with one primary action
+  (New download), the list commands, the bulk commands (Start all, Stop all, Clear finished) and the tools on the
+  right. Labels collapse by the window's own width, so they also fit at the larger text sizes.
+- `ui/app.js`:
+  - the flow line in the Progress column, with the engine's part map folded to at most 16 cells
+  - state words Done, Failed, Waiting, Retry soon and Paused, each with its own colour and line style
+  - sidebar sections Library (with a new Downloading view and a live dot), File types and Queues
+  - View > Row spacing (Comfortable or Compact)
+  - an empty state with a New download button
+  - the progress window: header, large percentage and state, speed and time left, part line, a speed graph of
+    the last two minutes (bounded, kept only while the download runs), details in three columns, events, footer
+  - renamed commands: "Add URL…" became "New download…" and "Delete completed" became "Clear finished"
+- The icon colour follows the accent: the drawn icon in `scripts/mkres` and the window's fallback icon. Nothing
+  else in the native code changed.
+- Window checks updated to the new words and structure (`scripts/uitest`).
+
+## Results after the redesign (Linux, headless Chromium)
+
+| Check | Result |
+| --- | --- |
+| `go vet`, `go test` (program) | pass |
+| `ui_check` | 22/22, no script errors |
+| `menu_check` | 36/36 |
+| `prog_check` | 12/12 |
+| `feat_check` | 25/25 |
+| `flows_check` | 14/14 |
+| `more_check` | 13/13 |
+| `ext_check` (browser extension) | 10/10 |
+
+Screens reviewed in light and dark at 980×560, 1280×720, 1366×768 and 1920×1080, at the text sizes 90 %, 115 %
+and 130 %, and with Compact rows. The dialogs reviewed were Add, File info, Rename, Move, Checksum, Delete
+confirmation, Queues, Grab links, Folders, Connect a browser, About, Keyboard shortcuts, Properties, Options and
+Progress.
+
+Not verified yet: rendering on Windows with Segoe UI Variable and Bahnschrift (the Linux screenshots use fallback
+fonts), and the Windows workflow (it runs only on a push, which needs the owner's approval).
