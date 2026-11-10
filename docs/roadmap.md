@@ -1,6 +1,6 @@
 # Pullwell: road to a daily-usable 1.0
 
-Written 2026-11-10, updated the same day at 16:20. Each phase ends with a check that something was **seen working on the owner's Windows PC**, not
+Written 2026-11-10, updated the same day at 18:15. Each phase ends with a check that something was **seen working on the owner's Windows PC**, not
 only in tests. Status is kept up to date in this file; the CHANGELOG lists what each build changed.
 
 Legend: ✅ done and verified on Windows · 🟡 done, verified on Linux only · ⬜ to do.
@@ -60,8 +60,22 @@ Gate: automated window checks extended to the menus; seen on the PC.
 
 | | Item |
 | --- | --- |
-| 🟡 | Unpleasant cases. ✅ read-only folder (C:\Windows\System32: clear message and a notification), ✅ a 240-character file name (shortened, saved), ✅ quit and restart mid-download, ✅ 400 items (list in 3 ms, window redraw ~35 ms, idle ~6% of one core; on Linux). ⬜ cable pulled, disk nearly full, sleep and wake: need the owner at the PC |
+| 🟡 | Unpleasant cases. ✅ read-only folder (C:\Windows\System32: clear message and a notification, PC), ✅ a 240-character file name (shortened, saved, PC), ✅ quit and restart mid-download (PC), ✅ 400 items (list in 3 ms, redraw ~35 ms; Linux), ✅ disk filled up in the middle of a download (says so, Resume after freeing space gives the right file; Linux, small RAM disk), ✅ server gone for a minute in the middle (tries again, continues from where it was, right file; Linux). ⬜ cable pulled and sleep/wake on the PC: need the owner |
 | ⬜ | A day of normal use with the log checked afterwards |
 | ✅ | README with screenshots, privacy note, how to install the extension |
 
 When phases 1-5 are ✅, Pullwell is 1.0.
+
+## Added after the first plan (0.3.0 and later)
+
+| | Item |
+| --- | --- |
+| ✅ | Proxy: same as Windows (default), none, or typed (http or socks5); Test button (seen on the PC: "Windows uses no proxy", test passes) |
+| ✅ | Rename a download (F2): finished file renamed on disk (PC), or the name used when it starts |
+| ✅ | Speed limit from the status bar and Tools menu (PC) |
+| ✅ | Save the list writes into the download folder (PC); Load a list through the Windows file picker (PC) |
+| ✅ | Keep the PC awake while downloading (Options → Schedule, on by default) |
+| ✅ | Help → What's new (opens the releases page in the default browser, PC) and Report a problem |
+| 🟡 | Tray menu: Add a download, Open the download folder (written; the tray menu needs a right-click, which the remote control here cannot do) |
+| 🟡 | A click on a notification shows the finished downloads. On the owner's Windows 11 the click on a classic notification does not reach the program (logged: shown, timed out, never "clicked"); real Windows toasts would be needed |
+| ✅ | Fixed: a numbered series typed in the Add dialog failed; a typed file name was replaced by the site's; the shown progress dropped to 0 while a retry waited |
