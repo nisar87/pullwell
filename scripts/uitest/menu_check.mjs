@@ -51,7 +51,7 @@ check('no page scroll with the menu bar', await js('document.documentElement.scr
 // mouse
 let p = await center('#menubar [data-mb="tasks"]'); await click(p[0], p[1]); await sleep(150);
 let t = await menuText();
-check('click opens Tasks', t && t[0].startsWith('Add URL'), t && t.join(' | '));
+check('click opens Tasks', t && t[0].startsWith('New download'), t && t.join(' | '));
 check('menu sits under its title', await js('(() => { const m = document.querySelector(".ctx").getBoundingClientRect(), b = document.querySelector("#menubar [data-mb=tasks]").getBoundingClientRect(); return Math.abs(m.top - b.bottom) < 2 && Math.abs(m.left - b.left) < 2; })()'));
 await shot('m01-tasks');
 p = await center('#menubar [data-mb="downloads"]'); await mouse('mouseMoved', p[0], p[1]); await sleep(150);
@@ -113,11 +113,11 @@ check('rows have as many cells as the header', await js('[...document.querySelec
 await click(p[0], p[1]); await sleep(120); await mouse('mouseMoved', cp[0], cp[1]); await sleep(150); await clickEntry('Speed'); await sleep(200);
 check('and back', (await cols()) === before);
 await click(p[0], p[1]); await sleep(120); await clickEntry('Toolbar labels'); await sleep(150);
-check('View → Toolbar labels hides the words', await js('getComputedStyle(document.querySelector(".tbtn")).fontSize === "0px"'));
+check('View → Toolbar labels hides the words', await js('getComputedStyle(document.querySelector(".tbtn:not(.pri) span")).display === "none"'));
 await click(p[0], p[1]); await sleep(120); await clickEntry('Toolbar labels'); await sleep(150);
 
 // Downloads, with a finished item selected
-const doneRow = await js(`(() => { const r = [...document.querySelectorAll('#tb tr')].find(r => /Complete/.test(r.textContent)); if (!r) return null; const b = r.children[0].getBoundingClientRect(); return [b.left + 30, b.top + b.height/2]; })()`);
+const doneRow = await js(`(() => { const r = [...document.querySelectorAll('#tb tr')].find(r => r.querySelector('.pt.done')); if (!r) return null; const b = r.children[0].getBoundingClientRect(); return [b.left + 30, b.top + b.height/2]; })()`);
 await click(doneRow[0], doneRow[1]); await sleep(200);
 p = await center('#menubar [data-mb="downloads"]'); await click(p[0], p[1]); await sleep(150);
 const st = await js(`Object.fromEntries([...document.querySelectorAll('.ctx > button')].map(b => [b.textContent.replace(/(Enter|Space|Alt\\+Enter|Ctrl\\+A|Shift\\+Del|Del)$/, '').trim(), !b.disabled]))`);
@@ -135,6 +135,7 @@ check('Tools → Options opens Options', /Start with Windows|Save downloads in/.
 await key('Escape'); await sleep(100);
 p = await center('#menubar [data-mb="tools"]'); await click(p[0], p[1]); await sleep(120); await clickEntry('Open the download folder'); await sleep(300);
 check('Tools → Open the download folder does not fail', !(await js('document.querySelector("#toast").classList.contains("bad")')), await js('document.querySelector("#toast").textContent'));
+await sleep(2000); // on Windows a real Explorer window opens and takes the focus a moment later, which closes any open menu
 p = await center('#menubar [data-mb="help"]'); await click(p[0], p[1]); await sleep(120); await clickEntry('Keyboard shortcuts'); await sleep(200);
 check('Help → Keyboard shortcuts', /Alt or F10/.test(await js('document.querySelector("#dlDlg") ? document.querySelector("#dlDlg").textContent : ""')));
 await shot('m04-shortcuts');

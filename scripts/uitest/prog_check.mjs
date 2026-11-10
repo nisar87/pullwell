@@ -50,19 +50,23 @@ let p = await js(`(() => { const r = [...document.querySelectorAll('#tb tr')].fi
 await mouse('mouseMoved', p[0], p[1]); await mouse('mousePressed', p[0], p[1]); await mouse('mouseReleased', p[0], p[1]);
 await mouse('mousePressed', p[0], p[1], {clickCount: 2}); await mouse('mouseReleased', p[0], p[1], {clickCount: 2}); await sleep(400);
 check('double-click on an unfinished download opens its progress', await js('!!document.querySelector("#pgGrid")'));
-const t1 = await js('document.querySelector("#pgTitle").textContent'), d1 = await js('document.querySelector("#pgGrid").textContent');
+const t1 = await js('document.querySelector(".prog .hero").textContent'), d1 = await js('document.querySelector("#pgGrid").textContent');
 check('it shows speed, time left, connections', /Speed.*\/s.*Time left.*Connections/.test(d1), d1);
 await sleep(2500);
-const t2 = await js('document.querySelector("#pgTitle").textContent');
+const t2 = await js('document.querySelector(".prog .hero").textContent');
 check('it refreshes while open', t1 !== t2, `${t1} → ${t2}`);
 await shot('p01-progress');
 await js('document.querySelector("#pgMain").click()'); await sleep(1200);
-check('Pause from the dialog pauses it', /Paused/.test(await js('document.querySelector("#pgGrid").textContent')) && (await js('document.querySelector("#pgMain").textContent')) === 'Resume');
+check('Pause from the dialog pauses it', /Paused/.test(await js('document.querySelector("#pgState").textContent')) && (await js('document.querySelector("#pgMain").textContent')) === 'Resume');
+// the main button ignores clicks for 0.9 s after its label changed (so a double click cannot pause and resume):
+// wait for the label, then past that guard, as a person would
+for (let i = 0; i < 20 && (await js('document.querySelector("#pgMain").textContent')) !== 'Resume'; i++) await sleep(250);
+await sleep(1100);
 await js('document.querySelector("#pgMain").click()'); await sleep(1500);
-check('Resume continues it', /Downloading|Waiting/.test(await js('document.querySelector("#pgGrid").textContent')));
+check('Resume continues it', /Downloading|Waiting/.test(await js('document.querySelector("#pgState").textContent')));
 await call({action: 'limit', id: (await (await fetch(url + 'api/downloads')).json()).items[0].id, limitBytes: 0});
-for (let i = 0; i < 120 && !/Complete/.test(await js('document.querySelector("#pgTitle").textContent')); i++) await sleep(500);
-check('when it finishes the dialog says Complete and offers Open', /Complete/.test(await js('document.querySelector("#pgTitle").textContent')) && (await js('document.querySelector("#pgMain").textContent')) === 'Open');
+for (let i = 0; i < 120 && !/Complete/.test(await js('document.querySelector("#pgState").textContent')); i++) await sleep(500);
+check('when it finishes the dialog says Complete and offers Open', /Complete/.test(await js('document.querySelector("#pgState").textContent')) && (await js('document.querySelector("#pgMain").textContent')) === 'Open');
 await shot('p02-complete');
 await key('Escape'); await sleep(150);
 check('Escape closes it', !(await js('!!document.querySelector("#dlDlg")')));

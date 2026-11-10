@@ -20,7 +20,18 @@ import (
 // register itself to start with Windows, or it would replace the real installation's entry.
 var customRoot bool
 
-var errCustomRoot = errors.New("this copy was started with its own data folder (-root), so it cannot start with Windows")
+var errCustomRoot = errors.New("this is a separate copy with its own data folder, so it cannot change Start with Windows")
+
+// separateMarker: a file with this name next to the program makes it a separate copy (see main).
+const separateMarker = "separate-copy"
+
+// shownName is the name in the window title and the tray tip, so two copies running side by side can be told apart.
+func shownName() string {
+	if customRoot {
+		return AppName + " (separate copy)"
+	}
+	return AppName
+}
 
 func appHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
@@ -208,7 +219,7 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		var err error
-		if *in.Autostart && customRoot {
+		if customRoot { // on or off: the entry belongs to the installed copy
 			err = errCustomRoot
 		} else {
 			err = autoStartSet(*in.Autostart)

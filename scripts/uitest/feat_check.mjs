@@ -86,7 +86,7 @@ check('"Show a finished download" can be switched on', (await (await fetch(url +
 await js('dlClose()');
 await call({action: 'add', url: `${fx}/file/300KB`, force: true});
 for (let i = 0; i < 20 && !(await js('!!document.querySelector("#pgTitle")')); i++) await sleep(500);
-check('when a download finishes its window comes up, Complete, with Open', /Complete · 300KB/.test(await js('document.querySelector("#pgTitle") ? document.querySelector("#pgTitle").textContent : ""')) && (await js('document.querySelector("#pgMain").textContent')) === 'Open');
+check('when a download finishes its window comes up, Complete, with Open', (await js('document.querySelector("#pgState") ? document.querySelector("#pgState").textContent + " · " + document.querySelector("#pgTitle").textContent : ""')).startsWith('Complete · 300KB') && (await js('document.querySelector("#pgMain").textContent')) === 'Open');
 await js('dlClose()');
 await fetch(url + 'api/app', {method: 'POST', headers: H, body: '{"showDone":false}'});
 // text size: menus stay under their titles and the window still fits

@@ -140,6 +140,17 @@ func comInit() {
 	cbRelease = syscall.NewCallback(func(this uintptr) uintptr { return 1 })
 
 	// ICoreWebView2EnvironmentOptions: no extra browser switches, the default language, the oldest runtime we accept.
+	// Only with -debug are the switches in WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS passed on (the WebView2 loader would
+	// read that variable, but the runtime is started directly here): the Windows window checks use it for a remote
+	// debugging port. A normal start never has extra switches.
+	optArgs := syscall.NewCallback(func(this, out uintptr) uintptr {
+		args := ""
+		if debugMode {
+			args = os.Getenv("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS")
+		}
+		*(*uintptr)(ptrFrom(out)) = coTaskString(args)
+		return 0
+	})
 	optStr := func(val string) uintptr {
 		return syscall.NewCallback(func(this, out uintptr) uintptr {
 			*(*uintptr)(ptrFrom(out)) = coTaskString(val)
@@ -148,7 +159,7 @@ func comInit() {
 	}
 	optPut := syscall.NewCallback(func(this, v uintptr) uintptr { return 0 })
 	optOff := syscall.NewCallback(func(this, out uintptr) uintptr { *(*int32)(ptrFrom(out)) = 0; return 0 })
-	optionsObj = newComObj(iidEnvOptions, optStr(""), optPut, optStr(""), optPut, optStr(webview2MinVersion), optPut, optOff, optPut)
+	optionsObj = newComObj(iidEnvOptions, optArgs, optPut, optStr(""), optPut, optStr(webview2MinVersion), optPut, optOff, optPut)
 
 	envDoneObj = newComObj(iidEnvCompleted, syscall.NewCallback(func(this, hr, env uintptr) uintptr { onEnvDone(hr, env); return 0 }))
 	ctlDoneObj = newComObj(iidCtlCompleted, syscall.NewCallback(func(this, hr, ctl uintptr) uintptr { onCtlDone(hr, ctl); return 0 }))
@@ -307,11 +318,11 @@ func createMain() bool {
 	cls, _ := syscall.UTF16PtrFromString(AppName + "Main-" + appRootHash)
 	cur, _, _ := pLoadCursor.Call(0, 32512)                                                           // IDC_ARROW
 	wc := wndClassEx{Instance: inst, WndProc: mainProcCb, ClassName: cls, Cursor: cur, Background: 6, /* COLOR_WINDOW+1 */
-		Icon: programIcon(inst, 32, 26, 115, 232), IconSm: programIcon(inst, 16, 26, 115, 232)}
+		Icon: programIcon(inst, 32, 13, 141, 128), IconSm: programIcon(inst, 16, 13, 141, 128)}
 	wc.Size = uint32(unsafe.Sizeof(wc))
 	pRegisterClassEx.Call(uintptr(unsafe.Pointer(&wc))) // fails harmlessly when already registered
 	r := startRect()
-	title, _ := syscall.UTF16PtrFromString(AppName)
+	title, _ := syscall.UTF16PtrFromString(shownName())
 	hwnd, _, err := pCreateWindowEx.Call(0, uintptr(unsafe.Pointer(cls)), uintptr(unsafe.Pointer(title)), wsOverlappedWin,
 		uintptr(r.L), uintptr(r.T), uintptr(r.w()), uintptr(r.h()), 0, 0, inst, 0)
 	if hwnd == 0 {
@@ -321,7 +332,7 @@ func createMain() bool {
 	}
 	mw.hwnd = hwnd
 	s := dpiScale(hwnd)
-	big, small := programIcon(inst, int(32*s), 26, 115, 232), programIcon(inst, int(16*s), 26, 115, 232)
+	big, small := programIcon(inst, int(32*s), 13, 141, 128), programIcon(inst, int(16*s), 13, 141, 128)
 	pSendMessage.Call(hwnd, wmSetIcon, 1, big)
 	pSendMessage.Call(hwnd, wmSetIcon, 0, small)
 	if systemUsesDarkMode() {

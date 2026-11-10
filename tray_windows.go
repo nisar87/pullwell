@@ -214,7 +214,11 @@ func trayTip() (string, bool) {
 	active, _ := b["active"].(int)
 	queued, _ := b["queued"].(int)
 	speed, _ := b["speed"].(float64)
-	return trayTipText(active, queued, speed), active > 0
+	t := trayTipText(active, queued, speed)
+	if customRoot {
+		t = shownName() + strings.TrimPrefix(t, AppName)
+	}
+	return t, active > 0
 }
 
 func trayNotify(msg uintptr) {

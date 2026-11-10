@@ -32,7 +32,7 @@ const sel = new Set();               // selected ids
 let cur = null, anchor = null;       // the row with the keyboard focus, and where a shift-selection starts
 let visible = [];                    // ids shown, in order
 const prevState = {};
-const speedHist = [];
+const speedHist = [], itemHist = new Map();
 const DL_CATS = ['Programs','Archives','Videos','Music','Documents','Images','Torrents','Other'];
 const DL_RISKY = /\.(exe|msi|msix|msixbundle|appx|bat|cmd|com|ps1|vbs|vbe|js|jse|wsf|jar|scr|pif|cpl|lnk|reg|hta|application)$/i;
 const LIMITS = [0, 0.25, 0.5, 1, 2, 5, 10, 20, 50];
@@ -54,6 +54,8 @@ const I = {
   down:'<path d="M12 4v11m0 0l-4-4m4 4l4-4M5 20h14"/>',
   done:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',
   warn:'<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17.5v.01"/>',
+  flow:'<path d="M4 12h3l2-5 3 10 2-5h6"/>',
+  todo:'<circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2"/>',
 };
 const svg = (k, cls) => `<svg viewBox="0 0 24 24" aria-hidden="true"${cls ? ` class="${cls}"` : ''}>${I[k]}</svg>`;
 
@@ -67,6 +69,10 @@ async function loadDL(){
   finally { loading = false; }
   for (const v of DL.items) { if (prevState[v.id] && prevState[v.id] !== 'done' && v.state === 'done' && !document.hidden) toast('Finished: ' + v.name); prevState[v.id] = v.state; }
   speedHist.push(DL.speed || 0); if (speedHist.length > 60) speedHist.shift();
+  // the speed of each running download over the last two minutes, for its progress window; bounded per item and
+  // dropped as soon as the download is no longer running
+  for (const v of DL.items) if (v.state === 'downloading') { const h = itemHist.get(v.id) || []; h.push(v.speed || 0); if (h.length > 120) h.shift(); itemHist.set(v.id, h); }
+  for (const id of itemHist.keys()) if (!DL.items.some(v => v.id === id && v.state === 'downloading')) itemHist.delete(id);
   render();
   if (++addPolls % 2 === 0 || document.hasFocus()) checkPendingAdd();
 }
@@ -112,28 +118,42 @@ function infoOf(v){
   if (v.limit > 0 && v.state !== 'done') out.push('Limit ' + bytes(v.limit) + '/s');
   return out.join(' · ');
 }
+// flowParts folds the engine's part map (each entry 0..100, equal shares of the file) into at most n cells, so a
+// download in 64 parts still reads as a line of parts and not as a hatch.
+function flowParts(m, n){
+  if (m.length <= n) return m;
+  const out = [];
+  for (let i = 0; i < n; i++) { const a = Math.floor(i * m.length / n), b = Math.floor((i + 1) * m.length / n); let t = 0; for (let j = a; j < b; j++) t += +m[j] || 0; out.push(t / (b - a)); }
+  return out;
+}
+// The flow line: a thin track per download. A running download that reports its parts shows them along the line
+// (the engine's real map, one cell per part); the others show one fill. The word next to it says the state.
 function statusCell(v){
-  const p = pctOf(v), cls = v.state === 'done' ? 'done' : v.state === 'paused' ? 'paused' : v.state === 'error' ? 'err' : '';
-  let txt;
-  if (v.state === 'done') txt = 'Complete';
-  else if (v.state === 'error') txt = '<span class="bad">Error</span>';
-  else if (v.state === 'queued' && !(v.done > 0)) txt = v.retryAt > Date.now()/1000 ? 'Retry soon' : 'Waiting';
-  else txt = v.size > 0 ? p.toFixed(p < 10 ? 1 : 0) + '%' : bytes(v.done);
-  if (v.state === 'paused') txt = 'Paused ' + (v.size > 0 ? Math.floor(p) + '%' : '');
-  return `<div class="st"><div class="pb ${cls}"><i style="width:${v.state === 'error' && !(p > 0) ? 100 : p}%"></i></div><span class="pt">${txt}</span></div>`;
+  const p = pctOf(v), queued = v.state === 'queued';
+  const cls = v.state === 'done' ? 'done' : v.state === 'paused' ? 'paused' : v.state === 'error' ? 'err' : queued ? 'wait' : '';
+  let txt, tcls = '';
+  if (v.state === 'done') { txt = 'Done'; tcls = 'done'; }
+  else if (v.state === 'error') { txt = 'Failed'; tcls = 'err'; }
+  else if (queued && !(v.done > 0)) { txt = v.retryAt > Date.now()/1000 ? 'Retry soon' : 'Waiting'; tcls = 'wait'; }
+  else if (v.state === 'paused') txt = 'Paused' + (v.size > 0 ? ' ' + Math.floor(p) + '%' : '');
+  else { txt = v.size > 0 ? p.toFixed(p < 10 ? 1 : 0) + '%' : bytes(v.done); tcls = v.state === 'downloading' ? 'run' : 'wait'; }
+  const map = v.state === 'downloading' && Array.isArray(v.map) && v.map.length > 1 ? flowParts(v.map, 16) : null;
+  const line = map ? `<div class="pb map">${map.map(m => `<b><i style="width:${Math.max(0, Math.min(100, m))}%"></i></b>`).join('')}</div>`
+    : `<div class="pb ${cls}"><i style="width:${v.state === 'error' && !(p > 0) ? 100 : p}%"></i></div>`;
+  return `<div class="st">${line}<span class="pt ${tcls}">${txt}</span></div>`;
 }
 const when = t => { if (!t) return ''; const d = new Date(t*1000), now = new Date(); return d.toDateString() === now.toDateString() ? d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : d.toLocaleDateString([], {day:'numeric', month:'short'}) + ' ' + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); };
 
 /* ---------- columns ---------- */
 const COLS = [
   {k:'name', t:'File name', w:0, sort: v => (v.name || v.url).toLowerCase(), cell: v => `<td class="nm" title="${esc((v.name || '') + '\n' + v.url)}"><span class="fi ${esc(v.category || 'Other')}">${esc(extOf(v))}</span><span class="tx">${esc(v.name || v.url)}</span></td>`},
-  {k:'size', t:'Size', w:82, r:1, sort: v => v.size || 0, cell: v => `<td class="r">${v.size > 0 ? bytes(v.size) : v.state === 'done' ? bytes(v.done) : '<span class="mute">?</span>'}</td>`},
-  {k:'status', t:'Status', w:150, sort: v => ({downloading:0, queued:1, paused:2, error:3, done:4})[v.state] * 1000 - pctOf(v), cell: v => `<td>${statusCell(v)}</td>`},
-  {k:'speed', t:'Speed', w:84, r:1, sort: v => v.state === 'downloading' ? v.speed || 0 : -1, cell: v => `<td class="r">${v.state === 'downloading' ? bytes(v.speed) + '/s' : ''}</td>`},
+  {k:'size', t:'Size', w:86, r:1, sort: v => v.size || 0, cell: v => `<td class="r">${v.size > 0 ? bytes(v.size) : v.state === 'done' ? bytes(v.done) : '<span class="mute">?</span>'}</td>`},
+  {k:'status', t:'Progress', w:190, sort: v => ({downloading:0, queued:1, paused:2, error:3, done:4})[v.state] * 1000 - pctOf(v), cell: v => `<td>${statusCell(v)}</td>`},
+  {k:'speed', t:'Speed', w:84, r:1, sort: v => v.state === 'downloading' ? v.speed || 0 : -1, cell: v => `<td class="r sp">${v.state === 'downloading' ? bytes(v.speed) + '/s' : ''}</td>`},
   {k:'left', t:'Time left', w:78, r:1, sort: v => leftOf(v) || 1e12, cell: v => `<td class="r">${dur(leftOf(v))}</td>`},
-  {k:'added', t:'Added', w:116, sort: v => v.added || 0, cell: v => `<td title="${v.finished ? 'Finished ' + esc(new Date(v.finished*1000).toLocaleString()) : ''}">${when(v.added)}</td>`},
+  {k:'added', t:'Added', w:120, sort: v => v.added || 0, cell: v => `<td class="n" title="${v.finished ? 'Finished ' + esc(new Date(v.finished*1000).toLocaleString()) : ''}">${when(v.added)}</td>`},
   {k:'site', t:'Website', w:140, sort: v => siteOf(v), cell: v => `<td title="${esc(v.url)}">${esc(siteOf(v))}</td>`},
-  {k:'info', t:'Description', w:200, sort: v => (v.err || v.note || ''), cell: v => `<td title="${esc(v.detail || '')}">${infoOf(v)}</td>`},
+  {k:'info', t:'Description', w:200, sort: v => (v.err || v.note || ''), cell: v => `<td class="info" title="${esc(v.detail || '')}">${infoOf(v)}</td>`},
 ];
 let widths = store.get('widths', {});
 let hideCols = store.get('hideCols', ['site']);  // Website is off until switched on           // columns switched off in View → Columns (never the name)
@@ -144,6 +164,7 @@ function inView(v, vw){
   switch (vw.k) {
     case 'cat': return (v.category || 'Other') === vw.v;
     case 'unfinished': return v.state !== 'done';
+    case 'active': return v.state === 'downloading';
     case 'finished': return v.state === 'done';
     case 'errors': return v.state === 'error';
     case 'queue': return (v.queue || '') === vw.v && v.state !== 'done';
@@ -172,8 +193,10 @@ function renderSide(){
   const row = (vw, icon, label, count, sub) => { const on = view.k === vw.k && (view.v || '') === (vw.v || ''); return `<button class="it${sub ? ' sub' : ''}${on ? ' sel' : ''}" data-view='${esc(JSON.stringify(vw))}'>${svg(icon)}<span>${esc(label)}</span><small>${count || ''}</small></button>`; };
   const cats = DL_CATS.map(c => row({k:'cat', v:c}, 'folder', c, n(v => (v.category || 'Other') === c), true)).join('');
   const queues = [{id:'', name:'Main queue'}].concat(DL.config.queues || []).map(qq => row({k:'queue', v:qq.id}, 'queue', qq.name + (qq.paused ? ' (paused)' : ''), n(v => (v.queue || '') === qq.id && v.state !== 'done'), true)).join('');
-  setHTML($('#side'), `<div class="h">Downloads</div>${row({k:'all'}, 'all', 'All downloads', it.length)}${cats}
-    ${row({k:'unfinished'}, 'down', 'Unfinished', n(v => v.state !== 'done'))}${row({k:'finished'}, 'done', 'Finished', n(v => v.state === 'done'))}${row({k:'errors'}, 'warn', 'Needs attention', n(v => v.state === 'error'))}
+  const active = n(v => v.state === 'downloading');
+  setHTML($('#side'), `<div class="h">Library</div>${row({k:'all'}, 'all', 'All downloads', it.length)}${row({k:'active'}, 'flow', 'Downloading', active).replace('<small>', active ? '<i class="live" aria-hidden="true"></i><small>' : '<small>')}
+    ${row({k:'unfinished'}, 'todo', 'Unfinished', n(v => v.state !== 'done'))}${row({k:'finished'}, 'done', 'Finished', n(v => v.state === 'done'))}${row({k:'errors'}, 'warn', 'Needs attention', n(v => v.state === 'error'))}
+    <div class="h">File types</div>${cats}
     <div class="h">Queues</div>${queues}`);
 }
 
@@ -198,7 +221,7 @@ function renderTable(){
     if (!tr) { tr = document.createElement('tr'); tr.dataset.id = v.id; rowEls.set(v.id, tr); }
     const html = SC.map(c => c.cell(v)).join('');
     if (tr.dataset.h !== html) { tr.dataset.h = html; tr.innerHTML = html; }
-    const cls = (sel.has(v.id) ? 'sel' : '') + (cur === v.id ? ' cur' : '');
+    const cls = (sel.has(v.id) ? 'sel' : '') + (cur === v.id ? ' cur' : '') + (v.state === 'downloading' ? ' run' : '');
     if (tr.className !== cls) tr.className = cls;
     const want = prev ? prev.nextSibling : tb.firstChild;
     if (want !== tr) tb.insertBefore(tr, want);
@@ -209,7 +232,7 @@ function renderTable(){
   else {
     empty.hidden = false;
     setHTML(empty, DL.items.length ? (q ? 'Nothing matches your search.' : 'Nothing here.')
-      : `<b>No downloads yet.</b><br>Click <b>Add URL</b>, press <b>Ctrl+V</b> to paste a link, or drop a link or a .torrent file here.`
+      : `<b>No downloads yet</b>Paste a link with <b>Ctrl+V</b>, drop a link or a .torrent file here, or choose <button class="btn pri" id="emptyAdd">New download</button>`
         + (DL.ext && (DL.ext.browsers || []).length ? '' : `<br><br>To let big downloads from Chrome, Edge or Firefox come here by themselves: <button class="btn" id="emptyExt">Connect a browser…</button>`));
   }
 }
@@ -386,7 +409,7 @@ function rowMenu(x, y){
 }
 function listMenu(x, y){
   showMenu(x, y, [
-    {t:'Add URL…', k:'Ctrl+N', do: () => addDialog('')},
+    {t:'New download…', k:'Ctrl+N', do: () => addDialog('')},
     {t:'Add a torrent file…', do: pickTorrent},
     '-',
     {t:'Select all', k:'Ctrl+A', off: !visible.length, do: () => { visible.forEach(id => sel.add(id)); render(); }},
@@ -439,17 +462,13 @@ let progId = null;
 function progressBox(id){
   if (!DL.items.some(v => v.id === id)) return;
   progId = id;
-  dlDialog(`<div class="card prog" role="dialog" aria-modal="true" aria-label="Download progress" style="max-width:560px">
-    <h3 id="pgTitle" style="margin:0;word-break:break-all"></h3>
-    <div class="hint2 selectable" id="pgUrl" style="margin:4px 0 10px;word-break:break-all"></div>
-    <div class="pgbar"><i id="pgFill"></i></div>
-    <div id="pgSeg"></div>
+  dlDialog(`<div class="card prog" role="dialog" aria-modal="true" aria-labelledby="pgTitle">
+    <div class="ph"><span class="fi" id="pgType"></span><div style="min-width:0"><h3 id="pgTitle"></h3><div class="src selectable" id="pgUrl"></div></div></div>
+    <div class="hero"><span class="big" id="pgBig"></span><span class="state" id="pgState"></span><span class="sp"></span><span class="rate" id="pgRate"></span></div>
+    <div class="flow"><div class="pgbar"><i id="pgFill"></i></div><div id="pgSeg"></div><div id="pgSpark"></div></div>
     <div class="pggrid" id="pgGrid"></div>
-    <div id="pgLog" class="pglog"></div>
-    <div class="row" style="justify-content:space-between;gap:8px;margin-top:12px">
-      <button class="btn" id="pgProps">Properties</button>
-      <span class="row" style="gap:8px"><button class="btn" id="pgFolder">Open folder</button><button class="btn" id="pgMain"></button><button class="btn pri" id="pgClose">Close</button></span>
-    </div></div>`);
+    <div id="pgLog" class="pglog" aria-label="Recent events"></div>
+    <div class="pfoot"><button class="btn" id="pgProps">Properties</button><span class="sp"></span><button class="btn" id="pgFolder">Open folder</button><button class="btn" id="pgMain"></button><button class="btn pri" id="pgClose">Close</button></div></div>`);
   $('#pgClose').onclick = dlClose;
   $('#pgProps').onclick = () => { const i = progId; dlClose(); dlProps(i); };
   $('#pgFolder').onclick = () => { const v = DL.items.find(x => x.id === progId); if (v) openItem(v, true); };
@@ -468,13 +487,25 @@ function paintProgress(){
   const v = DL.items.find(x => x.id === progId);
   if (!v) { $('#pgTitle').textContent = 'This download was removed'; $('#pgMain').disabled = true; return; }
   const pct = pctOf(v), conns = (v.lineStats || []).reduce((a, l) => a + (l.workers || 0), 0);
-  $('#pgTitle').textContent = (v.state === 'done' ? 'Complete' : v.size > 0 ? Math.floor(pct) + '%' : dlStateText(v)) + ' · ' + (v.name || 'Download');
+  const word = v.state === 'done' ? 'Complete' : v.state === 'error' ? 'Failed' : dlStateText(v);
+  $('#pgTitle').textContent = v.name || 'Download';
   $('#pgUrl').textContent = v.url;
+  const ty = $('#pgType'); ty.className = 'fi ' + (v.category || 'Other'); ty.textContent = extOf(v);
+  setHTML($('#pgBig'), v.state === 'done' ? '100<small>%</small>' : v.size > 0 ? Math.floor(pct) + '<small>%</small>' : esc(bytes(v.done || 0)));
+  const st = $('#pgState'); st.textContent = word; st.className = 'state ' + ({downloading:'run', done:'done', error:'err', paused:'paused', queued:'wait'}[v.state] || '');
+  setHTML($('#pgRate'), v.state === 'downloading' ? `<b>${esc(bytes(v.speed || 0))}/s</b>${esc(dur(leftOf(v)) ? dur(leftOf(v)) + ' left' : 'working out the time left')}`
+    : v.state === 'done' ? `<b>${esc(bytes(v.size || v.done || 0))}</b>saved` : '');
+  const h = itemHist.get(v.id) || [];
+  setHTML($('#pgSpark'), h.length >= 3 && v.state === 'downloading' ? (() => { const mx = Math.max(...h, 1), w = 300, ht = 34, n = h.length;
+    const pts = h.map((x, i) => `${(i/(n-1)*w).toFixed(1)},${(ht-2-x/mx*(ht-6)).toFixed(1)}`).join(' ');
+    return `<svg class="spark2" viewBox="0 0 ${w} ${ht}" preserveAspectRatio="none" role="img" aria-label="Speed over the last ${n} seconds, peak ${esc(bytes(mx))}/s"><polyline points="0,${ht} ${pts} ${w},${ht}" fill="var(--accent-soft)" stroke="none"/><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>`; })() : '');
   $('#pgFill').style.width = (v.size > 0 || v.state === 'done' ? pct : 0) + '%';
   $('#pgFill').className = v.state === 'error' ? 'bad' : v.state === 'done' ? 'ok' : v.state === 'paused' ? 'paused' : '';
   setHTML($('#pgSeg'), dlSegBar(v));
   const rows = [
-    ['Status', dlStateText(v) + (v.state === 'error' && v.err ? ': ' + v.err : '') + (v.state === 'queued' && v.retryAt > Date.now()/1000 ? ' (in ' + dur(v.retryAt - Date.now()/1000) + ')' : '')],
+    // the state itself is shown next to the percentage; this row only carries what goes with it
+    v.state === 'error' && v.err ? ['Problem', v.err] : null,
+    v.state === 'queued' && v.retryAt > Date.now()/1000 ? ['Next try', 'in ' + dur(v.retryAt - Date.now()/1000)] : null,
     ['File size', v.size > 0 ? bytes(v.size) : 'not known yet'],
     ['Downloaded', bytes(v.done || 0) + (v.size > 0 ? ` (${pct.toFixed(1)}%)` : '')],
     ['Speed', v.state === 'downloading' ? bytes(v.speed || 0) + '/s' + (v.limit ? ' (limit ' + bytes(v.limit) + '/s)' : '') : '–'],
@@ -483,8 +514,8 @@ function paintProgress(){
     ['Can resume', v.state === 'done' ? '–' : v.noResume ? 'No: stopping starts it again from the beginning' : v.state === 'downloading' ? 'Yes' : '–'],
     ['Saved as', v.path || '(decided when the download starts)'],
   ];
-  setHTML($('#pgGrid'), rows.map(([k, t]) => `<span class="hint2">${k}</span><span class="${k === 'Status' && v.state === 'error' ? 'bad' : ''}">${esc(t)}</span>`).join(''));
-  setHTML($('#pgLog'), (v.log || []).slice(-4).reverse().map(l => `<div><span class="hint2">${new Date(l.t*1000).toLocaleTimeString()}</span> ${esc(l.s)}</div>`).join(''));
+  setHTML($('#pgGrid'), rows.filter(Boolean).map(([k, t]) => `<div class="${k === 'Saved as' || k === 'Problem' ? 'wide' : ''}"><span class="k">${k}</span><span class="v ${k === 'Problem' ? 'bad' : k === 'Can resume' && v.noResume && v.state !== 'done' ? 'warnv' : ''}" title="${esc(t)}">${esc(t)}</span></div>`).join(''));
+  setHTML($('#pgLog'), (v.log || []).slice(-4).reverse().map(l => `<div><span>${new Date(l.t*1000).toLocaleTimeString()}</span>${esc(l.s)}</div>`).join(''));
   const m = $('#pgMain'), label = v.state === 'done' ? 'Open' : v.state === 'downloading' || v.state === 'queued' ? 'Pause' : 'Resume';
   if (m.textContent !== label) { if (m.textContent) m.dataset.changed = Date.now(); m.textContent = label; }
   $('#pgFolder').disabled = !v.path;
@@ -503,11 +534,12 @@ function openBarMenu(b, focusFirst){
   b.classList.add('open');
   if (!focusFirst && menuEl) { const f = menuEl.querySelector('button:focus'); if (f) f.blur(); }
 }
-let uiPrefs = Object.assign({side: true, labels: true, status: true}, store.get('ui', {}));
+let uiPrefs = Object.assign({side: true, labels: true, status: true, dense: false}, store.get('ui', {}));
 function applyUiPrefs(){
   document.body.classList.toggle('noside', !uiPrefs.side);
   document.body.classList.toggle('notb', !uiPrefs.labels);
   document.body.classList.toggle('nosb', !uiPrefs.status);
+  document.body.classList.toggle('dense', !!uiPrefs.dense);
 }
 function setUiPref(k){ uiPrefs[k] = !uiPrefs[k]; store.set('ui', uiPrefs); applyUiPrefs(); }
 const busy = () => DL.items.filter(v => v.state === 'downloading').length;
@@ -520,7 +552,7 @@ async function command(c){
     case 'stopall': if (!(await confirmNoResume(DL.items))) return; return dlAct({action:'pauseAll'}, 'All stopped');
     case 'startall': return dlAct({action:'resumeAll'}, 'All started');
     case 'del': return doDelete(false);
-    case 'delfin': { const n = DL.items.filter(v => v.state === 'done').length; const r = await askBox({title:`Remove ${n} finished download${n === 1 ? '' : 's'} from the list?`, text:'The files stay on your disk.', ok:'Remove'}); if (r.ok) dlAct({action:'clear'}, 'Finished downloads removed'); return; }
+    case 'delfin': { const n = DL.items.filter(v => v.state === 'done').length; const r = await askBox({title:`Remove ${n} finished download${n === 1 ? '' : 's'} from the list?`, text:'The files stay on your disk.', ok:'Clear'}); if (r.ok) dlAct({action:'clear'}, 'Finished downloads cleared'); return; }
     case 'queues': return dlQueues();
     case 'grab': return dlGrab();
     case 'opts': return showOptions('general');
@@ -559,7 +591,7 @@ function reportProblem(){
 }
 function aboutBox(){
   const u = UPD || {};
-  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="About" style="max-width:440px"><h3>${esc(APP.name)}</h3>
+  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="About" style="max-width:440px"><h3 class="row" style="gap:10px;align-items:center">${document.querySelector('.brand svg') ? document.querySelector('.brand svg').outerHTML.replace('<svg', '<svg style="width:28px;height:28px;flex:none"') : ''}${esc(APP.name)}</h3>
     <div class="hint2 selectable" style="margin-top:4px">Version ${esc(APP.version)}${APP.build && APP.build !== 'dev' ? ' (build ' + esc(APP.build.slice(0, 7)) + ')' : ''}${u.available ? ` · <b>${esc(u.latest)} is ready</b>` : ''}</div>
     <p class="hint2" style="margin:10px 0 0">A download manager for Windows. No telemetry and no account: it contacts only the sites you download from, and GitHub to look for updates.</p>
     ${APP.repo ? `<p class="hint2" style="margin:8px 0 0">Source code and releases: <a href="https://github.com/${esc(APP.repo)}" target="_blank" rel="noopener">github.com/${esc(APP.repo)}</a></p>` : ''}
@@ -569,7 +601,7 @@ function aboutBox(){
 const limitLabel = l => l ? (l < 1 ? l * 1000 + ' KB/s' : l + ' MB/s') : 'No limit';
 const BAR_MENUS = {
   tasks: () => [
-    {t:'Add URL…', k:'Ctrl+N', do: () => addDialog('')},
+    {t:'New download…', k:'Ctrl+N', do: () => addDialog('')},
     {t:'Add with options…', do: () => dlOptions()},
     {t:'Add a torrent file…', do: pickTorrent},
     '-',
@@ -607,7 +639,7 @@ const BAR_MENUS = {
       {t:'Select all', k:'Ctrl+A', off: !visible.length, do: () => { visible.forEach(id => sel.add(id)); render(); }},
       {t:'Delete', k:'Del', off: !s.length, do: () => doDelete(false)},
       {t:'Delete with file', k:'Shift+Del', off: !any(v => v.state === 'done'), do: () => doDelete(true)},
-      {t:'Delete completed', off: !DL.items.some(v => v.state === 'done'), do: () => command('delfin')},
+      {t:'Clear finished', off: !DL.items.some(v => v.state === 'done'), do: () => command('delfin')},
     ];
   },
   view: () => [
@@ -619,6 +651,7 @@ const BAR_MENUS = {
       .concat(['-', {t:'Reset widths', do: () => { widths = {}; store.set('widths', widths); headKey = ''; render(); }}])},
     {t:'Sort by', sub: [{k:'order', t:'Queue order'}].concat(COLS).map(c => ({t: c.t, chk: sortBy.c === c.k, do: () => { sortBy = {c: c.k, d: sortBy.c === c.k ? -sortBy.d : 1}; store.set('sort', sortBy); render(); }}))},
     {t:'Show', sub: [[{k:'all'},'All downloads'],[{k:'unfinished'},'Unfinished'],[{k:'finished'},'Finished'],[{k:'errors'},'Needs attention']].map(([vw, t]) => ({t, chk: view.k === vw.k, do: () => { view = vw; store.set('view', view); sel.clear(); cur = null; render(); }}))},
+    {t:'Row spacing', sub: [['Comfortable', false], ['Compact', true]].map(([t, d]) => ({t, chk: !!uiPrefs.dense === d, do: () => { if (!!uiPrefs.dense !== d) setUiPref('dense'); }}))},
     {t:'Text size', sub: ZOOMS.map(([z, t]) => ({t, chk: store.get('zoom', 1) === z, do: () => { store.set('zoom', z); applyZoom(); }}))},
     {t:'Theme', sub: [['auto','Same as Windows'],['light','Light'],['dark','Dark']].map(([k, t]) => ({t, chk: store.get('theme', 'auto') === k, do: () => { store.set('theme', k); applyTheme(); }}))},
     '-',
@@ -913,6 +946,7 @@ function limitMenu(){
 document.addEventListener('click', async e => {
   if (e.target.closest('#stLimit')) return limitMenu();
   if (e.target.closest('#emptyExt')) return extConnect();
+  if (e.target.closest('#emptyAdd')) return addDialog('');
   const mbb = e.target.closest('#menubar button');
   if (mbb) { if (mbb.classList.contains('open')) { closeMenu(); return; } return openBarMenu(mbb, e.detail === 0); }
   if (menuEl && !menuEl.contains(e.target)) closeMenu();
@@ -1118,6 +1152,9 @@ function zoomNow(){ return +store.get('zoom', 1) || 1; }
 function applyZoom(){ const z = zoomNow(); document.documentElement.style.zoom = z; document.documentElement.style.setProperty('--zoom', z); } // the layout height is divided by it, so the window still fits
 function applyTheme(){ const t = store.get('theme', 'auto'); if (t === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t; }
 applyTheme();
+// Bahnschrift (Windows 10 and 11) is the font for numbers; it needs a small nudge in the list (see app.css .bahn)
+try { const c = document.createElement('canvas').getContext('2d'), t = '0123456789 MB/s', w = f => { c.font = '32px ' + f; return c.measureText(t).width; };
+  if (w('"Bahnschrift", monospace') !== w('monospace')) document.documentElement.classList.add('bahn'); } catch (e) {}
 applyUiPrefs();
 applyZoom();
 if (APP.host === 'browser') setTimeout(() => toast(`${APP.name} is shown in your browser. Closing this tab does not stop downloads.`), 800);
