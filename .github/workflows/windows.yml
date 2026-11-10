@@ -1,7 +1,8 @@
 name: Windows
 # The program on a real Windows machine: the tests, and (in parallel) scripts/wintest, which drives the built program
 # through its command line and local API (single instance, links, Start with Windows, Start menu, pullwell:// link,
-# self-update and Go back, keeping the PC awake, a protected folder, Uninstall). No desktop is needed.
+# self-update and Go back, keeping the PC awake, a protected folder, Uninstall), and the real window (WebView2)
+# with the window checks and screenshots of scripts/uitest.
 on:
   push:
     branches: [main]
@@ -38,3 +39,30 @@ jobs:
       - name: Drive the program
         shell: bash
         run: go run ./scripts/wintest -exe "$RUNNER_TEMP/build1.exe" -exe2 "$RUNNER_TEMP/build2.exe" -name "$NAME"
+  window:
+    # The real window: the program is started with WebView2 and a remote debugging port, and the window checks and
+    # screenshots of scripts/uitest run against it. The screenshots are kept as an artifact for review.
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build the program
+        shell: bash
+        run: |
+          go run ./scripts/mkres
+          go build -ldflags "-H=windowsgui -X main.appBuild=window" -o "$RUNNER_TEMP/window.exe" .
+      - name: Checks and screenshots in the real window
+        shell: bash
+        run: scripts/uitest/windows-window.sh "$RUNNER_TEMP/window.exe" window-results
+      - name: Keep the results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: window-results
+          path: window-results

@@ -69,11 +69,12 @@ let od = (await items()).find(v => v.url.endsWith('/file/150KB'));
 check('it is saved with the download', od && od.openDone === true, od && od.openDone);
 await js(`(() => { const s = document.querySelector('#dlOpenDone'); return s; })()`);
 const fs4 = await import('node:fs');
-const dest = '/tmp/pw-move-test'; fs4.rmSync(dest, {recursive: true, force: true});
+const path4 = await import('node:path'), os4 = await import('node:os');
+const dest = path4.join(os4.tmpdir(), 'pw-move-test'); fs4.rmSync(dest, {recursive: true, force: true}); // C:\...\Temp on Windows
 await js(`moveBox(DL.items.find(v => v.url.endsWith('/file/150KB')))`); await sleep(200);
-await js(`document.querySelector('#ibVal').value = '${dest}'; document.querySelector('#ibYes').click()`); await sleep(800);
+await js(`document.querySelector('#ibVal').value = ${JSON.stringify(dest)}; document.querySelector('#ibYes').click()`); await sleep(800);
 od = (await items()).find(v => v.url.endsWith('/file/150KB'));
-check('Move to another folder moves the file', od.path.startsWith(dest + '/') && fs4.existsSync(od.path), od.path);
+check('Move to another folder moves the file', od.path.startsWith(dest + path4.sep) && fs4.existsSync(od.path), od.path);
 const crypto = await import('node:crypto');
 const hsum = crypto.createHash('sha256').update(fs4.readFileSync(od.path)).digest('hex');
 await js(`checksumBox(DL.items.find(v => v.url.endsWith('/file/150KB')))`); await sleep(200);
