@@ -398,6 +398,7 @@ type dlProgress struct {
 	Seeds      int          `json:"seeds,omitempty"`
 	SwarmSeeds int          `json:"swarmSeeds,omitempty"` // seeds the tracker knows of
 	Up         int64        `json:"up,omitempty"`         // torrents: bytes uploaded
+	NoResume   bool         `json:"noResume,omitempty"`   // the site does not allow resuming: stopping starts it again from 0
 }
 
 type dlTask struct {
@@ -1486,7 +1487,7 @@ func (t *dlTask) streamOnce(r *dlRun) error {
 func (t *dlTask) Progress() dlProgress {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	pr := dlProgress{Total: t.info.Size, Note: t.note}
+	pr := dlProgress{Total: t.info.Size, Note: t.note, NoResume: t.stream && t.hls == nil}
 	if t.hls != nil {
 		pr.Done, pr.Total = t.hls.progress()
 		if pv := atomic.LoadInt64(&t.hlsPrev); pv > 0 {

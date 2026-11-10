@@ -284,7 +284,19 @@ async function doResume(){
   for (const v of s) { if (v.state === 'error') await api('downloads', {action:'retry', id:v.id}).catch(e => toast(e.message, true)); else if (v.state === 'paused') await api('downloads', {action:'resume', id:v.id}).catch(e => toast(e.message, true)); }
   loadDL();
 }
-async function doStop(){ for (const v of selectedItems()) if (v.state === 'downloading' || v.state === 'queued') await api('downloads', {action:'pause', id:v.id}).catch(e => toast(e.message, true)); loadDL(); }
+async function doStop(){
+  const s = selectedItems().filter(v => v.state === 'downloading' || v.state === 'queued');
+  if (!(await confirmNoResume(s))) return;
+  for (const v of s) await api('downloads', {action:'pause', id:v.id}).catch(e => toast(e.message, true));
+  loadDL();
+}
+// Stopping a download from a site that does not allow resuming throws away what is downloaded: ask first.
+async function confirmNoResume(list){
+  const lose = list.filter(v => v.state === 'downloading' && v.noResume && v.done > 0);
+  if (!lose.length) return true;
+  const r = await askBox({title: lose.length === 1 ? `Stop "${lose[0].name}"?` : `Stop ${lose.length} downloads?`, text: `${lose.length === 1 ? 'This website does' : 'These websites do'} not allow resuming: when ${lose.length === 1 ? 'it starts' : 'they start'} again, ${lose.length === 1 ? 'it starts' : 'they start'} from the beginning (${bytes(lose.reduce((a, v) => a + v.done, 0))} downloaded so far).`, ok: 'Stop anyway', danger: true});
+  return r.ok;
+}
 async function doDelete(withFiles){
   const s = selectedItems(); if (!s.length) return;
   const unfinished = s.filter(v => v.state !== 'done' && v.state !== 'error' && v.done > 0).length;
@@ -379,7 +391,7 @@ function listMenu(x, y){
     '-',
     {t:'Select all', k:'Ctrl+A', off: !visible.length, do: () => { visible.forEach(id => sel.add(id)); render(); }},
     {t:'Start all', off: !DL.items.some(v => v.state === 'paused' || v.state === 'error'), do: () => dlAct({action:'resumeAll'})},
-    {t:'Stop all', off: !DL.items.some(v => v.state === 'downloading' || v.state === 'queued'), do: () => dlAct({action:'pauseAll'})},
+    {t:'Stop all', off: !DL.items.some(v => v.state === 'downloading' || v.state === 'queued'), do: () => command('stopall')},
   ]);
 }
 /* ---------- rename ---------- */
@@ -445,7 +457,7 @@ function progressBox(id){
     const v = DL.items.find(x => x.id === progId); if (!v) return;
     if (Date.now() - (+$('#pgMain').dataset.changed || 0) < 900) return; // the button just changed under the pointer (e.g. Pause became Open)
     if (v.state === 'done') { dlClose(); return openItem(v); }
-    if (v.state === 'downloading' || v.state === 'queued') await dlAct({action:'pause', id: v.id});
+    if (v.state === 'downloading' || v.state === 'queued') { if (await confirmNoResume([v])) await dlAct({action:'pause', id: v.id}); if (!$('#pgGrid')) progressBox(v.id); }
     else await dlAct({action:'resume', id: v.id});
   };
   paintProgress();
@@ -468,6 +480,7 @@ function paintProgress(){
     ['Speed', v.state === 'downloading' ? bytes(v.speed || 0) + '/s' + (v.limit ? ' (limit ' + bytes(v.limit) + '/s)' : '') : '–'],
     ['Time left', v.state === 'downloading' ? (dur(leftOf(v)) || 'working it out') : '–'],
     ['Connections', v.state === 'downloading' ? String(conns || 1) : '–'],
+    ['Can resume', v.state === 'done' ? '–' : v.noResume ? 'No: stopping starts it again from the beginning' : v.state === 'downloading' ? 'Yes' : '–'],
     ['Saved as', v.path || '(decided when the download starts)'],
   ];
   setHTML($('#pgGrid'), rows.map(([k, t]) => `<span class="hint2">${k}</span><span class="${k === 'Status' && v.state === 'error' ? 'bad' : ''}">${esc(t)}</span>`).join(''));
@@ -504,7 +517,7 @@ async function command(c){
     case 'add': return addDialog('');
     case 'resume': return doResume();
     case 'stop': return doStop();
-    case 'stopall': return dlAct({action:'pauseAll'}, 'All stopped');
+    case 'stopall': if (!(await confirmNoResume(DL.items))) return; return dlAct({action:'pauseAll'}, 'All stopped');
     case 'startall': return dlAct({action:'resumeAll'}, 'All started');
     case 'del': return doDelete(false);
     case 'delfin': { const n = DL.items.filter(v => v.state === 'done').length; const r = await askBox({title:`Remove ${n} finished download${n === 1 ? '' : 's'} from the list?`, text:'The files stay on your disk.', ok:'Remove'}); if (r.ok) dlAct({action:'clear'}, 'Finished downloads removed'); return; }

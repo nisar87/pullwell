@@ -7,7 +7,7 @@ Content is deterministic (byte i = i % 251) so a download can be checked against
 <name> is a size such as 1KB, 5MB, 200MB (any number + KB/MB/GB), optionally followed by ".bin".
 
   /file/<name>            ordinary file, supports Range, ETag, Content-Disposition
-  /norange/<name>         ignores Range, chunked, no Content-Length
+  /norange/<name>         ignores Range, chunked, no Content-Length (?bps=N throttles)
   /flaky/<name>?drop=N    the FIRST request for that name is cut after N bytes; later ones are normal
   /status503/<name>       503 twice, then normal            (reset with /reset)
   /status403/<name>       403 first, then normal
@@ -139,7 +139,7 @@ class H(http.server.BaseHTTPRequestHandler):
         fn = name if "." in name else name + ".bin"
         if kind == "sha256": return self.text(sha_of(sz))
         if kind == "file": return self.send_body(sz, name=fn)
-        if kind == "norange": return self.send_body(sz, ranged=False, length=False, name=fn)
+        if kind == "norange": return self.send_body(sz, ranged=False, length=False, name=fn, bps=int(q.get("bps", ["0"])[0]))
         if kind == "nolength": return self.send_body(sz, ranged=False, length=False, name=fn)
         if kind == "slow": return self.send_body(sz, bps=int(q.get("bps", ["200000"])[0]), name=fn)
         if kind == "flaky":

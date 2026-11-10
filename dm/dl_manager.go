@@ -85,6 +85,7 @@ type dlItem struct {
 	Kind     string            `json:"kind,omitempty"`     // "" = a file, "torrent"
 	Named    bool              `json:"named,omitempty"`    // the person (or the browser) chose the file name: the server's name does not replace it
 	OpenDone bool              `json:"openDone,omitempty"` // open the file as soon as it has finished
+	NoResume bool              `json:"noResume,omitempty"` // the site does not allow resuming (seen when it ran)
 	Files    []dlTFile         `json:"files,omitempty"`    // torrents: what is inside
 	Select   []bool            `json:"select,omitempty"`   // torrents: which files to download (nil = all)
 }
@@ -751,6 +752,7 @@ func (m *dlManager) finishRun(e *dlEntry, t dlRunner, err error) {
 	}
 	e.prog = pr
 	e.Done = pr.Done
+	e.NoResume = pr.NoResume
 	if e.Bytes == nil {
 		e.Bytes = map[string]int64{}
 	}
@@ -1294,6 +1296,7 @@ func (m *dlManager) views() []dlView {
 		if e.running && e.task != nil {
 			pr := e.prog
 			v.Done, v.Speed, v.LineStat = pr.Done, pr.Speed, pr.Lines
+			v.NoResume = pr.NoResume
 			v.Peers, v.Seeds, v.SwarmSeeds, v.Up = pr.Peers, pr.Seeds, pr.SwarmSeeds, e.TUp+pr.Up
 			if pr.Note != "" {
 				v.Note = pr.Note

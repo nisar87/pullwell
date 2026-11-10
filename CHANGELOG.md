@@ -2,6 +2,9 @@
 
 ## 0.4.2 (not released)
 
+- **Downloads that cannot resume are marked.** Some websites do not allow continuing a download; stopping one throws
+  away what is downloaded. Stop (and Stop all) now asks first for such a download, and its progress window says
+  "Can resume: No".
 - **View → Text size** (Small, Normal, Large, Larger), for big or high-resolution screens; menus and dialogs fit.
 - A **Website** column (View → Columns), off at first.
 - Fixed (found by the new Windows check): **Start with Windows** failed on a Windows user profile that had no
