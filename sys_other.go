@@ -74,3 +74,5 @@ func waitForExit(pid int, limit time.Duration) {
 		time.Sleep(200 * time.Millisecond)
 	}
 }
+
+func clipWatch(on bool) {}

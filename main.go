@@ -56,6 +56,7 @@ func main() {
 		logf("updated from %s", *updated)
 	}
 	loadUpdateCfg()
+	loadAppSettings()
 
 	// One copy per data folder: a second start shows the first one's window and ends.
 	release, first := instanceStart(dir, *tray)

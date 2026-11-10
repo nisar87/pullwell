@@ -176,3 +176,11 @@ textarea.inp{font-family:var(--mono);font-size:12px;resize:vertical}
 .opt nav button{display:block;width:100%;padding:6px 14px;border:0;background:none;text-align:left;color:var(--text)}
 .opt nav button.sel{background:var(--sel);font-weight:600}
 .opt section{padding:2px 18px;overflow:auto;max-height:calc(100vh - 170px)}
+
+/* ---------- progress dialog ---------- */
+.pgbar{height:14px;border-radius:4px;background:var(--inset);overflow:hidden;border:1px solid var(--line)}
+.pgbar i{display:block;height:100%;width:0;background:var(--bar);transition:width .4s}
+.pgbar i.ok{background:var(--bar-done)} .pgbar i.bad{background:var(--bad)} .pgbar i.paused{background:var(--bar-paused)}
+.pggrid{display:grid;grid-template-columns:110px 1fr;gap:5px 12px;margin:12px 0 4px;font-size:13px}
+.pggrid span{word-break:break-all}
+.pglog{font-size:12px;min-height:3.6em;border-top:1px solid var(--line);padding-top:6px;margin-top:6px}

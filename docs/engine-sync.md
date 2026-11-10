@@ -14,6 +14,8 @@ copied over without undoing these changes.
 | `dm/host.go` | `PauseAll()` and `ResumeAll()` | Tray menu. |
 | `dm/bt_net.go`, `dm/bt_peer.go`, `dm/dl_dash.go`, `dm/dl_engine.go`, `dm/dl_hls.go`, `dm/dl_manager.go` | The word "NetMerge" in messages, the user agent and the BitTorrent client name replaced by `hName()` | Same. |
 | `dm/dl_ext.go` | `/ext/ping` answers `"app": "<product name in lower case>"` | The extension checks it found this program, not NetMerge. |
+| `dm/dl_manager.go` | `dlFriendly` knows two more Windows errors: a path that is too long, and a folder or drive that is gone | Plain words instead of "The download could not continue". **Also useful in NetMerge** (reported to the owner). |
+| `dm/host.go` | `DownloadDir()` | Tools → Open the download folder. |
 | `dm/dl_features.go` | Import error says "that is not a download list" | Same. Download lists exported by NetMerge (`"app": "netmerge-downloads"`) are still accepted, on purpose. |
 
 Comments that mention NetMerge were left as they are.

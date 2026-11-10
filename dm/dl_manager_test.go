@@ -260,10 +260,13 @@ func TestDLFriendlyMessages(t *testing.T) {
 		`dial tcp: lookup nope.invalid: no such host`:                                      true,
 		`tls: failed to verify certificate: x509: certificate signed by unknown authority`: false,
 		`context deadline exceeded`:                                                        true,
+		`open E:\x\a.bin: The filename or extension is too long.`:                          false,
+		`open F:\Downloads\a.bin: The system cannot find the path specified.`:              false,
+		`open F:\a.bin: The device is not ready.`:                                          false,
 	}
 	for in, retry := range cases {
 		msg, r := dlFriendly(errors.New(in))
-		if strings.Contains(msg, "dial tcp") || strings.Contains(msg, "x509") || r != retry {
+		if strings.Contains(msg, "dial tcp") || strings.Contains(msg, "x509") || strings.Contains(msg, "open ") || msg == "The download could not continue." || r != retry {
 			t.Errorf("%q -> %q retry=%v", in, msg, r)
 		}
 	}

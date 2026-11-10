@@ -68,6 +68,14 @@ async function loadDL(){
   for (const v of DL.items) { if (prevState[v.id] && prevState[v.id] !== 'done' && v.state === 'done' && !document.hidden) toast('Finished: ' + v.name); prevState[v.id] = v.state; }
   speedHist.push(DL.speed || 0); if (speedHist.length > 60) speedHist.shift();
   render();
+  if (++addPolls % 2 === 0 || document.hasFocus()) checkPendingAdd();
+}
+let addPolls = 0, addChecking = false;
+// A link chosen from the "Download this?" notification waits in the program until the window asks for it.
+async function checkPendingAdd(){
+  if (addChecking || $('#dlDlg')) return;
+  addChecking = true;
+  try { const r = await api('app', {take: 'add'}); if (r && r.add) addDialog(r.add); } catch(e){} finally { addChecking = false; }
 }
 async function dlAct(body, okMsg){
   try { const r = await api('downloads', body); await loadDL(); if (okMsg) toast(okMsg); afterChange(); return r || {}; }
@@ -146,7 +154,7 @@ function render(){
   if (!DL) return;
   for (const id of [...sel]) if (!DL.items.some(v => v.id === id)) sel.delete(id);
   if (cur && !DL.items.some(v => v.id === cur)) cur = null;
-  renderSide(); renderTable(); renderTools(); renderStatus(); renderBanner();
+  renderSide(); renderTable(); renderTools(); renderStatus(); renderBanner(); paintProgress();
 }
 
 function renderSide(){
@@ -279,7 +287,7 @@ async function doDelete(withFiles){
 }
 async function openItem(v, folder){
   if (!v) return;
-  if (!folder && v.state !== 'done') return dlProps(v.id);
+  if (!folder && v.state !== 'done') return progressBox(v.id);
   if (!folder && DL_RISKY.test(v.name || '')) { const r = await askBox({title:'Open a program?', text:`"${v.name}" is a program or script. Only open it if you trust the website it came from.`, ok:'Open', danger:true}); if (!r.ok) return; }
   dlAct({action: folder ? 'folder' : 'open', id: v.id});
 }
@@ -342,6 +350,7 @@ function rowMenu(x, y){
     {t:'Speed limit', off: !any(v => v.state !== 'done'), sub: LIMITS.map(l => ({t: l ? (l < 1 ? l * 1000 + ' KB/s' : l + ' MB/s') : 'No limit', chk: Math.abs(curLim - l * 1048576) < 1, do: () => eachSel('limit', {limitBytes: l * 1048576}, l ? 'Limit set' : 'Limit removed')}))},
     '-',
     {t:'Copy link', do: () => copyText(s.map(v => v.url).join('\n'), s.length > 1 ? 'Links copied' : 'Link copied')},
+    {t:'Progress', off: !(one && one.state !== 'done'), do: () => progressBox(one.id)},
     {t:'Properties', k:'Alt+Enter', off: !one, do: () => dlProps(one.id)},
     '-',
     {t:'Delete', k:'Del', do: () => doDelete(false)},
@@ -358,6 +367,63 @@ function listMenu(x, y){
     {t:'Stop all', off: !DL.items.some(v => v.state === 'downloading' || v.state === 'queued'), do: () => dlAct({action:'pauseAll'})},
   ]);
 }
+/* ---------- live progress of one download ---------- */
+// Opened by double-click or Enter on an unfinished download. It is redrawn after every refresh of the list, so it
+// shows the speed, time left, connections and parts as they change; when the download finishes it offers Open.
+let progId = null;
+function progressBox(id){
+  if (!DL.items.some(v => v.id === id)) return;
+  progId = id;
+  dlDialog(`<div class="card prog" role="dialog" aria-modal="true" aria-label="Download progress" style="max-width:560px">
+    <h3 id="pgTitle" style="margin:0;word-break:break-all"></h3>
+    <div class="hint2 selectable" id="pgUrl" style="margin:4px 0 10px;word-break:break-all"></div>
+    <div class="pgbar"><i id="pgFill"></i></div>
+    <div id="pgSeg"></div>
+    <div class="pggrid" id="pgGrid"></div>
+    <div id="pgLog" class="pglog"></div>
+    <div class="row" style="justify-content:space-between;gap:8px;margin-top:12px">
+      <button class="btn" id="pgProps">Properties</button>
+      <span class="row" style="gap:8px"><button class="btn" id="pgFolder">Open folder</button><button class="btn" id="pgMain"></button><button class="btn pri" id="pgClose">Close</button></span>
+    </div></div>`);
+  $('#pgClose').onclick = dlClose;
+  $('#pgProps').onclick = () => { const i = progId; dlClose(); dlProps(i); };
+  $('#pgFolder').onclick = () => { const v = DL.items.find(x => x.id === progId); if (v) openItem(v, true); };
+  $('#pgMain').onclick = async () => {
+    const v = DL.items.find(x => x.id === progId); if (!v) return;
+    if (Date.now() - (+$('#pgMain').dataset.changed || 0) < 900) return; // the button just changed under the pointer (e.g. Pause became Open)
+    if (v.state === 'done') { dlClose(); return openItem(v); }
+    if (v.state === 'downloading' || v.state === 'queued') await dlAct({action:'pause', id: v.id});
+    else await dlAct({action:'resume', id: v.id});
+  };
+  paintProgress();
+  $('#pgClose').focus();
+}
+function paintProgress(){
+  if (!progId || !$('#pgGrid')) { progId = $('#pgGrid') ? progId : null; return; }
+  const v = DL.items.find(x => x.id === progId);
+  if (!v) { $('#pgTitle').textContent = 'This download was removed'; $('#pgMain').disabled = true; return; }
+  const pct = pctOf(v), conns = (v.lineStats || []).reduce((a, l) => a + (l.workers || 0), 0);
+  $('#pgTitle').textContent = (v.state === 'done' ? 'Complete' : v.size > 0 ? Math.floor(pct) + '%' : dlStateText(v)) + ' · ' + (v.name || 'Download');
+  $('#pgUrl').textContent = v.url;
+  $('#pgFill').style.width = (v.size > 0 || v.state === 'done' ? pct : 0) + '%';
+  $('#pgFill').className = v.state === 'error' ? 'bad' : v.state === 'done' ? 'ok' : v.state === 'paused' ? 'paused' : '';
+  setHTML($('#pgSeg'), dlSegBar(v));
+  const rows = [
+    ['Status', dlStateText(v) + (v.state === 'error' && v.err ? ': ' + v.err : '') + (v.state === 'queued' && v.retryAt > Date.now()/1000 ? ' (in ' + dur(v.retryAt - Date.now()/1000) + ')' : '')],
+    ['File size', v.size > 0 ? bytes(v.size) : 'not known yet'],
+    ['Downloaded', bytes(v.done || 0) + (v.size > 0 ? ` (${pct.toFixed(1)}%)` : '')],
+    ['Speed', v.state === 'downloading' ? bytes(v.speed || 0) + '/s' + (v.limit ? ' (limit ' + bytes(v.limit) + '/s)' : '') : '–'],
+    ['Time left', v.state === 'downloading' ? (dur(leftOf(v)) || 'working it out') : '–'],
+    ['Connections', v.state === 'downloading' ? String(conns || 1) : '–'],
+    ['Saved as', v.path || '(decided when the download starts)'],
+  ];
+  setHTML($('#pgGrid'), rows.map(([k, t]) => `<span class="hint2">${k}</span><span class="${k === 'Status' && v.state === 'error' ? 'bad' : ''}">${esc(t)}</span>`).join(''));
+  setHTML($('#pgLog'), (v.log || []).slice(-4).reverse().map(l => `<div><span class="hint2">${new Date(l.t*1000).toLocaleTimeString()}</span> ${esc(l.s)}</div>`).join(''));
+  const m = $('#pgMain'), label = v.state === 'done' ? 'Open' : v.state === 'downloading' || v.state === 'queued' ? 'Pause' : 'Resume';
+  if (m.textContent !== label) { if (m.textContent) m.dataset.changed = Date.now(); m.textContent = label; }
+  $('#pgFolder').disabled = !v.path;
+}
+
 /* ---------- menu bar ---------- */
 // The same commands as the toolbar, the right-click menu and the keyboard, grouped so everything can be found from
 // the top of the window. Each entry is built when its menu opens, so what is greyed out matches the selection.
@@ -459,6 +525,7 @@ const BAR_MENUS = {
       {t:'Queue', off: !any(v => v.state !== 'done'), sub: qs.map(qq => ({t: qq.name, chk: curQ === qq.id, do: () => eachSel('setQueue', {queue: qq.id}, 'Moved')}))},
       {t:'Speed limit', off: !any(v => v.state !== 'done'), sub: LIMITS.map(l => ({t: limitLabel(l), chk: Math.abs(curLim - l * 1048576) < 1, do: () => eachSel('limit', {limitBytes: l * 1048576}, l ? 'Limit set' : 'Limit removed')}))},
       {t:'Copy link', off: !s.length, do: () => copyText(s.map(v => v.url).join('\n'), s.length > 1 ? 'Links copied' : 'Link copied')},
+      {t:'Progress', off: !(one && one.state !== 'done'), do: () => progressBox(one.id)},
       {t:'Properties', k:'Alt+Enter', off: !one, do: () => dlProps(one.id)},
       '-',
       {t:'Select all', k:'Ctrl+A', off: !visible.length, do: () => { visible.forEach(id => sel.add(id)); render(); }},
@@ -670,6 +737,7 @@ function optionsBody(tab){
     + orow('Folders for types and websites', 'Send Videos to one folder, or everything from one website into its own folder.', `<button class="btn" data-dm="folders">Choose folders…</button>`)
     + orow('If a file with that name is already there', '', `<select class="sel" data-cfg="onExists">${[['rename','Keep both'],['overwrite','Replace the old file'],['skip','Skip the download']].map(o => `<option value="${o[0]}"${(c.onExists || 'rename') === o[0] ? ' selected' : ''}>${o[1]}</option>`).join('')}</select>`)
     + orow('Notify me when a download finishes', 'Problems are always shown.', tog('data-dm="notifyTog"', !c.noNotify, 'Notify when finished'))
+    + (APPCFG ? orow('Offer links I copy', `When you copy a link to a file (a program, archive, video, PDF …) anywhere, a notification asks whether to download it. Nothing is downloaded unless you click it and confirm.`, tog('id="clipTog"', APPCFG.clipboard, 'Offer copied links')) : '')
     + orow('Appearance', '', `<select class="sel" id="optTheme">${[['auto','Same as Windows'],['light','Light'],['dark','Dark']].map(o => `<option value="${o[0]}"${store.get('theme', 'auto') === o[0] ? ' selected' : ''}>${o[1]}</option>`).join('')}</select>`);
   if (tab === 'connection') return orow('Downloads at the same time', 'More than 3 can slow each one down. Recommended: 3.', num('dlMax', [1,2,3,4,5,6,8,10], c.maxActive))
     + orow('Connections per download', `How many parallel connections one file uses. Some websites refuse many; ${esc(APP.name)} lowers it by itself. Recommended: 8.`, num('dlPer', [1,2,4,6,8,12,16,24,32], c.maxPerLine))
@@ -764,6 +832,7 @@ document.addEventListener('click', async e => {
   if (t.id === 'dlWinTog') return dlAct({action:'config', config: {...DL.config, window: {...DL.config.window, enabled: !DL.config.window.enabled}}});
   if (t.id === 'dlForget') return dlAct({action:'forgetHosts'}, 'Forgotten');
   if (t.id === 'extCode') return extConnect();
+  if (t.id === 'clipTog') { try { await api('app', {clipboard: !APPCFG.clipboard}); APPCFG = await api('app'); toast(APPCFG.clipboard ? 'Copied links will be offered' : 'Copied links are not offered'); } catch(err){ toast(err.message, true); await loadAppCfg(); } return showOptions('general'); }
   if (t.id === 'autoTog') { try { APPCFG = await api('app', {autostart: !APPCFG.autostart}); toast(APPCFG.autostart ? 'Starts with Windows' : 'Does not start with Windows'); } catch(err){ toast(err.message, true); await loadAppCfg(); } return showOptions('general'); }
   if (t.id === 'extOn') return dlAct({action:'extConfig', extMinMB: DL.ext.minMB, extOff: DL.ext.enabled});
   if (t.dataset.extrm) { const r = await askBox({title:'Disconnect this browser?', text:'Its extension stops sending downloads until you connect it again.', ok:'Disconnect'}); if (r.ok) { await dlAct({action:'extRevoke', id: t.dataset.extrm}, 'Disconnected'); showOptions('browser'); } return; }

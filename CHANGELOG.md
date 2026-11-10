@@ -2,6 +2,19 @@
 
 ## 0.1.0 (not released)
 
+- **Progress window** for a download: double-click (or Enter) on an unfinished download, or "Progress" in the
+  right-click and Downloads menus. It shows the percentage, size, what is downloaded, speed, time left, the number of
+  connections, the parts of the file and the latest events, and refreshes while it is open. Pause and Resume work
+  from it; when the download finishes it says Complete and offers Open and Open folder.
+- **Offer links I copy** (Options → General, off by default): copying a link to a file (program, archive, video,
+  PDF and so on) or a magnet link anywhere in Windows brings a notification "Download this with Pullwell?";
+  clicking it opens the Add dialog with the link. Nothing is downloaded without confirming, each link is offered
+  once, and links copied inside Pullwell's own window are not offered. Windows tells Pullwell about clipboard
+  changes; it does not keep reading the clipboard.
+- **Go back** now sticks: the version you went back from is not installed by itself again (you can still install it
+  by hand), and the restart says "went back" instead of "updated".
+- Two more failures explained in plain words: a file name or folder path too long for Windows, and a download
+  folder that is not there any more (a removed drive).
 - **Menu bar** at the top of the window: Tasks (add a link, add with options, torrent file, grab links from a page,
   load or save the list, quit), Downloads (open, open folder, resume, stop, download again, start/stop all, queue,
   speed limit, copy link, properties, select all, delete), View (categories panel, toolbar labels, status bar,

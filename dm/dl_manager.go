@@ -836,6 +836,10 @@ func dlFriendly(err error) (string, bool) {
 		return "The disk is full. Free some space and press Resume.", false
 	case strings.Contains(s, "cannot write"), strings.Contains(s, "cannot create the folder"), strings.Contains(s, "Access is denied"), strings.Contains(s, "permission denied"):
 		return hName() + " cannot write to the download folder. Choose another folder in the Downloads settings.", false
+	case strings.Contains(s, "filename or extension is too long"), strings.Contains(s, "file name too long"):
+		return "The file name or the folder path is too long for Windows. Choose a shorter folder, or rename the download in its Properties.", false
+	case strings.Contains(s, "cannot find the path specified"), strings.Contains(s, "device is not ready"):
+		return "The download folder is not there any more (a removed drive, or a deleted folder). Choose another folder in the Downloads settings, or reconnect the drive and press Resume.", false
 	case strings.Contains(s, "only http and https"), strings.Contains(s, "refused: the link leads"):
 		return s, false
 	}

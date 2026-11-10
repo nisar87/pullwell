@@ -269,8 +269,15 @@ func trayProc(hwnd, msg, wp, lp uintptr) uintptr {
 	switch uint32(msg) {
 	case wmTray:
 		switch lp & 0xffff {
-		case wmLBtnUp, ninBalloonUp:
+		case ninBalloonUp:
+			if l := takeBalloonLink(); l != "" { // the copied-link notification: open the Add dialog with it
+				setPendingAdd(l)
+			}
 			go safely("tray open", func() { openWindow(trayURL) })
+		case wmLBtnUp:
+			go safely("tray open", func() { openWindow(trayURL) })
+		case 0x0403, 0x0404: // NIN_BALLOONHIDE, NIN_BALLOONTIMEOUT: the notification went away unused
+			setBalloonLink("")
 		case wmRBtnUp:
 			trayMenu(hwnd)
 		}
@@ -290,6 +297,12 @@ func trayProc(hwnd, msg, wp, lp uintptr) uintptr {
 		return 0
 	case wmShowMain:
 		showMain()
+		return 0
+	case wmClipWatch:
+		clipListen(hwnd, wp == 1)
+		return 0
+	case wmClipboardUpdate:
+		onClipboardUpdate(hwnd)
 		return 0
 	case wmQuitTray, wmClose:
 		savePlacement()
@@ -355,6 +368,9 @@ func trayLoop(ready chan struct{}) {
 	m, _, _ := pRegisterWinMsg.Call(uintptr(unsafe.Pointer(tb)))
 	trayTaskbarMsg = uint32(m)
 	trayWnd.Store(hwnd)
+	if clipboardOn() {
+		clipListen(hwnd, true)
+	}
 	trayNotify(nimAdd)
 	pSetTimer.Call(hwnd, 1, 2000, 0)
 	readyOnce()
@@ -375,6 +391,7 @@ func showBalloon(title, text string) {
 	if hwnd == 0 {
 		return
 	}
+	setBalloonLink("") // a new notification replaces any copied-link offer on screen
 	nid := notifyIconData{Wnd: hwnd, ID: 1, Flags: nifInfo, InfoFlags: 1}
 	nid.Size = uint32(unsafe.Sizeof(nid))
 	t, _ := syscall.UTF16FromString(text)

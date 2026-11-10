@@ -27,8 +27,10 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 			Autostart *bool  `json:"autostart"`
 			Quit      bool   `json:"quit"`
 			Open      string `json:"open"` // "downloads" | "log": only these fixed folders can be opened from here
+			Clipboard *bool  `json:"clipboard"`
+			Take      string `json:"take"` // "add": the link chosen from a notification, handed over once
 		}
-		if json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&in) != nil || (in.Autostart == nil && !in.Quit && in.Open == "") {
+		if json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&in) != nil || (in.Autostart == nil && !in.Quit && in.Open == "" && in.Clipboard == nil && in.Take != "add") {
 			w.WriteHeader(400)
 			_ = json.NewEncoder(w).Encode(map[string]string{"error": "bad request"})
 			return
@@ -62,6 +64,19 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 			_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 			return
 		}
+		if in.Take == "add" {
+			_ = json.NewEncoder(w).Encode(map[string]string{"add": takePendingAdd()})
+			return
+		}
+		if in.Clipboard != nil {
+			if err := setClipboardWatch(*in.Clipboard); err != nil {
+				w.WriteHeader(409)
+				_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+				return
+			}
+			_ = json.NewEncoder(w).Encode(map[string]any{"clipboard": clipboardOn()})
+			return
+		}
 		var err error
 		if *in.Autostart && customRoot {
 			err = errCustomRoot
@@ -77,5 +92,6 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 		logf("start with Windows: %v", *in.Autostart)
 	}
 	on, err := autoStartGet()
-	_ = json.NewEncoder(w).Encode(map[string]any{"autostart": on, "canAutostart": err == nil && !customRoot, "version": appVersion})
+	out := map[string]any{"autostart": on, "canAutostart": err == nil && !customRoot, "version": appVersion, "clipboard": clipboardOn()}
+	_ = json.NewEncoder(w).Encode(out)
 }
