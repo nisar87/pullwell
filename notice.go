@@ -51,4 +51,17 @@ func notify(title, text string) {
 // showToast shows one notification as a tray balloon (real toasts with buttons come with the installer).
 func showToast(t toastSpec) {
 	showBalloon(t.Title, strings.Join(t.Lines, "\n"))
+	setBalloonView(toastView(t.Tag))
+}
+
+// toastView is the part of the list a click on the notification shows: the finished downloads, or the ones that
+// need attention.
+func toastView(tag string) string {
+	switch tag {
+	case "finished", "done", "allDone", "shutdown":
+		return "finished"
+	case "attention", "checksum", "problem":
+		return "errors"
+	}
+	return ""
 }

@@ -75,7 +75,12 @@ let addPolls = 0, addChecking = false;
 async function checkPendingAdd(){
   if (addChecking || $('#dlDlg')) return;
   addChecking = true;
-  try { const r = await api('app', {take: 'add'}); if (r && r.add) addDialog(r.add.trim()); } catch(e){} finally { addChecking = false; }
+  try { const r = await api('app', {take: 'add'}); if (r && r.add) addDialog(r.add.trim());
+    else if (r && r.view) { // a notification was clicked: show what it was about, newest first
+      view = {k: r.view}; store.set('view', view); q = ''; if ($('#search')) $('#search').value = '';
+      sel.clear(); const top = DL.items.filter(v => inView(v, view)).sort((a, b) => (b.finished || b.added || 0) - (a.finished || a.added || 0))[0];
+      if (top) { sel.add(top.id); cur = top.id; } render();
+    } } catch(e){} finally { addChecking = false; }
 }
 async function dlAct(body, okMsg){
   try { const r = await api('downloads', body); await loadDL(); if (okMsg) toast(okMsg); afterChange(); return r || {}; }

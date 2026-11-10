@@ -289,14 +289,13 @@ func trayProc(hwnd, msg, wp, lp uintptr) uintptr {
 	case wmTray:
 		switch lp & 0xffff {
 		case ninBalloonUp:
-			if l := takeBalloonLink(); l != "" { // the copied-link notification: open the Add dialog with it
-				setPendingAdd(l)
-			}
+			balloonClicked() // the Add dialog for a copied link, or the finished / problem downloads
 			go safely("tray open", func() { openWindow(trayURL) })
 		case wmLBtnUp:
 			go safely("tray open", func() { openWindow(trayURL) })
 		case 0x0403, 0x0404: // NIN_BALLOONHIDE, NIN_BALLOONTIMEOUT: the notification went away unused
 			setBalloonLink("")
+			setBalloonView("")
 		case wmRBtnUp:
 			trayMenu(hwnd)
 		}
@@ -414,6 +413,7 @@ func showBalloon(title, text string) {
 		return
 	}
 	setBalloonLink("") // a new notification replaces any copied-link offer on screen
+	setBalloonView("")
 	nid := notifyIconData{Wnd: hwnd, ID: 1, Flags: nifInfo, InfoFlags: 1}
 	if ic := balloonIcon(); ic != 0 {
 		nid.InfoFlags, nid.BalloonIcon = 4|0x20, ic // NIIF_USER | NIIF_LARGE_ICON: the program's own icon

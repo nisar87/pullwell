@@ -229,3 +229,40 @@ func isWebLink(s string) bool {
 	u, err := url.Parse(s)
 	return err == nil && (u.Scheme == "http" || u.Scheme == "https" || u.Scheme == "ftp") && u.Host != ""
 }
+
+// balloonView is the list view the notification on screen leads to ("finished" or "errors"), and pendingView the
+// view the window should switch to on its next refresh after the notification was clicked.
+var (
+	balloonViewV string
+	pendingViewV string
+)
+
+func setBalloonView(v string) {
+	balloonMu.Lock()
+	balloonViewV = v
+	balloonMu.Unlock()
+}
+
+// balloonClicked is called when the person clicks the notification.
+func balloonClicked() {
+	l := takeBalloonLink()
+	balloonMu.Lock()
+	v := balloonViewV
+	balloonViewV = ""
+	balloonMu.Unlock()
+	if l != "" {
+		setPendingAdd(l)
+	} else if v != "" {
+		pendingMu.Lock()
+		pendingViewV = v
+		pendingMu.Unlock()
+	}
+}
+
+func takePendingView() string {
+	pendingMu.Lock()
+	defer pendingMu.Unlock()
+	v := pendingViewV
+	pendingViewV = ""
+	return v
+}

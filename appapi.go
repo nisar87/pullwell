@@ -180,7 +180,7 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		if in.Take == "add" {
-			_ = json.NewEncoder(w).Encode(map[string]string{"add": takePendingAdd()})
+			_ = json.NewEncoder(w).Encode(map[string]string{"add": takePendingAdd(), "view": takePendingView()})
 			return
 		}
 		if in.Clipboard != nil {
