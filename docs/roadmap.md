@@ -80,3 +80,18 @@ When phases 1-5 are ✅, Pullwell is 1.0.
 | ✅ | Real Windows notifications: "Download finished" with Open and Open folder (seen on the PC, 18:21: Open folder raised Explorer with the file); a click brings up the window (18:20). The classic balloon is the fallback |
 | ✅ | Show a finished download (option): the window comes up with Complete, Open and Open folder (PC, 18:15) |
 | ✅ | Fixed: a numbered series typed in the Add dialog failed; a typed file name was replaced by the site's; the shown progress dropped to 0 while a retry waited |
+
+## 0.5.0: checked on a Windows machine at GitHub on every change
+
+`.github/workflows/windows.yml` runs the test suites on Windows and `scripts/wintest`, which starts the real program
+and drives it through its command line and local API (no desktop): 50 checks, all passing. Two bugs were found and fixed this way: Start with Windows failed
+on a profile without a startup list, and Uninstall right after a start could leave the Start menu entry behind.
+
+| | Item |
+| --- | --- |
+| ✅ | Open when finished (programs are only shown in their folder; a file with a checksum only when it matched) |
+| ✅ | Move a finished file to another folder or drive (Windows check: C: to D:) |
+| ✅ | Check a finished file's checksum afterwards |
+| ✅ | Downloads that cannot resume are marked; Stop asks first |
+| ✅ | View → Text size; Website column |
+| ✅ | Partial files named after the program (`.pullwell-part`), older ones taken over |

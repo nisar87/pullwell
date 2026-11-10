@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.4.2 (not released)
+## 0.5.0 (2026-11-10)
 
 - **Downloads that cannot resume are marked.** Some websites do not allow continuing a download; stopping one throws
   away what is downloaded. Stop (and Stop all) now asks first for such a download, and its progress window says
