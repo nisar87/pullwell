@@ -1152,6 +1152,9 @@ function zoomNow(){ return +store.get('zoom', 1) || 1; }
 function applyZoom(){ const z = zoomNow(); document.documentElement.style.zoom = z; document.documentElement.style.setProperty('--zoom', z); } // the layout height is divided by it, so the window still fits
 function applyTheme(){ const t = store.get('theme', 'auto'); if (t === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t; }
 applyTheme();
+// Bahnschrift (Windows 10 and 11) is the font for numbers; it needs a small nudge in the list (see app.css .bahn)
+try { const c = document.createElement('canvas').getContext('2d'), t = '0123456789 MB/s', w = f => { c.font = '32px ' + f; return c.measureText(t).width; };
+  if (w('"Bahnschrift", monospace') !== w('monospace')) document.documentElement.classList.add('bahn'); } catch (e) {}
 applyUiPrefs();
 applyZoom();
 if (APP.host === 'browser') setTimeout(() => toast(`${APP.name} is shown in your browser. Closing this tab does not stop downloads.`), 800);

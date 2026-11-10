@@ -146,7 +146,9 @@ table.dl th:hover{color:var(--text);box-shadow:inset 1px 0 0 var(--line)}
 table.dl th.r,table.dl td.r{text-align:right}
 table.dl th .ar{font-size:9px;margin-left:4px;color:var(--accent)}
 table.dl td{height:var(--row);padding:0 10px;border-bottom:1px solid var(--line);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-table.dl td.r,table.dl td.n{font-family:var(--num);font-variant-numeric:tabular-nums;color:var(--mute);line-height:1} /* Bahnschrift sits high in a taller line box on Windows */
+table.dl td.r,table.dl td.n{font-family:var(--num);font-variant-numeric:tabular-nums;color:var(--mute);line-height:1}
+/* Bahnschrift's figures sit about 1 px above the names in a centred cell (seen in the real window on Windows) */
+.bahn table.dl td.r,.bahn table.dl td.n{padding-top:2px}
 table.dl tbody tr{cursor:default}
 table.dl tbody tr:hover td{background:var(--hover)}
 table.dl tbody tr.sel td{background:var(--sel)}
