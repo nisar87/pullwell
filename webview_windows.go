@@ -140,6 +140,17 @@ func comInit() {
 	cbRelease = syscall.NewCallback(func(this uintptr) uintptr { return 1 })
 
 	// ICoreWebView2EnvironmentOptions: no extra browser switches, the default language, the oldest runtime we accept.
+	// Only with -debug are the switches in WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS passed on (the WebView2 loader would
+	// read that variable, but the runtime is started directly here): the Windows window checks use it for a remote
+	// debugging port. A normal start never has extra switches.
+	optArgs := syscall.NewCallback(func(this, out uintptr) uintptr {
+		args := ""
+		if debugMode {
+			args = os.Getenv("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS")
+		}
+		*(*uintptr)(ptrFrom(out)) = coTaskString(args)
+		return 0
+	})
 	optStr := func(val string) uintptr {
 		return syscall.NewCallback(func(this, out uintptr) uintptr {
 			*(*uintptr)(ptrFrom(out)) = coTaskString(val)
@@ -148,7 +159,7 @@ func comInit() {
 	}
 	optPut := syscall.NewCallback(func(this, v uintptr) uintptr { return 0 })
 	optOff := syscall.NewCallback(func(this, out uintptr) uintptr { *(*int32)(ptrFrom(out)) = 0; return 0 })
-	optionsObj = newComObj(iidEnvOptions, optStr(""), optPut, optStr(""), optPut, optStr(webview2MinVersion), optPut, optOff, optPut)
+	optionsObj = newComObj(iidEnvOptions, optArgs, optPut, optStr(""), optPut, optStr(webview2MinVersion), optPut, optOff, optPut)
 
 	envDoneObj = newComObj(iidEnvCompleted, syscall.NewCallback(func(this, hr, env uintptr) uintptr { onEnvDone(hr, env); return 0 }))
 	ctlDoneObj = newComObj(iidCtlCompleted, syscall.NewCallback(func(this, hr, ctl uintptr) uintptr { onCtlDone(hr, ctl); return 0 }))

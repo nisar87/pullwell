@@ -31,11 +31,13 @@ start_app() { # $1: name of the data folder
     curl -s "http://127.0.0.1:$dbg/json/list" 2>/dev/null | grep -q '"url": *"http://127.0.0.1:9197/' && curl -s -o /dev/null $app && return 0
     sleep 0.5
   done
-  echo "the window did not come up for $1 (WebView2 debugging port $dbg)"; tail -20 "$root/data/pullwell.log" 2>/dev/null; return 1
+  echo "the window did not come up for $1 (WebView2 debugging port $dbg)"; tail -20 "$root/data/pullwell.log" 2>/dev/null
+  stop_app; return 1
 }
 stop_app() {
   curl -s -X POST -H 'X-Pullwell: 1' -H 'Content-Type: application/json' -d '{"quit":true}' ${app}api/app > /dev/null
   for i in $(seq 40); do curl -s -o /dev/null $app || break; sleep 0.5; done
+  taskkill //F //IM "$(basename "$exe")" > /dev/null 2>&1 || true # only if Quit did not end it
   sleep 1
 }
 

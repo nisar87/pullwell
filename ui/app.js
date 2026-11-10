@@ -503,7 +503,9 @@ function paintProgress(){
   $('#pgFill').className = v.state === 'error' ? 'bad' : v.state === 'done' ? 'ok' : v.state === 'paused' ? 'paused' : '';
   setHTML($('#pgSeg'), dlSegBar(v));
   const rows = [
-    ['Status', dlStateText(v) + (v.state === 'error' && v.err ? ': ' + v.err : '') + (v.state === 'queued' && v.retryAt > Date.now()/1000 ? ' (in ' + dur(v.retryAt - Date.now()/1000) + ')' : '')],
+    // the state itself is shown next to the percentage; this row only carries what goes with it
+    v.state === 'error' && v.err ? ['Problem', v.err] : null,
+    v.state === 'queued' && v.retryAt > Date.now()/1000 ? ['Next try', 'in ' + dur(v.retryAt - Date.now()/1000)] : null,
     ['File size', v.size > 0 ? bytes(v.size) : 'not known yet'],
     ['Downloaded', bytes(v.done || 0) + (v.size > 0 ? ` (${pct.toFixed(1)}%)` : '')],
     ['Speed', v.state === 'downloading' ? bytes(v.speed || 0) + '/s' + (v.limit ? ' (limit ' + bytes(v.limit) + '/s)' : '') : '–'],
@@ -512,7 +514,7 @@ function paintProgress(){
     ['Can resume', v.state === 'done' ? '–' : v.noResume ? 'No: stopping starts it again from the beginning' : v.state === 'downloading' ? 'Yes' : '–'],
     ['Saved as', v.path || '(decided when the download starts)'],
   ];
-  setHTML($('#pgGrid'), rows.map(([k, t]) => `<div class="${k === 'Saved as' || k === 'Status' && t.length > 40 ? 'wide' : ''}"><span class="k">${k}</span><span class="v ${k === 'Status' && v.state === 'error' ? 'bad' : k === 'Can resume' && v.noResume && v.state !== 'done' ? 'warnv' : ''}" title="${esc(t)}">${esc(t)}</span></div>`).join(''));
+  setHTML($('#pgGrid'), rows.filter(Boolean).map(([k, t]) => `<div class="${k === 'Saved as' || k === 'Problem' ? 'wide' : ''}"><span class="k">${k}</span><span class="v ${k === 'Problem' ? 'bad' : k === 'Can resume' && v.noResume && v.state !== 'done' ? 'warnv' : ''}" title="${esc(t)}">${esc(t)}</span></div>`).join(''));
   setHTML($('#pgLog'), (v.log || []).slice(-4).reverse().map(l => `<div><span>${new Date(l.t*1000).toLocaleTimeString()}</span>${esc(l.s)}</div>`).join(''));
   const m = $('#pgMain'), label = v.state === 'done' ? 'Open' : v.state === 'downloading' || v.state === 'queued' ? 'Pause' : 'Resume';
   if (m.textContent !== label) { if (m.textContent) m.dataset.changed = Date.now(); m.textContent = label; }
