@@ -653,7 +653,8 @@ function addDialog(prefill){
 }
 async function submitLinks(links){
   if (!links.length) return toast('Paste a link first', true);
-  if (links.length > 1 || /^magnet:/i.test(links[0])) {
+  const series = /\[(\d+-\d+(:\d+)?|[a-z]-[a-z])\]/i.test(links[0]); // file[001-050].jpg: many files, added without checking each
+  if (links.length > 1 || series || /^magnet:/i.test(links[0])) {
     const r = await dlAct({action:'add', urls: links});
     if (r) { dlClose(); toast(r.duplicate && !(r.added || []).length ? 'Already in your list' : `${(r.added || []).length} added` + (r.skipped ? `, ${r.skipped} already in your list` : '')); }
     return;

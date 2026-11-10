@@ -132,7 +132,7 @@ func instanceKey(root string) string {
 
 // instanceStart takes the single-instance lock. When another copy already runs for this data folder, it asks that
 // copy to show its window (unless started with -tray) and returns first=false.
-func instanceStart(root string, tray bool) (release func(), first bool) {
+func instanceStart(root string, tray bool, link string) (release func(), first bool) {
 	appRootHash = instanceKey(root)
 	trayClass = AppName + "Tray-" + appRootHash
 	name, _ := syscall.UTF16PtrFromString(`Local\` + AppName + "-" + appRootHash)
@@ -145,7 +145,9 @@ func instanceStart(root string, tray bool) (release func(), first bool) {
 		return func() { pCloseHandle.Call(h) }, true
 	}
 	pCloseHandle.Call(h)
-	if !tray {
+	if link != "" {
+		handOver("add " + link)
+	} else if !tray {
 		handOver("show")
 	}
 	return nil, false
@@ -301,10 +303,13 @@ func trayProc(hwnd, msg, wp, lp uintptr) uintptr {
 		return 0
 	case wmCopyData: // a second start
 		cds := (*copyDataStruct)(ptrFrom(lp))
-		if cds != nil && cds.Data == 1 && cds.Size > 0 && cds.Size <= 1024 {
+		if cds != nil && cds.Data == 1 && cds.Size > 0 && cds.Size <= 9000 {
 			cmd := string(unsafe.Slice((*byte)(ptrFrom(cds.Ptr)), cds.Size))
 			logf("second start: %q", cmd)
 			if cmd == "show" {
+				go safely("show", func() { openWindow(trayURL) })
+			} else if l, ok := strings.CutPrefix(cmd, "add "); ok && isWebLink(l) {
+				setPendingAdd(l) // started with a link (Pullwell.exe <link>): the Add dialog shows it
 				go safely("show", func() { openWindow(trayURL) })
 			}
 		}

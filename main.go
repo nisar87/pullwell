@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -60,12 +61,20 @@ func main() {
 	go keepStartMenu()
 
 	// One copy per data folder: a second start shows the first one's window and ends.
-	release, first := instanceStart(dir, *tray)
+	// A link on the command line (Pullwell.exe https://...) opens the Add dialog with it, here or in the running copy.
+	link := ""
+	if a := flag.Args(); len(a) > 0 && isWebLink(a[0]) {
+		link = strings.TrimSpace(a[0])
+	}
+	release, first := instanceStart(dir, *tray, link)
 	if !first {
 		logf("already running: handed over to the first copy")
 		return
 	}
 	defer release()
+	if link != "" {
+		setPendingAdd(link)
+	}
 
 	ln, port, err := listenFirstFree(appPorts)
 	if err != nil {

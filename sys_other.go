@@ -18,7 +18,9 @@ import (
 	"time"
 )
 
-func instanceStart(root string, tray bool) (release func(), first bool) { return func() {}, true }
+func instanceStart(root string, tray bool, link string) (release func(), first bool) {
+	return func() {}, true
+}
 
 func uiHostName() string { return "browser" }
 

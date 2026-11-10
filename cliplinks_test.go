@@ -74,3 +74,21 @@ func TestClipboardSettingAndPendingAdd(t *testing.T) {
 		t.Fatal("the chosen link must be handed to the window exactly once")
 	}
 }
+
+func TestIsWebLink(t *testing.T) {
+	for in, want := range map[string]bool{
+		"https://example.com/page": true,
+		"http://x.org":             true,
+		"ftp://f.org/a":            true,
+		"magnet:?xt=urn:btih:abc":  true,
+		"C:\\Windows\\notepad.exe": false,
+		"file:///C:/x.exe":         false,
+		"-tray":                    false,
+		"https://a.org/x y":        false,
+		"javascript:alert(1)":      false,
+	} {
+		if isWebLink(in) != want {
+			t.Errorf("isWebLink(%q) != %v", in, want)
+		}
+	}
+}

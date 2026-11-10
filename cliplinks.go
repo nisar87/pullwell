@@ -199,3 +199,17 @@ func offerCopiedLink(text string, ourWindowInFront bool) {
 	showBalloon("Download this with "+AppName+"?", name+"\nClick here to add it.")
 	setBalloonLink(l)
 }
+
+// isWebLink accepts any http, https or ftp link with a host, or a magnet link (for the command line, where the
+// person chose the link, so it need not look like a file).
+func isWebLink(s string) bool {
+	s = strings.TrimSpace(s)
+	if len(s) > 8192 || strings.ContainsAny(s, " \t\r\n") {
+		return false
+	}
+	if strings.HasPrefix(strings.ToLower(s), "magnet:?") {
+		return true
+	}
+	u, err := url.Parse(s)
+	return err == nil && (u.Scheme == "http" || u.Scheme == "https" || u.Scheme == "ftp") && u.Host != ""
+}
