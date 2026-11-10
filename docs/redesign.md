@@ -150,19 +150,49 @@ and 130 %, and with Compact rows. The dialogs reviewed were Add, File info, Rena
 confirmation, Queues, Grab links, Folders, Connect a browser, About, Keyboard shortcuts, Properties, Options and
 Progress.
 
-Windows workflow on the pull request (GitHub Actions, windows-latest): tests pass; program checks 56/56 pass,
-including 8 new checks for a separate copy running next to an installed one (see below).
+## Results on Windows (GitHub Actions)
+
+All on GitHub-hosted runners (`windows-latest`, image `win25-vs2026 20261103.298.1`, Windows Server 2025, build
+10.0.26100), never on the owner's PC. Each job starts from a clean machine.
+
+| Job | What it does | Result |
+| --- | --- | --- |
+| tests | `go vet`, program tests, engine tests | pass |
+| program | `scripts/wintest`: the built program through its command line and local API (start, single instance and hand-over, `pullwell://` links and wrong codes, downloads with checksum, pause and resume, rename, move to another drive, checksum check, typed proxy, Start with Windows, Start menu entry, keeping the PC awake, dropped update and Go back, separate copy next to an installed one, Uninstall, protected program folder, Quit) | 56/56 |
+| window | the real WebView2 window (runtime 156.0.4314.58) with a remote debugging port: the window checks of `scripts/uitest` and 56 screenshots | ui 22/22, menus 36/36, progress 12/12, features 25/25, flows 14/14, more 13/13 |
+
+The window job's log counts more PASS lines for flows and more (28 and 26) because those checks also print
+their passes a second time in a summary; the checks themselves are 14 and 13.
+
+Fonts in the real window (`windows/fonts.json`): Segoe UI Variable Text and Display, Segoe UI, Bahnschrift,
+Cascadia Mono and Consolas are all present, so text is in Segoe UI Variable and numbers in Bahnschrift.
+
+Found and fixed through the real window: Bahnschrift's figures sat 1 to 2 px above the file names in the list
+(fixed with line-height 1 and a 1 px nudge that applies only when Bahnschrift is there); a check raced with
+the Explorer window that Open the download folder brings up (test fixed: the window rightly closes its menus
+when it loses the focus); the Pause/Resume test clicked inside the button's deliberate 0.9 s guard.
+
+What this does not cover: theme and window size are switched through the browser engine (emulated colour
+scheme and viewport), not by changing the Windows theme or dragging the window; display scaling other than
+100 % was not tried; the runner's desktop is 1024×768; toasts and the tray icon are not looked at (the
+program job checks the notification code paths it can, not what Windows draws); the browser extension is
+checked on Linux only.
 
 ## Screenshots
 
-Taken in headless Chromium on Linux, so the fonts are fallbacks, not Segoe UI Variable and Bahnschrift.
+From the real window on Windows (window job, commit `f2e2bf7`), stored at reduced colour depth:
 
-- [Before and after](redesign/before-after.png): main window light and dark, progress window, Downloads menu
-- [Main window, light](redesign/main-light.png) and [dark](redesign/main-dark.png), 1280×720
-- [Progress window](redesign/progress-light.png)
-- [Dialogs, light](redesign/dialogs-light.png) and [dark](redesign/dialogs-dark.png): file info, rename, move,
-  checksum, delete confirmation, queues, grab links, folders, connect a browser, about, keyboard shortcuts
-- [Text sizes](redesign/text-sizes.png): 90 %, 115 %, 130 % and the window at 980×560
+- [The window on the Windows desktop](redesign/windows/desktop.png) (native title "Pullwell (separate copy)"; the
+  "Select an app" dialog is left over from a check that opens a .bin file)
+- Main window [light](redesign/windows/main-light.png) and [dark](redesign/windows/main-dark.png), 1280×720;
+  other sizes [light](redesign/windows/sizes-light.png) and [dark](redesign/windows/sizes-dark.png): 980×560, 1366×768, 1920×1080
+- Progress window [light](redesign/windows/progress-light.png) and [dark](redesign/windows/progress-dark.png)
+- Menus and right-click menu [light](redesign/windows/menus-light.png) and [dark](redesign/windows/menus-dark.png)
+- All dialogs [light](redesign/windows/dialogs-light.png) and [dark](redesign/windows/dialogs-dark.png): add, file
+  info, properties, rename, move, checksum, confirmation, queues, grab links, folders, connect a browser, options
+  (general, connection, updates), about, keyboard shortcuts
+- [Text sizes and compact rows](redesign/windows/text-sizes.png): 90 %, 115 %, 130 %
+- [Before and after](redesign/before-after.png) (Linux, headless Chromium, fallback fonts)
 
 ## Separate copy (added for testing the redesign safely)
 
@@ -174,23 +204,19 @@ folder would have pointed the Start menu entry and the notification links at its
 
 ## Status and known issues
 
-Done: design system, top bar, command bar, sidebar, list and flow line, progress window, row spacing, all dialogs
-restyled through the shared components, both themes, four text sizes, container-based toolbar collapse, separate
-copy, Windows checks.
+Done: everything in "What changed", the separate copy, the Windows window job, and the alignment fix it found.
 
 Open:
 
-1. Not yet looked at on Windows itself: real WebView2 with Segoe UI Variable and Bahnschrift, display scaling,
-   the progress animation, dialogs and both themes. The test copy is in place on the owner's PC; this is next.
-2. With large text in a narrow window the File name column is squeezed and the list scrolls sideways (the other
+1. With large text in a narrow window the File name column is squeezed and the list scrolls sideways (the other
    columns keep their widths; same as before the redesign).
-3. The part line folds the engine's part map by count, not by bytes, so parts of very different sizes are shown
+2. The part line folds the engine's part map by count, not by bytes, so parts of very different sizes are shown
    approximately.
-4. The progress window shows the state twice (next to the percentage and in the Status row). Kept for now because
-   the Status row also carries error and retry details.
-5. Notifications from a separate copy use the classic balloon (its clicks cannot reach it through `pullwell://`,
+3. Notifications from a separate copy use the classic balloon (its clicks cannot reach it through `pullwell://`,
    which belongs to the installed copy). By design.
-6. From before the redesign: speed-limit labels round (250 KB/s shows as 256 KB/s); the classic notification cannot
+4. From before the redesign: speed-limit labels round (250 KB/s shows as 256 KB/s); the classic notification cannot
    be clicked on Windows 11 when the Start menu entry is off; the Firefox extension is only loaded temporarily.
-7. Test harness: `ext_check.mjs` needs its helper to stop the program when it prints STOP_PROGRAM; run without it,
+5. Not covered by automation: a real Windows theme switch, dragging the window, display scaling above 100 %,
+   toasts and the tray icon as Windows draws them (see "Results on Windows").
+6. Test harness: `ext_check.mjs` needs its helper to stop the program when it prints STOP_PROGRAM; run without it,
    its last check fails on any build.

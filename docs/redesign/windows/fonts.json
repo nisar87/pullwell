@@ -1,0 +1,13 @@
+{
+  "ua": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36 Edg/156.0.0.0",
+  "sans": "\"Segoe UI Variable Text\",\"Segoe UI\",system-ui,sans-serif",
+  "num": "\"Bahnschrift\",\"Segoe UI Variable Text\",\"Segoe UI\",system-ui,sans-serif",
+  "available": {
+    "Segoe UI Variable Text": true,
+    "Segoe UI Variable Display": true,
+    "Segoe UI": true,
+    "Bahnschrift": true,
+    "Cascadia Mono": true,
+    "Consolas": true
+  }
+}
