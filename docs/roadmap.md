@@ -42,7 +42,7 @@ Gate: automated window checks extended to the menus; seen on the PC.
 | | Item |
 | --- | --- |
 | 🟡 | Browser extension: 10 checks pass in Chromium with the extension as Pullwell hands it out (pairing, big download taken over, small one left, right-click entry, browser keeps the download when Pullwell is closed); still to try in the owner's Chrome and Edge. The program saves the extension into the download folder and opens it there (✅ on the PC, 16:12). |
-| 🟡 | Live progress dialog for a download (speed, parts, connections, log), refreshing while open: 12 automated checks; not yet opened on the PC |
+| ✅ | Live progress dialog for a download (speed, parts, connections, log), refreshing while open: 12 automated checks, and seen on the PC from 43% to Complete with Open offered (16:15) |
 | ✅ | Redownload a finished or failed file (Downloads → Download again); open the folder of any item |
 | 🟡 | Copied links: offer to add a link when one is copied (off by default, switch in Options). On the PC the switch works and the listener starts; the notification itself needs a link copied in another program, which only the owner can do (copies made in Pullwell's own window are ignored on purpose) |
 | 🟡 | Plain-language messages for every failure (disk full, folder not writable, site refuses, login needed) checked against the engine's texts; two added (path too long, folder gone); "cannot write" seen on the PC |
