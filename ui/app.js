@@ -737,6 +737,7 @@ function optionsBody(tab){
     + orow('Folders for types and websites', 'Send Videos to one folder, or everything from one website into its own folder.', `<button class="btn" data-dm="folders">Choose folders…</button>`)
     + orow('If a file with that name is already there', '', `<select class="sel" data-cfg="onExists">${[['rename','Keep both'],['overwrite','Replace the old file'],['skip','Skip the download']].map(o => `<option value="${o[0]}"${(c.onExists || 'rename') === o[0] ? ' selected' : ''}>${o[1]}</option>`).join('')}</select>`)
     + orow('Notify me when a download finishes', 'Problems are always shown.', tog('data-dm="notifyTog"', !c.noNotify, 'Notify when finished'))
+    + (APPCFG && APPCFG.canInstall ? orow('Start menu entry', `So Windows search and the Start menu find ${esc(APP.name)}, and notifications show its name and icon.`, tog('id="smTog"', APPCFG.startMenu, 'Start menu entry')) : '')
     + (APPCFG ? orow('Offer links I copy', `When you copy a link to a file (a program, archive, video, PDF …) anywhere, a notification asks whether to download it. Nothing is downloaded unless you click it and confirm.`, tog('id="clipTog"', APPCFG.clipboard, 'Offer copied links')) : '')
     + orow('Appearance', '', `<select class="sel" id="optTheme">${[['auto','Same as Windows'],['light','Light'],['dark','Dark']].map(o => `<option value="${o[0]}"${store.get('theme', 'auto') === o[0] ? ' selected' : ''}>${o[1]}</option>`).join('')}</select>`);
   if (tab === 'connection') return orow('Downloads at the same time', 'More than 3 can slow each one down. Recommended: 3.', num('dlMax', [1,2,3,4,5,6,8,10], c.maxActive))
@@ -769,7 +770,8 @@ function optionsBody(tab){
   return orow('Run a program after each download', 'For example a virus scanner. Use <code>%f</code> for the file: <code>"C:\\Tools\\scan.exe" "%f"</code>', `<div class="row" style="flex-wrap:nowrap"><input class="inp" id="dlAfterCmd" value="${esc(c.afterCmd || '')}" style="width:230px" spellcheck="false"><button class="btn" data-dm="afterSave">Save</button></div>`)
     + orow('ffmpeg', DL.ffmpeg ? 'Found: web videos with a separate sound track are joined into one file.' : `Not found: such videos are saved as two files. Put ffmpeg.exe next to ${esc(APP.name)} to join them.`, `<span class="hint2">${DL.ffmpeg ? '✓ ready' : 'not installed'}</span>`)
     + orow('Your list', 'Save the list of downloads to a file, or load one (also a text file with one link per line).', `<div class="row" style="flex-wrap:nowrap"><button class="btn" data-dm="export">Save list…</button><button class="btn" data-dm="import">Load list…</button></div>`)
-    + orow('About', `${esc(APP.name)} ${esc(APP.version)}. No telemetry: it contacts only the sites you download from.`, '');
+    + orow('About', `${esc(APP.name)} ${esc(APP.version)}. No telemetry: it contacts only the sites you download from.`, '')
+    + (APPCFG && APPCFG.canInstall ? orow(`Uninstall ${esc(APP.name)}`, `Removes the Start menu entry, the startup entry and the program file. Your downloaded files stay where they are.`, `<button class="btn" id="uninst">Uninstall…</button>`) : '');
 }
 let APPCFG = null; // {autostart, canAutostart}
 async function loadAppCfg(){ try { APPCFG = await api('app'); } catch(e){ APPCFG = null; } }
@@ -832,6 +834,14 @@ document.addEventListener('click', async e => {
   if (t.id === 'dlWinTog') return dlAct({action:'config', config: {...DL.config, window: {...DL.config.window, enabled: !DL.config.window.enabled}}});
   if (t.id === 'dlForget') return dlAct({action:'forgetHosts'}, 'Forgotten');
   if (t.id === 'extCode') return extConnect();
+  if (t.id === 'smTog') { try { await api('app', {startMenu: !APPCFG.startMenu}); APPCFG = await api('app'); toast(APPCFG.startMenu ? 'Added to the Start menu' : 'Removed from the Start menu'); } catch(err){ toast(err.message, true); await loadAppCfg(); } return showOptions('general'); }
+  if (t.id === 'uninst') {
+    const r = await askBox({title:`Uninstall ${APP.name}?`, text:`${APP.name} closes and removes its Start menu entry, its startup entry and the program file. Downloaded files are not touched.`, ok:'Uninstall', danger:true, check:'Also delete the download list, settings and log', checked:false});
+    if (!r.ok) return;
+    try { await api('app', {uninstall: {data: r.checked}}); } catch(err){ return toast(err.message, true); }
+    document.body.innerHTML = `<div class="empty" style="padding-top:20vh">${esc(APP.name)} has been uninstalled. You can close this window.</div>`;
+    return;
+  }
   if (t.id === 'clipTog') { try { await api('app', {clipboard: !APPCFG.clipboard}); APPCFG = await api('app'); toast(APPCFG.clipboard ? 'Copied links will be offered' : 'Copied links are not offered'); } catch(err){ toast(err.message, true); await loadAppCfg(); } return showOptions('general'); }
   if (t.id === 'autoTog') { try { APPCFG = await api('app', {autostart: !APPCFG.autostart}); toast(APPCFG.autostart ? 'Starts with Windows' : 'Does not start with Windows'); } catch(err){ toast(err.message, true); await loadAppCfg(); } return showOptions('general'); }
   if (t.id === 'extOn') return dlAct({action:'extConfig', extMinMB: DL.ext.minMB, extOff: DL.ext.enabled});

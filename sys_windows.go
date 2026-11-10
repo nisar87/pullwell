@@ -43,6 +43,7 @@ var (
 	pSetForeground = user32.NewProc("SetForegroundWindow")
 	pKeybdEvent    = user32.NewProc("keybd_event")
 	pGetForeground = user32.NewProc("GetForegroundWindow")
+	pLoadImage     = user32.NewProc("LoadImageW")
 	pWinThread     = user32.NewProc("GetWindowThreadProcessId")
 	pAttachInput   = user32.NewProc("AttachThreadInput")
 	pSetWindowPos  = user32.NewProc("SetWindowPos")

@@ -76,3 +76,7 @@ func waitForExit(pid int, limit time.Duration) {
 }
 
 func clipWatch(on bool) {}
+
+func startMenuGet() bool                 { return false }
+func startMenuSet(on bool) error         { return errors.New("only on Windows") }
+func uninstallLater(withData bool) error { return errors.New("only on Windows") }

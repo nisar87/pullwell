@@ -7,6 +7,7 @@ out="${1:?folder}"
 cd "$(dirname "$0")/.."
 build="$(git rev-parse --short HEAD)$(git diff --quiet || echo -dirty)"
 ver="$(tr -d ' \r\n' < VERSION)"
+go run ./scripts/mkres >/dev/null
 GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -H=windowsgui -X main.appBuild=$build" -o "$out/Pullwell-update.exe" .
 sum="$(sha256sum "$out/Pullwell-update.exe" | cut -d' ' -f1)"
 echo "$sum $ver+$build" > "$out/Pullwell-update.exe.sha256"

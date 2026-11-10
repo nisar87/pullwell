@@ -57,6 +57,7 @@ func main() {
 	}
 	loadUpdateCfg()
 	loadAppSettings()
+	go keepStartMenu()
 
 	// One copy per data folder: a second start shows the first one's window and ends.
 	release, first := instanceStart(dir, *tray)

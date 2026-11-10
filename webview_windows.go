@@ -305,8 +305,9 @@ func showMain() {
 func createMain() bool {
 	inst, _, _ := pGetModuleHandle.Call(0)
 	cls, _ := syscall.UTF16PtrFromString(AppName + "Main-" + appRootHash)
-	cur, _, _ := pLoadCursor.Call(0, 32512) // IDC_ARROW
-	wc := wndClassEx{Instance: inst, WndProc: mainProcCb, ClassName: cls, Cursor: cur, Background: 6 /* COLOR_WINDOW+1 */}
+	cur, _, _ := pLoadCursor.Call(0, 32512)                                                           // IDC_ARROW
+	wc := wndClassEx{Instance: inst, WndProc: mainProcCb, ClassName: cls, Cursor: cur, Background: 6, /* COLOR_WINDOW+1 */
+		Icon: programIcon(inst, 32, 26, 115, 232), IconSm: programIcon(inst, 16, 26, 115, 232)}
 	wc.Size = uint32(unsafe.Sizeof(wc))
 	pRegisterClassEx.Call(uintptr(unsafe.Pointer(&wc))) // fails harmlessly when already registered
 	r := startRect()
@@ -319,7 +320,8 @@ func createMain() bool {
 		return false
 	}
 	mw.hwnd = hwnd
-	big, small := makeIconSized(32, 26, 115, 232), makeIconSized(16, 26, 115, 232)
+	s := dpiScale(hwnd)
+	big, small := programIcon(inst, int(32*s), 26, 115, 232), programIcon(inst, int(16*s), 26, 115, 232)
 	pSendMessage.Call(hwnd, wmSetIcon, 1, big)
 	pSendMessage.Call(hwnd, wmSetIcon, 0, small)
 	if systemUsesDarkMode() {
@@ -728,4 +730,16 @@ func uiInit() {
 	if id, err := syscall.UTF16PtrFromString(appID); err == nil {
 		pSetAppID.Call(uintptr(unsafe.Pointer(id)))
 	}
+}
+
+// programIcon is the program's own icon (from the resources built by scripts/mkres) at n pixels, or the drawn one
+// when the program was built without them.
+func programIcon(inst uintptr, n int, r, g, b byte) uintptr {
+	if h, _, _ := pLoadImage.Call(inst, 1, 1 /* IMAGE_ICON */, uintptr(n), uintptr(n), 0); h != 0 {
+		return h
+	}
+	if n > 24 { // the drawn icon needs a width the mask rows divide into
+		return makeIconSized(32, r, g, b)
+	}
+	return makeIconSized(16, r, g, b)
 }

@@ -11,13 +11,15 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 )
 
 // appSettings are the program's own settings (not the engine's), kept in data/app.json.
 type appSettings struct {
-	Clipboard bool `json:"clipboard"` // offer to download copied links
+	Clipboard   bool `json:"clipboard"`             // offer to download copied links
+	NoStartMenu bool `json:"noStartMenu,omitempty"` // the person removed the Start menu entry: do not add it back
 }
 
 var (
@@ -36,16 +38,34 @@ func loadAppSettings() {
 	}
 }
 
-func setClipboardWatch(on bool) error {
+func saveAppSettings(change func(*appSettings)) error {
 	appSetMu.Lock()
-	appSet.Clipboard = on
+	change(&appSet)
 	b, _ := json.MarshalIndent(appSet, "", "  ")
 	appSetMu.Unlock()
-	if err := os.WriteFile(appSettingsFile(), b, 0o644); err != nil {
+	return os.WriteFile(appSettingsFile(), b, 0o644)
+}
+
+func setClipboardWatch(on bool) error {
+	if err := saveAppSettings(func(a *appSettings) { a.Clipboard = on }); err != nil {
 		return err
 	}
 	clipWatch(on)
 	return nil
+}
+
+// keepStartMenu puts the Start menu entry in place (or points it at where the program is now) at every start,
+// unless the person removed it or this is a copy with its own data folder.
+func keepStartMenu() {
+	appSetMu.Lock()
+	no := appSet.NoStartMenu
+	appSetMu.Unlock()
+	if no || customRoot || runtime.GOOS != "windows" {
+		return
+	}
+	if err := startMenuSet(true); err != nil {
+		logf("start menu: %v", err)
+	}
 }
 
 func clipboardOn() bool {

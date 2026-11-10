@@ -19,6 +19,7 @@ jobs:
           go-version-file: go.mod
       - name: Build
         run: |
+          go run ./scripts/mkres
           GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -H=windowsgui -X main.appBuild=$(git rev-parse --short HEAD)" -o Pullwell.exe .
           sha256sum Pullwell.exe | cut -d' ' -f1 > Pullwell.exe.sha256
           cat Pullwell.exe.sha256
