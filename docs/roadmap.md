@@ -31,8 +31,8 @@ Gate: all rows ✅, or a bug found, fixed, released through the self-update and 
 
 | | Item |
 | --- | --- |
-| 🟡 | A menu bar above the toolbar: **Tasks** (Add URL, Add batch, Add torrent, Grabber, Import/Export list, Exit), **Downloads** (Resume, Stop, Stop all, Start all, Delete, Delete completed, Redownload, Properties, Queue, Speed limit), **View** (categories panel, toolbar labels, columns, theme, refresh), **Tools** (Scheduler, Options, Connect a browser, Open download folder, Open log), **Help** (Keyboard shortcuts, Check for updates, About) |
-| 🟡 | Works with the mouse and the keyboard (Alt opens it, arrows move, Enter chooses, Escape closes), shows shortcuts |
+| ✅ | A menu bar above the toolbar: **Tasks** (Add URL, Add batch, Add torrent, Grabber, Import/Export list, Exit), **Downloads** (Resume, Stop, Stop all, Start all, Delete, Delete completed, Redownload, Properties, Queue, Speed limit), **View** (categories panel, toolbar labels, columns, theme, refresh), **Tools** (Scheduler, Options, Connect a browser, Open download folder, Open log), **Help** (Keyboard shortcuts, Check for updates, About) |
+| ✅ | Works with the mouse and the keyboard (Alt opens it, arrows move, Enter chooses, Escape closes), shows shortcuts |
 | ⬜ | The design stays our own; IDM was only the reference for how things are found |
 
 Gate: automated window checks extended to the menus; seen on the PC.
