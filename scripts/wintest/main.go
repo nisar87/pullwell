@@ -244,7 +244,7 @@ func main() {
 	ok = waitFor(30*time.Second, func() bool { return !exists(exe) })
 	check("Uninstall removes the program file", ok)
 	check("and the previous version", !exists(filepath.Join(dir, *name+"-previous.exe")))
-	check("and the data folder (when asked)", waitFor(25*time.Second, func() bool { return !exists(filepath.Join(dir, "data")) })) // deleted with retries: quitting saves state first, and a virus scanner can hold a file
+	check("and the data folder (when asked)", waitFor(45*time.Second, func() bool { return !exists(filepath.Join(dir, "data")) })) // deleted with retries: quitting saves state first, and a virus scanner can hold a file
 	check("and the Start menu entry", !exists(lnk))
 	check("and the startup entry", regQuery(`HKCU\Software\Microsoft\Windows\CurrentVersion\Run`, *name) == "")
 	check("and the link registration", regQuery(`HKCU\Software\Classes\`+scheme+`\shell\open\command`, "") == "")
