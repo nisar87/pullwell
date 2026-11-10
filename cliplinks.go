@@ -81,11 +81,20 @@ func setClipboardWatch(on bool) error {
 
 // keepStartMenu puts the Start menu entry in place (or points it at where the program is now) at every start,
 // unless the person removed it or this is a copy with its own data folder.
+// startMenuMu keeps the Start menu entry and the link registration from being written while Uninstall removes them
+// (Uninstall right after a start would otherwise race with keepStartMenu and leave them behind).
+var (
+	startMenuMu  sync.Mutex
+	uninstalling bool
+)
+
 func keepStartMenu() {
+	startMenuMu.Lock()
+	defer startMenuMu.Unlock()
 	appSetMu.Lock()
 	no := appSet.NoStartMenu
 	appSetMu.Unlock()
-	if no || customRoot || runtime.GOOS != "windows" {
+	if no || uninstalling || customRoot || runtime.GOOS != "windows" {
 		return
 	}
 	if err := startMenuSet(true); err != nil {

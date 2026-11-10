@@ -180,8 +180,11 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 			if on, _ := autoStartGet(); on {
 				_ = autoStartSet(false)
 			}
+			startMenuMu.Lock()
+			uninstalling = true
 			_ = startMenuSet(false)
 			unregisterLinkScheme()
+			startMenuMu.Unlock()
 			if err := uninstallLater(in.Uninstall.Data); err != nil {
 				w.WriteHeader(409)
 				_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
