@@ -21,7 +21,7 @@ type extEnv struct {
 func newExtEnv(t *testing.T) *extEnv {
 	m := newTestMgr(t, newSimEnv(newSimLine("A", "127.0.0.1", 0)))
 	old, oldExt := dlMgr, ext
-	dlMgr, ext = m, &extStore{MinMB: 5}
+	dlMgr, ext = m, &extStore{MinMB: 5, NoAsk: true}
 	t.Cleanup(func() { dlMgr, ext = old, oldExt })
 	mux := http.NewServeMux()
 	registerExtRoutes(mux)
@@ -213,10 +213,10 @@ func TestExtLimitsAndConfig(t *testing.T) {
 	if st, _ := e.call("POST", "/ext/pair", extO, "", map[string]string{"code": code}); st != 403 {
 		t.Fatal("more than 8 browsers paired")
 	}
-	if err := ext.setConfig(-1, false); err == nil {
+	if err := ext.setConfig(-1, false, false); err == nil {
 		t.Fatal("negative size accepted")
 	}
-	if err := ext.setConfig(20, true); err != nil {
+	if err := ext.setConfig(20, true, false); err != nil {
 		t.Fatal(err)
 	}
 	if v := ext.view(); v["minMB"] != 20 || v["enabled"] != false {
@@ -236,5 +236,50 @@ func TestExtCodeOnlyFromTheWindowAPI(t *testing.T) {
 		if resp.StatusCode != 404 {
 			t.Errorf("%s exists", p)
 		}
+	}
+}
+
+// extNoAsk makes browser downloads start without the "Download file info" box for the rest of a test.
+func extNoAsk(t *testing.T) {
+	old := ext.NoAsk
+	ext.NoAsk = true
+	t.Cleanup(func() { ext.NoAsk = old })
+}
+
+func TestBrowserDownloadWaitsForTheBox(t *testing.T) {
+	m := newTestMgr(t, newSimEnv())
+	oldQ := askQ
+	askQ = nil
+	t.Cleanup(func() { askQ = oldQ })
+	old := ext.NoAsk
+	ext.NoAsk = false
+	t.Cleanup(func() { ext.NoAsk = old })
+	link := "http://example.com/big.zip"
+	shown := 0
+	oldShow := H.ShowWindow
+	H.ShowWindow = func() { shown++ }
+	t.Cleanup(func() { H.ShowWindow = oldShow })
+	r, err := m.addFromBrowser(link, "https://site/", "a=b", "UA", "big.zip")
+	if err != nil || r["asked"] != true {
+		t.Fatalf("not asked: %v %v", r, err)
+	}
+	m.mu.Lock()
+	n := len(m.items)
+	m.mu.Unlock()
+	if n != 0 {
+		t.Fatal("a download was added before the person said yes")
+	}
+	if _, err = m.addFromBrowser(link, "", "", "", ""); err != nil {
+		t.Fatal(err)
+	}
+	a := takeAsk()
+	if a == nil || a.URL != link || a.Name != "big.zip" || a.Header["Cookie"] != "a=b" || a.Header["Referer"] != "https://site/" {
+		t.Fatalf("the waiting download lost its details: %+v", a)
+	}
+	if takeAsk() != nil {
+		t.Fatal("the same link was asked twice")
+	}
+	if v := ext.view(); v["ask"] != true {
+		t.Fatal(v)
 	}
 }

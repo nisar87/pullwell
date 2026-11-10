@@ -63,7 +63,7 @@ for s in (16, 32, 48, 128):
     with open(os.path.join(here, "icons", f"{s}.png"), "wb") as f:
         f.write(png(s))
 
-files = ["core.js", "background.js", "popup.html", "popup.js", "popup.css"]
+files = ["core.js", "background.js", "video.js", "popup.html", "popup.js", "popup.css"]
 os.makedirs(os.path.join(here, "dist"), exist_ok=True)
 for name, manifest in (("chrome-edge", "manifest.chrome.json"), ("firefox", "manifest.firefox.json")):
     m = json.loads(fill(open(os.path.join(here, manifest), encoding="utf-8").read()))

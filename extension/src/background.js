@@ -97,8 +97,23 @@ function menus() {
     });
   } catch (e) { }
 }
-api.runtime.onInstalled.addListener(menus);
-if (api.runtime.onStartup) api.runtime.onStartup.addListener(() => { menus(); refresh(); });
+api.runtime.onInstalled.addListener(() => { menus(); videoScript(); });
+if (api.runtime.onStartup) api.runtime.onStartup.addListener(() => { menus(); refresh(); videoScript(); });
+
+// The button over videos is a content script, added only while the person allowed all sites and has not switched the
+// button off (popup). New and reloaded pages get it; pages that were already open need a reload.
+async function videoScript() {
+  try {
+    const s = await api.storage.local.get(['videoBtn']);
+    const want = s.videoBtn !== false && await api.permissions.contains({ origins: ['<all_urls>'] });
+    const have = (await api.scripting.getRegisteredContentScripts({ ids: ['pw-video'] })).length > 0;
+    if (want && !have) await api.scripting.registerContentScripts([{ id: 'pw-video', js: ['video.js'], matches: ['http://*/*', 'https://*/*'], allFrames: true, runAt: 'document_idle', persistAcrossSessions: true }]);
+    if (!want && have) await api.scripting.unregisterContentScripts({ ids: ['pw-video'] });
+  } catch (e) { }
+}
+try { api.permissions.onAdded.addListener(videoScript); api.permissions.onRemoved.addListener(videoScript); } catch (e) { }
+try { api.storage.onChanged.addListener((ch) => { if (ch.videoBtn) videoScript(); }); } catch (e) { }
+videoScript();
 
 api.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId !== 'nm') return;
@@ -132,11 +147,24 @@ try {
 api.alarms.create('nm-refresh', { periodInMinutes: 1 });
 api.alarms.onAlarm.addListener((a) => { if (a.name === 'nm-refresh') refresh(); });
 
-api.runtime.onMessage.addListener((msg, _s, reply) => {
+api.runtime.onMessage.addListener((msg, sender, reply) => {
   (async () => {
     if (msg.type === 'ping') return reply(await nm('/ext/ping', { timeout: 1500 }));
     if (msg.type === 'refresh') return reply(await refresh());
     if (msg.type === 'media') return reply({ list: (media.get(msg.tab) || []).slice().reverse() });
+    if (msg.type === 'grab') { // the button over a video was clicked
+      const tabId = sender.tab && sender.tab.id;
+      let url = /^https?:/i.test(msg.src || '') ? msg.src : ''; // a blob: link cannot be downloaded: the page's own video request is used instead
+      if (!url) {
+        const list = (media.get(tabId) || []).filter((m) => m.kind !== 'audio');
+        const pick = list.slice().reverse().find((m) => m.kind === 'stream') || list.slice().sort((a, b) => b.size - a.size)[0];
+        url = pick ? pick.url : '';
+      }
+      if (!url || NMCore.isLocalHost(NMCore.hostOf(url))) return reply({ ok: false, none: !url });
+      const r = await send(url, (sender.tab && sender.tab.url) || msg.frame || '', '');
+      flash(r.ok ? (r.data.duplicate ? '=' : '+') : '!', r.ok ? '#16a34a' : '#dc2626');
+      return reply({ ok: r.ok, duplicate: !!(r.data && r.data.duplicate) });
+    }
     if (msg.type === 'sendMedia') {
       if (!/^https?:/i.test(msg.url || '') || NMCore.isLocalHost(NMCore.hostOf(msg.url))) return reply({ ok: false });
       const r = await send(msg.url, msg.referrer || '', '');
