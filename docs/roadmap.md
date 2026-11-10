@@ -84,7 +84,7 @@ When phases 1-5 are ✅, Pullwell is 1.0.
 ## 0.5.0: checked on a Windows machine at GitHub on every change
 
 `.github/workflows/windows.yml` runs the test suites on Windows and `scripts/wintest`, which starts the real program
-and drives it through its command line and local API (no desktop): 50 checks, all passing. Two bugs were found and fixed this way: Start with Windows failed
+and drives it through its command line and local API (no desktop): 48 checks, all passing. Two bugs were found and fixed this way: Start with Windows failed
 on a profile without a startup list, and Uninstall right after a start could leave the Start menu entry behind.
 
 | | Item |
