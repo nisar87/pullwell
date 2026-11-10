@@ -72,7 +72,7 @@ const sl = (await items()).find(v => v.url.includes('slow/5MB'));
 await js(`(() => { sel.clear(); sel.add(${JSON.stringify(sl.id)}); cur = ${JSON.stringify(sl.id)}; render(); document.activeElement.blur(); })()`);
 await key(' ', 'Space', 32); await sleep(1000);
 check('Space stops a running download', (await items()).find(v => v.id === sl.id).state === 'paused');
-await key(' ', 'Space', 32); await sleep(1200);
+await sleep(600); await key(' ', 'Space', 32); await sleep(2000); // past the Pause/Resume guard (0.9 s) with room for a slow runner
 check('Space again resumes it', ['downloading', 'queued'].includes((await items()).find(v => v.id === sl.id).state));
 // sidebar counts follow the list
 const counts = await js(`[...document.querySelectorAll('#side [data-view]')].map(e => e.textContent.replace(/\\s+/g, ' ').trim()).join(' | ')`);
