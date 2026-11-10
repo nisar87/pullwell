@@ -58,6 +58,9 @@ type updateState struct {
 type updateConfig struct {
 	Channel string `json:"channel"`
 	NoAuto  bool   `json:"noAuto"`
+	// Skip is the fingerprint of a version the person went back from: it is never installed by itself again
+	// (it can still be installed by hand), so "Go back" sticks until a different version appears.
+	Skip string `json:"skip,omitempty"`
 }
 
 var (
@@ -380,7 +383,28 @@ func rollBack() error {
 		return err
 	}
 	logf("update: going back to the previous version")
-	return applySwap(dst)
+	updMu.Lock()
+	updCfg.Skip = selfSHA
+	_ = saveUpdateCfg()
+	updMu.Unlock()
+	_ = os.WriteFile(wentBackFile(), []byte(appVersion+"+"+appBuild), 0o644)
+	if err := applySwap(dst); err != nil {
+		_ = os.Remove(wentBackFile())
+		return err
+	}
+	return nil
+}
+
+// wentBackFile marks that the next start is the result of "Go back", so it says so instead of "updated".
+func wentBackFile() string { return filepath.Join(appRoot, "data", "went-back") }
+
+// takeWentBack reports (once) whether this start came from "Go back".
+func takeWentBack() bool {
+	if _, err := os.Stat(wentBackFile()); err != nil {
+		return false
+	}
+	_ = os.Remove(wentBackFile())
+	return true
 }
 
 func download(u, dst string) error {
@@ -484,16 +508,23 @@ func updateLoop() {
 		}
 		u := updateSnapshot()
 		if u.Available && u.Status == "idle" {
-			if u.Auto && idleForUpdate() {
+			skipped := u.sha != "" && u.sha == updateSkip()
+			if u.Auto && !skipped && idleForUpdate() {
 				logf("update: installing %s by itself (nothing is downloading)", u.Latest)
 				_ = installUpdate()
-			} else if notified != u.Latest {
+			} else if notified != u.Latest && !skipped {
 				notified = u.Latest
 				showBalloon(AppName+" update", "Version "+u.Latest+" is ready. Open "+AppName+" to install it.")
 			}
 		}
 		time.Sleep(15 * time.Second)
 	}
+}
+
+func updateSkip() string {
+	updMu.Lock()
+	defer updMu.Unlock()
+	return updCfg.Skip
 }
 
 func idleForUpdate() bool {

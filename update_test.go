@@ -208,3 +208,30 @@ func TestVerifyProgram(t *testing.T) {
 	}
 	_ = fmt.Sprint()
 }
+
+func TestRollBackRemembersTheVersionLeft(t *testing.T) {
+	swapped := resetUpdate(t)
+	if err := rollBack(); err == nil {
+		t.Fatal("went back without a previous version")
+	}
+	prev := previousFile()
+	sha := fakeProgram(t, prev, 7)
+	t.Cleanup(func() { os.Remove(prev) })
+	selfSHA = "the-running-build"
+	if err := rollBack(); err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := fileSHA(*swapped); got != sha {
+		t.Fatal("did not install the previous version")
+	}
+	if updCfg.Skip != "the-running-build" {
+		t.Fatalf("Skip = %q: the version gone back from would be installed by itself again", updCfg.Skip)
+	}
+	loadUpdateCfg()
+	if updCfg.Skip != "the-running-build" {
+		t.Fatal("Skip was not saved")
+	}
+	if !takeWentBack() || takeWentBack() {
+		t.Fatal("the next start should say once that it went back")
+	}
+}

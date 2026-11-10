@@ -89,7 +89,11 @@ func main() {
 	if *updated != "" {
 		go func() {
 			time.Sleep(3 * time.Second)
-			showBalloon(AppName+" updated", "Now version "+appVersion+" ("+appBuild+").")
+			if takeWentBack() {
+				showBalloon(AppName+" went back", "Now version "+appVersion+" ("+appBuild+") again.")
+			} else {
+				showBalloon(AppName+" updated", "Now version "+appVersion+" ("+appBuild+").")
+			}
 		}()
 	}
 
