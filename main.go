@@ -69,10 +69,17 @@ func main() {
 	// One copy per data folder: a second start shows the first one's window and ends.
 	// A link on the command line (the program followed by https://...) opens the Add dialog with it, here or in the running copy.
 	link := ""
+	appLinkArg := ""
 	if a := flag.Args(); len(a) > 0 && isWebLink(a[0]) {
 		link = strings.TrimSpace(a[0])
+	} else if len(a) > 0 && strings.HasPrefix(strings.ToLower(a[0]), appScheme+":") {
+		appLinkArg = strings.TrimSpace(a[0]) // a click on one of our notifications
 	}
-	release, first := instanceStart(dir, *tray, link)
+	handTo := link
+	if appLinkArg != "" {
+		handTo = appLinkArg
+	}
+	release, first := instanceStart(dir, *tray, handTo)
 	if !first {
 		logf("already running: handed over to the first copy")
 		return

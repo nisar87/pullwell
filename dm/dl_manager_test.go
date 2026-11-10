@@ -379,3 +379,16 @@ func TestDLRename(t *testing.T) {
 		t.Fatalf("a name set before the start was not used: %s", w.Path)
 	}
 }
+
+func TestDLUniquePathDoubleExtension(t *testing.T) {
+	dir := t.TempDir()
+	taken := func(p string) bool { _, err := os.Stat(p); return err == nil }
+	os.WriteFile(filepath.Join(dir, "go.src.tar.gz"), nil, 0o644)
+	os.WriteFile(filepath.Join(dir, "a.zip"), nil, 0o644)
+	if got := filepath.Base(dlUniquePath(dir, "go.src.tar.gz", taken)); got != "go.src (2).tar.gz" {
+		t.Errorf("got %q", got)
+	}
+	if got := filepath.Base(dlUniquePath(dir, "a.zip", taken)); got != "a (2).zip" {
+		t.Errorf("got %q", got)
+	}
+}

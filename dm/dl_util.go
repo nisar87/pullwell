@@ -145,6 +145,11 @@ func dlPickName(disposition, link string) string {
 // dlUniquePath returns dir/name, or dir/name (2).ext... when something with that name (or its partial file) exists.
 func dlUniquePath(dir, name string, taken func(string) bool) string {
 	ext := path.Ext(name)
+	for _, two := range []string{".tar.gz", ".tar.xz", ".tar.bz2", ".tar.zst", ".tar.lz"} { // keep "file (2).tar.gz"
+		if len(name) > len(two) && strings.EqualFold(name[len(name)-len(two):], two) {
+			ext = name[len(name)-len(two):]
+		}
+	}
 	base := strings.TrimSuffix(name, ext)
 	p := filepath.Join(dir, name)
 	for i := 2; taken(p); i++ {

@@ -181,6 +181,7 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 				_ = autoStartSet(false)
 			}
 			_ = startMenuSet(false)
+			unregisterLinkScheme()
 			if err := uninstallLater(in.Uninstall.Data); err != nil {
 				w.WriteHeader(409)
 				_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})

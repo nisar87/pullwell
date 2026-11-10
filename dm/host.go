@@ -355,3 +355,36 @@ func DownloadDir() string {
 
 // ExportList is the download list as the file "Save the list" writes (the same as the "export" action).
 func ExportList() any { return dlMgr.exportList() }
+
+// FinishedNamed returns the id of the most recently finished download with this file name ("" if none): the program
+// uses it to put Open and Open folder buttons on the "Download finished" notification.
+func FinishedNamed(name string) string {
+	m := dlMgr
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	id, at := "", int64(-1)
+	for _, e := range m.items {
+		if e.State == "done" && e.Name == name && e.Finished > at {
+			id, at = e.ID, e.Finished
+		}
+	}
+	return id
+}
+
+// ItemFile is the file name of a finished download that is still on the disk ("" otherwise).
+func ItemFile(id string) string {
+	m := dlMgr
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	e := m.find(id)
+	if e == nil || e.State != "done" || e.Path == "" {
+		return ""
+	}
+	if _, err := os.Stat(e.Path); err != nil {
+		return ""
+	}
+	return filepath.Base(e.Path)
+}
+
+// OpenItem opens a download's file, or shows it in its folder.
+func OpenItem(id string, reveal bool) error { return dlMgr.openItem(id, reveal) }

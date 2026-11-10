@@ -99,3 +99,8 @@ func readSystemProxy() systemProxy {
 func keepAwakeLoop() {}
 
 func showMainWindow() {}
+
+func toastsUsable() bool          { return false }
+func showToastXML(x string) error { return errors.New("only on Windows") }
+func registerLinkScheme() error   { return nil }
+func unregisterLinkScheme()       {}

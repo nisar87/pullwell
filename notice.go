@@ -5,6 +5,8 @@ package main
 
 import (
 	"strings"
+
+	"pullwell/dm"
 	"sync"
 	"time"
 )
@@ -43,6 +45,9 @@ func notify(title, text string) {
 		}()
 	})
 	n := Notice{Kind: noticeKind(title, text), Title: title, Text: text}
+	if n.Kind == "finished" {
+		n.ItemID = dm.FinishedNamed(strings.TrimSpace(text)) // for the Open and Open folder buttons
+	}
 	if n.Kind == "finished" && showCompleteOn() {
 		// "Show the finished download": the window comes up with its progress window, which offers Open and Open folder
 		pendingMu.Lock()
@@ -57,6 +62,9 @@ func notify(title, text string) {
 
 // showToast shows one notification as a tray balloon (real toasts with buttons come with the installer).
 func showToast(t toastSpec) {
+	if toastsUsable() && showToastXML(toastXML(t)) == nil {
+		return
+	}
 	showBalloon(t.Title, strings.Join(t.Lines, "\n"))
 	setBalloonView(toastView(t.Tag))
 }

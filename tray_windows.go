@@ -145,7 +145,9 @@ func instanceStart(root string, tray bool, link string) (release func(), first b
 		return func() { pCloseHandle.Call(h) }, true
 	}
 	pCloseHandle.Call(h)
-	if link != "" {
+	if strings.HasPrefix(strings.ToLower(link), appScheme+":") {
+		handOver("link " + link)
+	} else if link != "" {
 		handOver("add " + link)
 	} else if !tray {
 		handOver("show")
@@ -305,6 +307,8 @@ func trayProc(hwnd, msg, wp, lp uintptr) uintptr {
 			logf("second start: %q", cmd)
 			if cmd == "show" {
 				go safely("show", func() { openWindow(trayURL) })
+			} else if l, ok := strings.CutPrefix(cmd, "link "); ok {
+				go safely("link", func() { handleAppLink(l) })
 			} else if l, ok := strings.CutPrefix(cmd, "add "); ok && isWebLink(l) {
 				setPendingAdd(l) // started with a link (the program followed by a link): the Add dialog shows it
 				go safely("show", func() { openWindow(trayURL) })

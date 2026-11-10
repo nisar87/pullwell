@@ -208,7 +208,8 @@ function renderTable(){
   else {
     empty.hidden = false;
     setHTML(empty, DL.items.length ? (q ? 'Nothing matches your search.' : 'Nothing here.')
-      : `<b>No downloads yet.</b><br>Click <b>Add URL</b>, press <b>Ctrl+V</b> to paste a link, or drop a link or a .torrent file here.`);
+      : `<b>No downloads yet.</b><br>Click <b>Add URL</b>, press <b>Ctrl+V</b> to paste a link, or drop a link or a .torrent file here.`
+        + (DL.ext && (DL.ext.browsers || []).length ? '' : `<br><br>To let big downloads from Chrome, Edge or Firefox come here by themselves: <button class="btn" id="emptyExt">Connect a browser…</button>`));
   }
 }
 
@@ -867,6 +868,7 @@ function limitMenu(){
 }
 document.addEventListener('click', async e => {
   if (e.target.closest('#stLimit')) return limitMenu();
+  if (e.target.closest('#emptyExt')) return extConnect();
   const mbb = e.target.closest('#menubar button');
   if (mbb) { if (mbb.classList.contains('open')) { closeMenu(); return; } return openBarMenu(mbb, e.detail === 0); }
   if (menuEl && !menuEl.contains(e.target)) closeMenu();

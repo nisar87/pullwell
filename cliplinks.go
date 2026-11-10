@@ -90,6 +90,9 @@ func keepStartMenu() {
 	if err := startMenuSet(true); err != nil {
 		logf("start menu: %v", err)
 	}
+	if err := registerLinkScheme(); err != nil {
+		logf("%s:// link: %v", appScheme, err)
+	}
 }
 
 func clipboardOn() bool {
