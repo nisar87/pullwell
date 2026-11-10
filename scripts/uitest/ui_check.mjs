@@ -70,7 +70,7 @@ await key('Escape', 'Escape', 0, 27); await sleep(150);
 check('Escape clears selection', (await js('document.querySelectorAll("#tb tr.sel").length')) === 0);
 
 // context menu on a finished row
-const fin = await js('(() => { const tr = [...document.querySelectorAll("#tb tr")].find(t => /Complete/.test(t.textContent)); const r = tr.getBoundingClientRect(); return [r.left + 80, r.top + r.height/2]; })()');
+const fin = await js('(() => { const tr = [...document.querySelectorAll("#tb tr")].find(t => t.querySelector(".pt.done")); const r = tr.getBoundingClientRect(); return [r.left + 80, r.top + r.height/2]; })()');
 await mouse('mousePressed', fin[0], fin[1], {button: 'right'}); await mouse('mouseReleased', fin[0], fin[1], {button: 'right'});
 await send('Input.dispatchMouseEvent', {type: 'mousePressed', x: fin[0], y: fin[1], button: 'right', clickCount: 1});
 await js(`document.elementFromPoint(${fin[0]}, ${fin[1]}).dispatchEvent(new MouseEvent('contextmenu', {bubbles: true, clientX: ${fin[0]}, clientY: ${fin[1]}}))`);
@@ -92,7 +92,7 @@ await key('Escape', 'Escape', 0, 27); await sleep(200);
 
 // add dialog via toolbar, probe, cancel
 let b = await center('[data-tb="add"]'); await click(b[0], b[1]); await sleep(300);
-check('Add URL dialog opens with focus in the box', await js('document.activeElement && document.activeElement.id === "addUrl"'));
+check('New download dialog opens with focus in the box', await js('document.activeElement && document.activeElement.id === "addUrl"'));
 await send('Input.insertText', {text: `${fx}/file/3MB`});
 await key('Enter', 'Enter', 0, 13); await sleep(1500);
 check('link is checked and file info shown', /Download file info/.test(await js('document.querySelector("#dlDlg").textContent')));
@@ -112,16 +112,16 @@ await key('Escape', 'Escape', 0, 27); await sleep(200);
 
 // sidebar filter and sort
 const fv = await center('[data-view=\'{"k":"finished"}\']'); await click(fv[0], fv[1]); await sleep(300);
-check('Finished filter', (await js('[...document.querySelectorAll("#tb tr")].every(t => /Complete/.test(t.textContent))')) && (await js('document.querySelectorAll("#tb tr").length')) >= 2);
+check('Finished filter', (await js('[...document.querySelectorAll("#tb tr")].every(t => t.querySelector(".pt.done"))')) && (await js('document.querySelectorAll("#tb tr").length')) >= 2);
 const av = await center('[data-view=\'{"k":"all"}\']'); await click(av[0], av[1]); await sleep(200);
 const hs = await center('th[data-sort="size"]'); await click(hs[0], hs[1]); await sleep(300);
 check('sorting by size', await js('(() => { const v = [...document.querySelectorAll("#tb tr td:nth-child(2)")].map(t => t.textContent); return v.length > 2; })()'));
 await shot('06-sorted');
 
 // delete with the dialog
-const er = await js('(() => { const tr = [...document.querySelectorAll("#tb tr")].find(t => /Error/.test(t.textContent)); if (!tr) return null; const r = tr.getBoundingClientRect(); return [r.left + 80, r.top + r.height/2]; })()');
+const er = await js('(() => { const tr = [...document.querySelectorAll("#tb tr")].find(t => t.querySelector(".pt.err")); if (!tr) return null; const r = tr.getBoundingClientRect(); return [r.left + 80, r.top + r.height/2]; })()');
 if (er) { await click(er[0], er[1]); await sleep(150); await key('Delete', 'Delete', 0, 46); await sleep(300); await shot('07-delete'); const y = await center('#askYes'); await click(y[0], y[1]); await sleep(1200); }
-check('Delete removes the failed download', !(await js('[...document.querySelectorAll("#tb tr")].some(t => /Error/.test(t.textContent))')));
+check('Delete removes the failed download', !(await js('[...document.querySelectorAll("#tb tr")].some(t => t.querySelector(".pt.err"))')));
 
 // dark theme
 await send('Emulation.setEmulatedMedia', {features: [{name: 'prefers-color-scheme', value: 'dark'}]}); await sleep(400); await shot('08-dark');

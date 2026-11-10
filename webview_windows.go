@@ -307,7 +307,7 @@ func createMain() bool {
 	cls, _ := syscall.UTF16PtrFromString(AppName + "Main-" + appRootHash)
 	cur, _, _ := pLoadCursor.Call(0, 32512)                                                           // IDC_ARROW
 	wc := wndClassEx{Instance: inst, WndProc: mainProcCb, ClassName: cls, Cursor: cur, Background: 6, /* COLOR_WINDOW+1 */
-		Icon: programIcon(inst, 32, 26, 115, 232), IconSm: programIcon(inst, 16, 26, 115, 232)}
+		Icon: programIcon(inst, 32, 13, 141, 128), IconSm: programIcon(inst, 16, 13, 141, 128)}
 	wc.Size = uint32(unsafe.Sizeof(wc))
 	pRegisterClassEx.Call(uintptr(unsafe.Pointer(&wc))) // fails harmlessly when already registered
 	r := startRect()
@@ -321,7 +321,7 @@ func createMain() bool {
 	}
 	mw.hwnd = hwnd
 	s := dpiScale(hwnd)
-	big, small := programIcon(inst, int(32*s), 26, 115, 232), programIcon(inst, int(16*s), 26, 115, 232)
+	big, small := programIcon(inst, int(32*s), 13, 141, 128), programIcon(inst, int(16*s), 13, 141, 128)
 	pSendMessage.Call(hwnd, wmSetIcon, 1, big)
 	pSendMessage.Call(hwnd, wmSetIcon, 0, small)
 	if systemUsesDarkMode() {

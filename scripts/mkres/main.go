@@ -62,12 +62,12 @@ func find(src []byte, re string) string {
 
 var sizes = []int{16, 20, 24, 32, 40, 48, 64, 256}
 
-// draw paints the icon at n x n: a blue disc with a white arrow pointing down into a tray line, antialiased by
+// draw paints the icon at n x n: a teal disc with a white arrow pointing down into a tray line, antialiased by
 // sampling each pixel 4x4 times. The same shape as the tray icon, drawn more carefully.
 func draw(n int) *image.NRGBA {
 	img := image.NewNRGBA(image.Rect(0, 0, n, n))
 	const ss = 4
-	blue := [3]float64{26, 115, 232}
+	blue := [3]float64{13, 141, 128} // the flow teal of the window
 	for y := 0; y < n; y++ {
 		for x := 0; x < n; x++ {
 			var cover, white float64

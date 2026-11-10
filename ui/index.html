@@ -4,35 +4,37 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{NAME}}</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231a73e8'/%3E%3Cpath d='M16 7v13m0 0l-5.5-5.5M16 20l5.5-5.5M9 25h14' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230d8d80'/%3E%3Cpath d='M16 7v13m0 0l-5.5-5.5M16 20l5.5-5.5M9 25h14' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
 <div id="app">
-  <nav class="mb" id="menubar" role="menubar" aria-label="Menu">
-    <button role="menuitem" aria-haspopup="menu" data-mb="tasks"><u>T</u>asks</button>
-    <button role="menuitem" aria-haspopup="menu" data-mb="downloads"><u>D</u>ownloads</button>
-    <button role="menuitem" aria-haspopup="menu" data-mb="view"><u>V</u>iew</button>
-    <button role="menuitem" aria-haspopup="menu" data-mb="tools">T<u>o</u>ols</button>
-    <button role="menuitem" aria-haspopup="menu" data-mb="help"><u>H</u>elp</button>
-  </nav>
-  <header class="tb" role="toolbar" aria-label="Commands">
-    <button class="tbtn" data-tb="add" title="Add a download (Ctrl+N, or Ctrl+V with a link copied)"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add URL</button>
-    <span class="sep"></span>
-    <button class="tbtn go" data-tb="resume" title="Resume the selected downloads (Space)" disabled><svg viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z"/></svg>Resume</button>
-    <button class="tbtn stop" data-tb="stop" title="Stop the selected downloads (Space)" disabled><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg>Stop</button>
-    <button class="tbtn stop" data-tb="stopall" title="Stop every download" disabled><svg viewBox="0 0 24 24"><rect x="3" y="7" width="9" height="10" rx="1.5"/><rect x="14" y="7" width="7" height="10" rx="1.5"/></svg>Stop all</button>
-    <button class="tbtn go" data-tb="startall" title="Resume every stopped download" disabled><svg viewBox="0 0 24 24"><path d="M4 6l8 6-8 6zM13 6l8 6-8 6z"/></svg>Start all</button>
-    <span class="sep"></span>
-    <button class="tbtn del" data-tb="del" title="Delete the selected downloads (Del)" disabled><svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12h10l1-12M9 7V4h6v3"/></svg>Delete</button>
-    <button class="tbtn del" data-tb="delfin" title="Remove all finished downloads from the list (the files stay)" disabled><svg viewBox="0 0 24 24"><path d="M4 7h16M6 7l1 12h10l1-12M9 7V4h6v3"/><path d="M9.5 13.5l2 2 3.5-4"/></svg>Delete completed</button>
-    <span class="sep"></span>
-    <button class="tbtn" data-tb="queues" title="Queues and schedules"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>Scheduler</button>
-    <button class="tbtn" data-tb="grab" title="Find the files a web page links to"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5M8.5 11h5M11 8.5v5"/></svg>Grabber</button>
-    <button class="tbtn" data-tb="opts" title="Options"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>Options</button>
+  <header class="top">
+    <div class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--accent)"/><path d="M16 7.5v12.5m0 0l-5-5m5 5l5-5M9.5 24.5h13" stroke="var(--accent-ink)" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>{{NAME}}</span></div>
+    <nav class="mb" id="menubar" role="menubar" aria-label="Menu">
+      <button role="menuitem" aria-haspopup="menu" data-mb="tasks"><u>T</u>asks</button>
+      <button role="menuitem" aria-haspopup="menu" data-mb="downloads"><u>D</u>ownloads</button>
+      <button role="menuitem" aria-haspopup="menu" data-mb="view"><u>V</u>iew</button>
+      <button role="menuitem" aria-haspopup="menu" data-mb="tools">T<u>o</u>ols</button>
+      <button role="menuitem" aria-haspopup="menu" data-mb="help"><u>H</u>elp</button>
+    </nav>
     <span class="sp"></span>
-    <input class="search" id="search" type="search" placeholder="Search (Ctrl+F)" aria-label="Search downloads" spellcheck="false" autocomplete="off">
+    <input class="search" id="search" type="search" placeholder="Search downloads (Ctrl+F)" aria-label="Search downloads" spellcheck="false" autocomplete="off">
   </header>
+  <div class="tb" role="toolbar" aria-label="Commands">
+    <button class="tbtn pri" data-tb="add" title="Add a download (Ctrl+N, or Ctrl+V with a link copied)"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>New download</span></button>
+    <button class="tbtn" data-tb="resume" title="Resume the selected downloads (Space)" disabled><svg viewBox="0 0 24 24"><path d="M8 5.5l10.5 6.5L8 18.5z"/></svg><span>Resume</span></button>
+    <button class="tbtn" data-tb="stop" title="Stop the selected downloads (Space)" disabled><svg viewBox="0 0 24 24"><path d="M8.5 6v12M15.5 6v12"/></svg><span>Stop</span></button>
+    <button class="tbtn" data-tb="del" title="Delete the selected downloads (Del)" disabled><svg viewBox="0 0 24 24"><path d="M4.5 7h15M10 11v6M14 11v6M6.5 7l1 12h9l1-12M9.5 7V4.5h5V7"/></svg><span>Delete</span></button>
+    <span class="sep"></span>
+    <button class="tbtn quiet" data-tb="startall" title="Resume every stopped download" disabled><svg viewBox="0 0 24 24"><path d="M4.5 6l7 6-7 6zM13 6l7 6-7 6z"/></svg><span>Start all</span></button>
+    <button class="tbtn quiet" data-tb="stopall" title="Stop every download" disabled><svg viewBox="0 0 24 24"><path d="M5 6v12M10 6v12M15 6v12M20 6v12"/></svg><span>Stop all</span></button>
+    <button class="tbtn quiet" data-tb="delfin" title="Remove all finished downloads from the list (the files stay)" disabled><svg viewBox="0 0 24 24"><path d="M5 12.5l4 4L19 6.5"/><path d="M4 20h16"/></svg><span>Clear finished</span></button>
+    <span class="sp"></span>
+    <button class="tbtn quiet" data-tb="queues" title="Queues and their hours"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span>Scheduler</span></button>
+    <button class="tbtn quiet" data-tb="grab" title="Find the files a web page links to"><svg viewBox="0 0 24 24"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg><span>Grab links</span></button>
+    <button class="tbtn quiet" data-tb="opts" title="Options"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span>Options</span></button>
+  </div>
   <div id="banner"></div>
   <div class="body">
     <nav class="side" id="side" aria-label="Categories"></nav>
