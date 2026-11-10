@@ -1,6 +1,6 @@
 # Pullwell: road to a daily-usable 1.0
 
-Written 2026-11-10. Each phase ends with a check that something was **seen working on the owner's Windows PC**, not
+Written 2026-11-10, updated the same day at 16:20. Each phase ends with a check that something was **seen working on the owner's Windows PC**, not
 only in tests. Status is kept up to date in this file; the CHANGELOG lists what each build changed.
 
 Legend: ✅ done and verified on Windows · 🟡 done, verified on Linux only · ⬜ to do.
@@ -54,13 +54,13 @@ Gate: automated window checks extended to the menus; seen on the PC.
 | --- | --- |
 | ✅ | Program icon in Explorer, taskbar and Alt+Tab (icon resource built without extra tools; seen in the taskbar and title bar, 14:53) |
 | ✅ | Start menu entry (so Windows search finds Pullwell; notifications now say "Pullwell" with its icon, seen 15:47). 🟡 Uninstall: written, not run on the PC (it would remove the test copy) |
-| ⬜ | First public release v0.2.0 on GitHub with notes; the self-update from GitHub proven on the PC |
+| ✅ | First public release v0.2.0 on GitHub with notes; the self-update from GitHub proven on the PC (found by "Check for updates" and installed by itself, 16:11) |
 
 ## Phase 5: trust
 
 | | Item |
 | --- | --- |
-| ⬜ | Unpleasant cases on the PC: cable pulled mid-download, disk nearly full, read-only folder, very long file names, PC sleep and wake, hundreds of items |
+| 🟡 | Unpleasant cases. ✅ read-only folder (C:\Windows\System32: clear message and a notification), ✅ a 240-character file name (shortened, saved), ✅ quit and restart mid-download, ✅ 400 items (list in 3 ms, window redraw ~35 ms, idle ~6% of one core; on Linux). ⬜ cable pulled, disk nearly full, sleep and wake: need the owner at the PC |
 | ⬜ | A day of normal use with the log checked afterwards |
 | ✅ | README with screenshots, privacy note, how to install the extension |
 
