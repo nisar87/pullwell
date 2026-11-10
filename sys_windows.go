@@ -14,6 +14,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 	"unsafe"
@@ -68,10 +69,17 @@ var (
 	focusCb         = syscall.NewCallback(enumFocus)
 	focusMu         sync.Mutex
 	focusedExisting bool
-	uiHost          = "app-window"
+	uiHostV         atomic.Value // how the page is shown: "webview2", "app-window" or "browser"
 )
 
-func uiHostName() string { return uiHost }
+func setUIHost(h string) { uiHostV.Store(h) }
+
+func uiHostName() string {
+	if h, ok := uiHostV.Load().(string); ok {
+		return h
+	}
+	return "app-window"
+}
 
 // enumFocus looks for the app window (an Edge/Chrome "app" window whose title is the product name) and brings it up.
 func enumFocus(hwnd, _ uintptr) uintptr {
@@ -105,8 +113,14 @@ func focusExistingWindow() bool {
 	return focusedExisting
 }
 
-// openWindow shows the page in its own window, or brings the open one to the front.
-func openWindow(url string) {
+// openAppModeWindow shows the page in an Edge or Chrome "app" window (the fallback when WebView2 cannot be used),
+// or brings the open one to the front.
+func openAppModeWindow(url string) {
+	if uiMode == "browser" {
+		setUIHost("browser")
+		_ = hiddenCmd("rundll32", "url.dll,FileProtocolHandler", url).Start()
+		return
+	}
 	if focusExistingWindow() {
 		return
 	}
@@ -126,13 +140,13 @@ func openWindow(url string) {
 		cmd := exec.Command(c, "--app="+url, "--user-data-dir="+profile, "--window-size=1180,860",
 			"--no-first-run", "--no-default-browser-check", "--disable-extensions")
 		if err := cmd.Start(); err == nil {
-			uiHost = "app-window"
+			setUIHost("app-window")
 			go cmd.Wait()
 			return
 		}
 	}
 	logf("no Edge or Chrome found: opening the page in the default browser")
-	uiHost = "browser"
+	setUIHost("browser")
 	_ = hiddenCmd("rundll32", "url.dll,FileProtocolHandler", url).Start()
 }
 

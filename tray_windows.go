@@ -175,27 +175,31 @@ func handOver(cmd string) {
 	runtime.KeepAlive(b)
 }
 
-// makeIcon draws a 16x16 icon: a filled circle with a down arrow (busy) or an outline arrow (idle).
-func makeIcon(r, g, b byte) uintptr {
-	const n = 16
+// makeIcon draws the 16x16 tray icon: a coloured circle with a white down arrow.
+func makeIcon(r, g, b byte) uintptr { return makeIconSized(16, r, g, b) }
+
+// makeIconSized draws the icon at n x n pixels (16 for the tray and title bar, 32 for the taskbar).
+func makeIconSized(n int, r, g, b byte) uintptr {
 	xor := make([]byte, n*n*4)
 	and := make([]byte, n*n/8)
+	c, rad := float64(n-1)/2, float64(n)*0.45
 	for y := 0; y < n; y++ {
 		for x := 0; x < n; x++ {
-			dx, dy := float64(x)-7.5, float64(y)-7.5
+			dx, dy := float64(x)-c, float64(y)-c
 			i := (y*n + x) * 4
-			if dx*dx+dy*dy <= 7.2*7.2 {
+			if dx*dx+dy*dy <= rad*rad {
 				xor[i], xor[i+1], xor[i+2], xor[i+3] = b, g, r, 255
-				// a white down arrow: a shaft and a head
-				shaft := x >= 7 && x <= 8 && y >= 3 && y <= 9
-				head := y >= 8 && y <= 11 && x >= 4+(y-8) && x <= 11-(y-8)
+				// a white down arrow: a shaft and a head, scaled from the 16-pixel drawing
+				fx, fy := float64(x)*16/float64(n), float64(y)*16/float64(n)
+				shaft := fx >= 6.8 && fx < 9.2 && fy >= 3 && fy < 10
+				head := fy >= 8 && fy < 12 && fx >= 4+(fy-8) && fx < 12-(fy-8)
 				if shaft || head {
 					xor[i], xor[i+1], xor[i+2] = 255, 255, 255
 				}
 			}
 		}
 	}
-	h, _, _ := pCreateIcon.Call(0, n, n, 1, 32, uintptr(unsafe.Pointer(&and[0])), uintptr(unsafe.Pointer(&xor[0])))
+	h, _, _ := pCreateIcon.Call(0, uintptr(n), uintptr(n), 1, 32, uintptr(unsafe.Pointer(&and[0])), uintptr(unsafe.Pointer(&xor[0])))
 	return h
 }
 
@@ -284,7 +288,11 @@ func trayProc(hwnd, msg, wp, lp uintptr) uintptr {
 	case wmTimer:
 		trayNotify(nimModify)
 		return 0
+	case wmShowMain:
+		showMain()
+		return 0
 	case wmQuitTray, wmClose:
+		savePlacement()
 		trayNotify(nimDelete)
 		trayWnd.Store(0)
 		pPostMessage.Call(0, 0x0012, 0, 0) // WM_QUIT
@@ -300,6 +308,7 @@ func trayProc(hwnd, msg, wp, lp uintptr) uintptr {
 
 // runUI runs the tray icon and opens the window; it returns when the person quits.
 func runUI(url string, showWindow bool) {
+	uiInit()
 	trayURL = url
 	ready := make(chan struct{})
 	go func() {
@@ -326,6 +335,7 @@ func trayLoop(ready chan struct{}) {
 		}
 	}
 	defer readyOnce()
+	pCoInit.Call(0, 2) // single-threaded COM apartment: WebView2 needs it on this thread
 	trayIdle, trayBusy = makeIcon(110, 120, 130), makeIcon(14, 159, 144)
 	inst, _, _ := pGetModuleHandle.Call(0)
 	cls, _ := syscall.UTF16PtrFromString(trayClass)

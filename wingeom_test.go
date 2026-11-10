@@ -44,3 +44,14 @@ func TestFixWindowRectSmallScreen(t *testing.T) {
 		t.Fatalf("got %+v: want the minimum size with the title bar on screen", got)
 	}
 }
+
+func TestFixWindowRectScaled(t *testing.T) {
+	work := winRect{0, 0, 2560, 1400} // 150 % scaling on a 1440p screen
+	got := fixWindowRectScaled(winRect{}, []winRect{work}, work, 1.5)
+	if got.w() != 1650 || got.h() != 1140 {
+		t.Fatalf("default size at 150%%: %+v (%dx%d), want 1650x1140", got, got.w(), got.h())
+	}
+	if r := fixWindowRectScaled(winRect{}, []winRect{work}, work, 0); r.w() != winDefW { // nonsense scale = 1
+		t.Fatalf("scale 0 gave width %d", r.w())
+	}
+}

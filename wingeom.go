@@ -17,19 +17,30 @@ const (
 // fixWindowRect returns where to open the window. monitors are the work areas of all monitors (the screen minus the
 // taskbar), primary is the main one. A zero saved rect means "never saved".
 func fixWindowRect(saved winRect, monitors []winRect, primary winRect) winRect {
+	return fixWindowRectScaled(saved, monitors, primary, 1)
+}
+
+// fixWindowRectScaled is fixWindowRect for a screen with scale times the normal pixel density (1.5 at 144 DPI): the
+// default and minimum sizes grow with it. Coordinates are physical pixels.
+func fixWindowRectScaled(saved winRect, monitors []winRect, primary winRect, scale float64) winRect {
+	if !(scale >= 1) || scale > 4 {
+		scale = 1
+	}
+	minW, minH := int(float64(winMinW)*scale), int(float64(winMinH)*scale)
+	defW, defH := int(float64(winDefW)*scale), int(float64(winDefH)*scale)
 	if primary.w() <= 0 || primary.h() <= 0 {
 		primary = winRect{0, 0, 1280, 720} // no monitor information: a safe guess
 	}
 	w, h := saved.w(), saved.h()
 	if saved == (winRect{}) || w <= 0 || h <= 0 || w > 20000 || h > 20000 {
-		w, h = winDefW, winDefH
+		w, h = defW, defH
 	}
 	if !onAMonitor(saved, monitors) {
-		return centred(clampSize(w, h, primary), primary)
+		return centred(clampSize(w, h, minW, minH, primary), primary)
 	}
 	// Keep the position, but shrink it to fit the monitor it is on.
 	mon := monitorOf(saved, monitors)
-	r := clampSize(w, h, mon)
+	r := clampSize(w, h, minW, minH, mon)
 	r = winRect{saved.L, saved.T, saved.L + r.w(), saved.T + r.h()}
 	if r.R > mon.R {
 		r.L, r.R = mon.R-r.w(), mon.R
@@ -48,18 +59,18 @@ func fixWindowRect(saved winRect, monitors []winRect, primary winRect) winRect {
 
 // clampSize gives a rect of the wanted size, at least the minimum and at most the monitor (the minimum wins on a
 // monitor smaller than the minimum).
-func clampSize(w, h int, mon winRect) winRect {
+func clampSize(w, h, minW, minH int, mon winRect) winRect {
 	if w > mon.w() {
 		w = mon.w()
 	}
 	if h > mon.h() {
 		h = mon.h()
 	}
-	if w < winMinW {
-		w = winMinW
+	if w < minW {
+		w = minW
 	}
-	if h < winMinH {
-		h = winMinH
+	if h < minH {
+		h = minH
 	}
 	return winRect{0, 0, w, h}
 }

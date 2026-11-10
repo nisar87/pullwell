@@ -24,7 +24,10 @@ func main() {
 	root := flag.String("root", "", "folder for the data folder (default: the folder of the program)")
 	tray := flag.Bool("tray", false, "start in the notification area without opening the window")
 	version := flag.Bool("version", false, "print the version and exit")
+	ui := flag.String("ui", "auto", "how to show the window: auto, webview2, app (Edge or Chrome) or browser")
+	debug := flag.Bool("debug", false, "allow the browser developer tools in the window")
 	flag.Parse()
+	uiMode, debugMode = *ui, *debug
 	if *version {
 		fmt.Println(AppName, appVersion)
 		return

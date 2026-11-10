@@ -37,3 +37,9 @@ func speedText(b float64) string {
 	}
 	return fmt.Sprintf("%.0f KB", b/1e3)
 }
+
+// Set from the command line (main.go).
+var (
+	uiMode    string // "auto", "webview2", "app" or "browser"
+	debugMode bool
+)

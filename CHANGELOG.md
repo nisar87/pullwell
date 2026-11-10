@@ -2,6 +2,13 @@
 
 ## 0.1.0 (not released)
 
+- **Its own window.** The program now opens in a normal Windows window with Microsoft's WebView2 inside (built into
+  Windows 10 and 11), instead of an Edge or Chrome "app" window. It needs no extra DLL and no third-party code. If
+  WebView2 is missing or fails, it falls back to Edge or Chrome by itself, and the log says why. The window remembers
+  its size, place and whether it was maximised, follows the screen's scaling, has a dark title bar when Windows is
+  dark, and its own taskbar entry. Closing it keeps the program in the notification area (a one-time notice says
+  so). Links that open a new window go to the default browser, web links only. `-ui app` or `-ui browser` forces
+  the old ways, `-debug` allows the developer tools.
 - **A compact main window in the style of IDM** instead of one long page: a toolbar (Add URL, Resume, Stop, Stop all,
   Start all, Delete, Delete completed, Scheduler, Grabber, Options), categories and queues on the left, a table of
   downloads (name, size, status with a progress bar, speed, time left, date added, description) and a status bar
