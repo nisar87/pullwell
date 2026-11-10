@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.2 (2026-11-11)
+
+- Fixed: the browser extension did not take over a download when the site did not announce its size and the link had
+  no file ending (for example a "Save link as" on testfile.org/files-5GB), so the browser saved the file itself. Such
+  a download is now taken when the site says it is an archive, a program, a disc image or a video.
+
 ## 0.6.1 (2026-11-11)
 
 - Fixed: the speed limit list said "250 KB/s" for a limit that is really 256 KB/s (limits count in binary units, as

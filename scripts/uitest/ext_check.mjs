@@ -52,6 +52,12 @@ let its = await items();
 check('a big download goes to the program', its.length === n0 + 1 && its.some(v => v.url.includes('files.example.test/file/24MB')), its.map(v => v.url).join(' | '));
 const bdl = await sw.evaluate(async () => (await chrome.downloads.search({})).map(d => d.url + ' ' + d.state));
 check('the browser does not keep it', !bdl.some(s => s.includes('24MB') && !s.includes('interrupted')), bdl.join(' | '));
+// a link with no file ending and no announced size (like testfile.org/files-5GB) is taken by its content type
+const pg2 = await ctx.newPage();
+await pg2.setContent(`<a id="u" href="http://files.example.test/nolength/31MB">unknown size</a>`);
+const nU = (await items()).length; await pg2.click('#u'); await sleep(2500);
+check('a download without a size or file ending is taken by its content type', (await items()).length === nU + 1);
+await pg2.close();
 // a small one stays in the browser
 await page.click('#small'); await sleep(2500);
 its = await items();
