@@ -28,7 +28,10 @@ start_app() { # $1: name of the data folder
   local root="$work/$1"; rm -rf "$root"; mkdir -p "$root"
   WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS="--remote-debugging-port=$dbg" "$exe" -root "$(cygpath -w "$root")" -debug &
   for i in $(seq 120); do
-    curl -s "http://127.0.0.1:$dbg/json/list" 2>/dev/null | grep -q '"url": *"http://127.0.0.1:9197/' && curl -s -o /dev/null $app && return 0
+    if curl -s "http://127.0.0.1:$dbg/json/list" 2>/dev/null | grep -q '"url": *"http://127.0.0.1:9197/' && curl -s -o /dev/null $app; then
+      powershell -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$here/front.ps1")" -Name "$(basename "$exe" .exe)"
+      sleep 1; return 0
+    fi
     sleep 0.5
   done
   echo "the window did not come up for $1 (WebView2 debugging port $dbg)"; tail -20 "$root/data/pullwell.log" 2>/dev/null
