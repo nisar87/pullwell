@@ -44,6 +44,12 @@ func main() {
 			fail("cannot find the program's own folder: %v", err)
 		}
 		dir = filepath.Dir(exe)
+		if !writableDir(filepath.Join(dir, "data")) {
+			// a protected folder (Program Files, for example): keep the data in the person's own app data folder
+			if la := os.Getenv("LOCALAPPDATA"); la != "" {
+				dir = filepath.Join(la, appDataDir)
+			}
+		}
 	}
 	dir, _ = filepath.Abs(dir)
 	appRoot = dir
@@ -128,4 +134,19 @@ func fail(format string, a ...any) {
 	logf("%s", msg)
 	showError(msg)
 	os.Exit(1)
+}
+
+// writableDir reports whether a folder exists or can be made, and files can be written in it.
+func writableDir(dir string) bool {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return false
+	}
+	f, err := os.CreateTemp(dir, ".write-test-*")
+	if err != nil {
+		return false
+	}
+	name := f.Name()
+	f.Close()
+	_ = os.Remove(name)
+	return true
 }

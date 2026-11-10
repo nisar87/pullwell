@@ -740,8 +740,13 @@ func (m *dlManager) finishRun(e *dlEntry, t dlRunner, err error) {
 	defer m.mu.Unlock()
 	pr := t.Progress()
 	e.running = false
-	e.prog = pr
 	e.task = nil
+	if err != nil && pr.Done == 0 && e.Done > 0 {
+		// the run failed before it read what is already on the disk (the site did not answer): the list keeps
+		// showing what was downloaded before, which the next run continues from
+		pr.Done = e.Done
+	}
+	e.prog = pr
 	e.Done = pr.Done
 	if e.Bytes == nil {
 		e.Bytes = map[string]int64{}
@@ -834,6 +839,8 @@ func dlFriendly(err error) (string, bool) {
 	switch {
 	case strings.Contains(s, "no connection is available"):
 		return "Waiting for an internet connection.", true
+	case strings.HasPrefix(s, "not enough space on the disk: "):
+		return "Not enough free space for this file (" + strings.TrimPrefix(s, "not enough space on the disk: ") + "; " + hName() + " keeps 32 MB spare). Free some space or choose another folder, then press Resume.", false
 	case strings.Contains(s, "not enough space"), strings.Contains(s, "no space left"), strings.Contains(s, "disk is full"), strings.Contains(s, "There is not enough space"):
 		return "The disk is full. Free some space and press Resume.", false
 	case strings.Contains(s, "cannot write"), strings.Contains(s, "cannot create the folder"), strings.Contains(s, "Access is denied"), strings.Contains(s, "permission denied"):

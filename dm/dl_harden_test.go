@@ -163,7 +163,7 @@ func TestDLNotEnoughDiskSpace(t *testing.T) {
 		t.Fatal("must refuse to start")
 	}
 	msg, retry := dlFriendly(err)
-	if retry || !strings.Contains(msg, "disk is full") {
+	if retry || !strings.Contains(msg, "Not enough free space") || !strings.Contains(msg, "50 MB needed, 5 MB free") {
 		t.Fatalf("%q retry=%v", msg, retry)
 	}
 }

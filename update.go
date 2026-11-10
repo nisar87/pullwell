@@ -338,6 +338,9 @@ func installUpdate() error {
 	_ = os.MkdirAll(dir, 0o755)
 	dst := filepath.Join(filepath.Dir(exePath()), AppName+"-new.exe") // same folder as the program: the swap is a rename
 	_ = os.Remove(dst)
+	if !writableDir(filepath.Dir(exePath())) {
+		return fail(fmt.Errorf("%s is in a folder Windows protects (%s), so it cannot replace itself. Move %s.exe to a folder of your own, for example in your user folder, and it updates itself from then on", AppName, filepath.Dir(exePath()), AppName))
+	}
 	if src == "local" {
 		if err := copyFile(local, dst); err != nil {
 			return fail(err)
@@ -503,6 +506,7 @@ func updateLoop() {
 	}
 	lastGH := time.Now().Add(-6*time.Hour + 2*time.Minute) // first GitHub check 2 minutes after start
 	notified := ""
+	failedSHA, failedAt := "", time.Time{}
 	for {
 		local := checkLocal()
 		if !local && time.Since(lastGH) > 6*time.Hour {
@@ -512,9 +516,12 @@ func updateLoop() {
 		u := updateSnapshot()
 		if u.Available && u.Status == "idle" {
 			skipped := u.sha != "" && u.sha == updateSkip()
-			if u.Auto && !skipped && idleForUpdate() {
+			retryLater := u.sha == failedSHA && time.Since(failedAt) < time.Hour // a failed install is tried again after an hour
+			if u.Auto && !skipped && !retryLater && idleForUpdate() {
 				logf("update: installing %s by itself (nothing is downloading)", u.Latest)
-				_ = installUpdate()
+				if installUpdate() != nil {
+					failedSHA, failedAt = u.sha, time.Now()
+				}
 			} else if notified != u.Latest && !skipped {
 				notified = u.Latest
 				showBalloon(AppName+" update", "Version "+u.Latest+" is ready. Open "+AppName+" to install it.")
