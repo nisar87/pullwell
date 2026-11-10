@@ -66,3 +66,36 @@ jobs:
         with:
           name: window-results
           path: window-results
+  extension:
+    # The browser extension in a real Chromium on Windows: loaded exactly as the program hands it out, paired with
+    # the code, big downloads taken over by the real Windows build, small ones left to the browser.
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build the program
+        shell: bash
+        run: |
+          go run ./scripts/mkres
+          go build -ldflags "-H=windowsgui -X main.appBuild=exttest" -o "$RUNNER_TEMP/ext.exe" .
+      - name: Playwright Chromium
+        shell: bash
+        run: |
+          npm init -y > /dev/null
+          npm i --no-save playwright > /dev/null
+          npx playwright install chromium
+      - name: Drive the extension
+        shell: bash
+        run: scripts/uitest/ext-windows.sh "$RUNNER_TEMP/ext.exe" ext-results
+      - name: Keep the results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ext-results
+          path: ext-results

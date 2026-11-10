@@ -5,8 +5,13 @@
 import {createRequire} from 'node:module';
 import fs from 'node:fs';
 import {execSync} from 'node:child_process';
-const require = createRequire('/opt/');
-const {chromium} = require('playwright');
+// playwright comes from the nearest node_modules (next to this repository), or the machine-wide /opt install
+let playwright;
+for (const base of [import.meta.url, '/opt/']) {
+  try { playwright = createRequire(base)('playwright'); break; } catch {}
+}
+if (!playwright) { console.error('playwright is not installed (npm i playwright, npx playwright install chromium)'); process.exit(2); }
+const {chromium} = playwright;
 const [url, work] = process.argv.slice(2);
 const H = {'Content-Type': 'application/json', 'X-Pullwell': '1'};
 const results = []; const check = (n, ok, x) => results.push(`${ok ? 'PASS' : 'FAIL'}  ${n}${x !== undefined ? '  (' + x + ')' : ''}`);
@@ -16,7 +21,8 @@ const items = async () => (await (await fetch(url + 'api/downloads')).json()).it
 const zip = Buffer.from(await (await fetch(url + 'extension/Pullwell-extension-chrome-edge.zip')).arrayBuffer());
 check('the program hands out the extension', zip.length > 1000 && zip[0] === 0x50, zip.length + ' bytes');
 fs.rmSync(work, {recursive: true, force: true}); fs.mkdirSync(work + '/ext', {recursive: true});
-fs.writeFileSync(work + '/ext.zip', zip); execSync(`cd ${work}/ext && python3 -c "import zipfile;zipfile.ZipFile('../ext.zip').extractall('.')"`);
+fs.writeFileSync(work + '/ext.zip', zip);
+execSync(`${process.platform === 'win32' ? 'python' : 'python3'} -c "import zipfile;zipfile.ZipFile('../ext.zip').extractall('.')"`, {cwd: work + '/ext'});
 const ctx = await chromium.launchPersistentContext(work + '/profile', {headless: true, channel: 'chromium', acceptDownloads: true,
   args: [`--disable-extensions-except=${work}/ext`, `--load-extension=${work}/ext`, '--host-resolver-rules=MAP files.example.test 127.0.0.1:8765']});
 let sw = ctx.serviceWorkers()[0] || await ctx.waitForEvent('serviceworker', {timeout: 10000});
