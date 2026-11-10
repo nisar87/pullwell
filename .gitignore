@@ -1,0 +1,10 @@
+# build output and local data
+*.exe
+/data/
+*.log
+*.old
+.DS_Store
+/extension/dist/
+/pullwell
+*.syso
+versioninfo.json
