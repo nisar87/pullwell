@@ -53,7 +53,7 @@ function dlSegBar(v){
 /* ----- add with options ----- */
 function dlOptions(){
   const cfg = DL.config;
-  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Add with options" style="max-width:600px;max-height:90vh;overflow:auto"><h3 style="margin:0">Add with options</h3>
+  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Add with options" style="max-width:600px;max-height:calc(90vh / var(--zoom, 1));overflow:auto"><h3 style="margin:0">Add with options</h3>
     <div style="margin:12px 0;display:grid;gap:10px">
     <label class="hint2">Link (several: one per line; <code>[001-020]</code> makes a numbered series)<textarea class="inp" id="oUrl" rows="3" style="width:100%;margin-top:4px" spellcheck="false"></textarea></label>
     <label class="hint2">Save in (leave empty for the usual folder)<input class="inp" id="oDir" style="width:100%;margin-top:4px" placeholder="${esc(cfg.dir)}"></label>
@@ -84,7 +84,7 @@ function dlOptions(){
 /* ----- find links on a web page ----- */
 let dlGrabbed = [];
 function dlGrab(){
-  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Find links on a page" style="max-width:700px;max-height:90vh;overflow:auto"><h3 style="margin:0">Find links on a web page</h3>
+  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Find links on a page" style="max-width:700px;max-height:calc(90vh / var(--zoom, 1));overflow:auto"><h3 style="margin:0">Find links on a web page</h3>
     <div class="hint2" style="margin:6px 0 12px">Type the address of a page. ${esc(APP.name)} lists the files it links to, and you choose which to download.</div>
     <div class="dlbox"><input class="inp" id="gUrl" placeholder="https://…" style="flex:1;min-width:240px" spellcheck="false" aria-label="Page address"><select class="sel" id="gType" style="min-width:0" aria-label="Kind of file">${Object.keys(DL_TYPES).map(k => `<option>${k}</option>`).join('')}</select><button class="btn pri" id="gFind">Find</button></div>
     <div id="gOut" style="margin-top:12px"></div>
@@ -118,7 +118,7 @@ async function dlProps(id){
   const cfg = DL.config, edit = v.state !== 'done';
   const when = t => t ? new Date(t*1000).toLocaleString() : '-';
   const sh = dlLineShare(v);
-  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Properties" style="max-width:680px;max-height:92vh;overflow:auto"><h3 style="margin:0;word-break:break-all">${esc(v.name || 'Download')}</h3>
+  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Properties" style="max-width:680px;max-height:calc(92vh / var(--zoom, 1));overflow:auto"><h3 style="margin:0;word-break:break-all">${esc(v.name || 'Download')}</h3>
     <div class="hint2" style="margin:4px 0 10px;word-break:break-all">${esc(v.url)}</div>
     ${v.map && v.map.length && v.state !== 'done' ? `<div class="hint2">${v.kind === 'torrent' ? 'Pieces' : 'Parts of the file'}</div>${dlSegBar(v)}` : ''}
     <div style="display:grid;grid-template-columns:140px 1fr;gap:6px 12px;margin:12px 0;font-size:13.5px">
@@ -160,7 +160,7 @@ async function dlProps(id){
 function dlQueues(){
   const qs = JSON.parse(JSON.stringify(DL.config.queues || []));
   const draw = () => {
-    dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Queues" style="max-width:700px;max-height:92vh;overflow:auto"><h3 style="margin:0">Queues</h3>
+    dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Queues" style="max-width:700px;max-height:calc(92vh / var(--zoom, 1));overflow:auto"><h3 style="margin:0">Queues</h3>
       <div class="hint2" style="margin:6px 0 12px">A queue is a group of downloads with its own hours. Downloads in no queue (the main queue) follow your general settings. Put a download in a queue from its Properties, or when you add it.</div>
       ${qs.length ? qs.map((q,i) => `<div class="card" style="margin:0 0 10px;padding:12px;background:var(--inset)">
         <div class="row" style="gap:8px;flex-wrap:wrap"><input class="inp qn" data-i="${i}" value="${esc(q.name)}" style="flex:1;min-width:150px" aria-label="Queue name" maxlength="40">
@@ -199,7 +199,7 @@ function dlQueues(){
 function dlFolders(){
   const cfg = DL.config, rules = JSON.parse(JSON.stringify(cfg.siteRules || []));
   const draw = () => {
-    dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Folders" style="max-width:680px;max-height:92vh;overflow:auto"><h3 style="margin:0">Folders for types and websites</h3>
+    dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Folders" style="max-width:680px;max-height:calc(92vh / var(--zoom, 1));overflow:auto"><h3 style="margin:0">Folders for types and websites</h3>
       <div class="hint2" style="margin:6px 0 12px">A folder you choose while adding a download always wins. Then a website's folder, then the folder for the type, then your main folder (${esc(cfg.dir)}).</div>
       <h4 style="margin:6px 0">By type</h4>
       <div style="display:grid;gap:6px">${DL_CATS.map(c => `<label class="row" style="gap:10px"><span style="width:100px">${c}</span><input class="inp fc" data-c="${c}" value="${esc((cfg.catDirs||{})[c]||'')}" placeholder="(main folder / ${c})" style="flex:1" spellcheck="false"></label>`).join('')}</div>

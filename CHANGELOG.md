@@ -2,6 +2,11 @@
 
 ## 0.4.2 (not released)
 
+- **View → Text size** (Small, Normal, Large, Larger), for big or high-resolution screens; menus and dialogs fit.
+- A **Website** column (View → Columns), off at first.
+- Fixed (found by the new Windows check): **Start with Windows** failed on a Windows user profile that had no
+  startup list yet; it is now made when missing.
+- Fixed: Uninstall right after Pullwell started could leave the Start menu entry behind.
 - **Open when finished**: a tick in the "Download file info" dialog (remembered for the next download), or
   right-click → Open when finished. A program or installer is never started by itself: it is shown in its folder
   instead. A file with a checksum is only opened when the checksum matched.

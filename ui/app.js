@@ -132,10 +132,11 @@ const COLS = [
   {k:'speed', t:'Speed', w:84, r:1, sort: v => v.state === 'downloading' ? v.speed || 0 : -1, cell: v => `<td class="r">${v.state === 'downloading' ? bytes(v.speed) + '/s' : ''}</td>`},
   {k:'left', t:'Time left', w:78, r:1, sort: v => leftOf(v) || 1e12, cell: v => `<td class="r">${dur(leftOf(v))}</td>`},
   {k:'added', t:'Added', w:116, sort: v => v.added || 0, cell: v => `<td title="${v.finished ? 'Finished ' + esc(new Date(v.finished*1000).toLocaleString()) : ''}">${when(v.added)}</td>`},
+  {k:'site', t:'Website', w:140, sort: v => siteOf(v), cell: v => `<td title="${esc(v.url)}">${esc(siteOf(v))}</td>`},
   {k:'info', t:'Description', w:200, sort: v => (v.err || v.note || ''), cell: v => `<td title="${esc(v.detail || '')}">${infoOf(v)}</td>`},
 ];
 let widths = store.get('widths', {});
-let hideCols = store.get('hideCols', []);           // columns switched off in View → Columns (never the name)
+let hideCols = store.get('hideCols', ['site']);  // Website is off until switched on           // columns switched off in View → Columns (never the name)
 const shownCols = () => COLS.filter(c => c.k === 'name' || !hideCols.includes(c.k));
 
 /* ---------- which rows are shown ---------- */
@@ -323,8 +324,8 @@ function showMenu(x, y, entries, drop){
         m.querySelectorAll('.ctx.subm').forEach(s => s.remove()); m.querySelectorAll('button.open').forEach(o => o.classList.remove('open'));
         b.classList.add('open');
         const s = document.createElement('div'); s.className = 'ctx subm'; s.setAttribute('role', 'menu'); s.opener = b; build(s, e.sub); m.appendChild(s);
-        const r = b.getBoundingClientRect(); const sw = s.offsetWidth, sh = s.offsetHeight;
-        s.style.left = (r.right + sw > innerWidth ? r.left - sw : r.right) + 'px'; s.style.top = Math.max(4, Math.min(r.top - 4, innerHeight - sh - 4)) + 'px';
+        const r = b.getBoundingClientRect(), Z = zoomNow(); const sw = s.offsetWidth * Z, sh = s.offsetHeight * Z; // screen pixels; styles are in zoomed pixels
+        s.style.left = (r.right + sw > innerWidth ? r.left - sw : r.right) / Z + 'px'; s.style.top = Math.max(4, Math.min(r.top - 4, innerHeight - sh - 4)) / Z + 'px';
       };
       b.onmouseenter = open; b.onclick = ev => { ev.stopPropagation(); open(); const f = m.querySelector('.ctx.subm button:not(:disabled)'); if (f) f.focus(); };
       b.openSub = () => b.onclick({stopPropagation(){}});
@@ -336,8 +337,8 @@ function showMenu(x, y, entries, drop){
   });
   build(m, entries.filter((e, i, a) => !(e === '-' && (i === 0 || a[i - 1] === '-' || i === a.length - 1))));
   document.body.appendChild(m); menuEl = m;
-  const w = m.offsetWidth, h = m.offsetHeight;
-  m.style.left = Math.max(4, Math.min(x, innerWidth - w - 4)) + 'px'; m.style.top = Math.max(4, Math.min(y, innerHeight - h - 4)) + 'px';
+  const Z = zoomNow(), w = m.offsetWidth * Z, h = m.offsetHeight * Z;
+  m.style.left = Math.max(4, Math.min(x, innerWidth - w - 4)) / Z + 'px'; m.style.top = Math.max(4, Math.min(y, innerHeight - h - 4)) / Z + 'px';
   const first = m.querySelector('button:not(:disabled)'); if (first) first.focus();
 }
 function rowMenu(x, y){
@@ -605,6 +606,7 @@ const BAR_MENUS = {
       .concat(['-', {t:'Reset widths', do: () => { widths = {}; store.set('widths', widths); headKey = ''; render(); }}])},
     {t:'Sort by', sub: [{k:'order', t:'Queue order'}].concat(COLS).map(c => ({t: c.t, chk: sortBy.c === c.k, do: () => { sortBy = {c: c.k, d: sortBy.c === c.k ? -sortBy.d : 1}; store.set('sort', sortBy); render(); }}))},
     {t:'Show', sub: [[{k:'all'},'All downloads'],[{k:'unfinished'},'Unfinished'],[{k:'finished'},'Finished'],[{k:'errors'},'Needs attention']].map(([vw, t]) => ({t, chk: view.k === vw.k, do: () => { view = vw; store.set('view', view); sel.clear(); cur = null; render(); }}))},
+    {t:'Text size', sub: ZOOMS.map(([z, t]) => ({t, chk: store.get('zoom', 1) === z, do: () => { store.set('zoom', z); applyZoom(); }}))},
     {t:'Theme', sub: [['auto','Same as Windows'],['light','Light'],['dark','Dark']].map(([k, t]) => ({t, chk: store.get('theme', 'auto') === k, do: () => { store.set('theme', k); applyTheme(); }}))},
     '-',
     {t:'Refresh', k:'F5', do: () => loadDL()},
@@ -893,7 +895,7 @@ async function updAction(body, msg){
 function limitMenu(){
   const r = $('#stLimit').getBoundingClientRect(), cur = DL.config.limitAll || 0;
   showMenu(r.left, r.top, LIMITS.map(l => ({t: limitLabel(l), chk: Math.abs(cur - l * 1048576) < 1, do: () => dlAct({action:'config', config: {...DL.config, limitAll: l * 1048576}}, l ? 'All downloads limited to ' + limitLabel(l) : 'No speed limit')})));
-  if (menuEl) { const h = menuEl.getBoundingClientRect().height; menuEl.style.top = Math.max(4, r.top - h - 2) + 'px'; }
+  if (menuEl) { const h = menuEl.getBoundingClientRect().height; menuEl.style.top = Math.max(4, r.top - h - 2) / zoomNow() + 'px'; }
 }
 document.addEventListener('click', async e => {
   if (e.target.closest('#stLimit')) return limitMenu();
@@ -1097,9 +1099,14 @@ window.addEventListener('blur', closeMenu);
 window.addEventListener('resize', closeMenu);
 
 /* ---------- theme and start ---------- */
+const siteOf = v => { try { return v.kind === 'torrent' && /^magnet:/i.test(v.url) ? 'torrent' : new URL(v.url).hostname.replace(/^www\./, ''); } catch(e){ return ''; } };
+const ZOOMS = [[0.9, 'Small'], [1, 'Normal'], [1.15, 'Large'], [1.3, 'Larger']];
+function zoomNow(){ return +store.get('zoom', 1) || 1; }
+function applyZoom(){ const z = zoomNow(); document.documentElement.style.zoom = z; document.documentElement.style.setProperty('--zoom', z); } // the layout height is divided by it, so the window still fits
 function applyTheme(){ const t = store.get('theme', 'auto'); if (t === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t; }
 applyTheme();
 applyUiPrefs();
+applyZoom();
 if (APP.host === 'browser') setTimeout(() => toast(`${APP.name} is shown in your browser. Closing this tab does not stop downloads.`), 800);
 $('#search').value = '';
 loadDL();

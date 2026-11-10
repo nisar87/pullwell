@@ -35,7 +35,7 @@ input,textarea,.sel,.dnsrow .d,.hint2,code,.selectable{user-select:text}
 [hidden]{display:none!important}
 code{font-family:var(--mono);font-size:.92em;background:var(--inset);padding:0 4px;border-radius:4px}
 
-#app{display:grid;grid-template-rows:auto auto auto 1fr auto;height:100vh}
+#app{display:grid;grid-template-rows:auto auto auto 1fr auto;height:calc(100vh / var(--zoom, 1))}
 
 /* ---------- menu bar ---------- */
 .mb{display:flex;gap:1px;padding:1px 4px;background:var(--panel);border-bottom:1px solid var(--line)}
@@ -136,7 +136,7 @@ td .bad{color:var(--bad)} td .good{color:var(--good)} td .mute{color:var(--mute)
 
 /* ---------- dialogs (shared with downloads-more.js) ---------- */
 .wiz{position:fixed;inset:0;background:#0006;z-index:70;display:flex;align-items:center;justify-content:center;padding:14px}
-.card{background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:16px 18px;box-shadow:var(--shadow);width:100%;max-width:520px;max-height:calc(100vh - 28px);overflow:auto}
+.card{background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:16px 18px;box-shadow:var(--shadow);width:100%;max-width:520px;max-height:calc(100vh / var(--zoom, 1) - 28px);overflow:auto}
 .card h3{margin:0 0 4px;font-size:15px;font-weight:650}
 .card h4{font-size:13px;font-weight:650}
 .btn{border:1px solid var(--line2);background:var(--panel2);padding:5px 14px;border-radius:6px;font-weight:550;min-height:28px}
@@ -166,7 +166,7 @@ textarea.inp{font-family:var(--mono);font-size:12px;resize:vertical}
 .dnsrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 14px;align-items:center;padding:8px 0;border-top:1px solid var(--line)}
 .dnsrow:first-child{border-top:0}
 .dnsrow b{font-size:12.5px;font-weight:600}.dnsrow .d{font-size:12px;color:var(--mute);grid-column:1}
-#dlDlg .card{max-width:calc(100vw - 24px)}
+#dlDlg .card{max-width:calc(100vw / var(--zoom, 1) - 24px)}
 #dlDlg input,#dlDlg select,#dlDlg textarea{max-width:100%}
 #dlDlg .inp,#dlDlg .sel{min-width:0}
 
@@ -175,7 +175,7 @@ textarea.inp{font-family:var(--mono);font-size:12px;resize:vertical}
 .opt nav{border-right:1px solid var(--line);padding:6px 0;background:var(--panel2)}
 .opt nav button{display:block;width:100%;padding:6px 14px;border:0;background:none;text-align:left;color:var(--text)}
 .opt nav button.sel{background:var(--sel);font-weight:600}
-.opt section{padding:2px 18px;overflow:auto;max-height:calc(100vh - 170px)}
+.opt section{padding:2px 18px;overflow:auto;max-height:calc(100vh / var(--zoom, 1) - 170px)}
 
 /* ---------- progress dialog ---------- */
 .pgbar{height:14px;border-radius:4px;background:var(--inset);overflow:hidden;border:1px solid var(--line)}

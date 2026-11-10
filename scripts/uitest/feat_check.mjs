@@ -89,6 +89,17 @@ for (let i = 0; i < 20 && !(await js('!!document.querySelector("#pgTitle")')); i
 check('when a download finishes its window comes up, Complete, with Open', /Complete · 300KB/.test(await js('document.querySelector("#pgTitle") ? document.querySelector("#pgTitle").textContent : ""')) && (await js('document.querySelector("#pgMain").textContent')) === 'Open');
 await js('dlClose()');
 await fetch(url + 'api/app', {method: 'POST', headers: H, body: '{"showDone":false}'});
+// text size: menus stay under their titles and the window still fits
+await js(`store.set('zoom', 1.3); applyZoom()`); await sleep(200);
+await js(`document.querySelector('#menubar [data-mb="view"]').click()`); await sleep(250);
+check('with larger text the menu sits under its title', await js(`(() => { const m = document.querySelector('.ctx').getBoundingClientRect(), b = document.querySelector('#menubar [data-mb=view]').getBoundingClientRect(); return Math.abs(m.top - b.bottom) < 2 && Math.abs(m.left - b.left) < 2; })()`));
+await js('closeMenu()');
+check('and the window still fits (status bar visible)', await js(`document.querySelector('#status').getBoundingClientRect().bottom <= innerHeight + 1`));
+await js(`store.set('zoom', 1); applyZoom()`);
+// Website column can be switched on
+await js(`hideCols = []; store.set('hideCols', hideCols); render()`); await sleep(200);
+check('the Website column shows the site', /127\.0\.0\.1/.test(await js(`document.querySelector('#tb').textContent`)));
+await js(`hideCols = ['site']; store.set('hideCols', hideCols); render()`);
 check('no script errors', errors.length === 0, errors.join(' ; '));
 console.log(results.join('\n')); console.log(`${results.filter(r => r.startsWith('PASS')).length}/${results.length} passed`);
 ws.close();
