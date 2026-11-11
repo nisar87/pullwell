@@ -897,7 +897,7 @@ function optionsBody(tab){
   if (tab === 'updates') {
     const u = UPD || {};
     const state = u.status === 'downloading' ? `Downloading… ${u.progress || 0}%` : u.status === 'installing' ? `Installing: ${esc(APP.name)} restarts in a moment.`
-      : u.available ? `<b>Version ${esc(u.latest)} is ready.</b>` : u.checked ? 'You have the newest version.' : 'Not checked yet.';
+      : u.available ? `<b>Version ${esc(u.latest)} is ready.</b>` : u.error ? 'Could not check for updates.' : u.checked ? 'You have the newest version.' : 'Not checked yet.';
     return orow('Version', `${esc(APP.name)} ${esc(u.current || APP.version)}${u.build && u.build !== 'dev' ? ' (build ' + esc(u.build.slice(0, 7)) + ')' : ''} · ${state}${u.error ? `<br><span class="bad">${esc(u.error)}</span>` : ''}`,
         `<div class="row" style="flex-wrap:nowrap"><button class="btn" id="updCheck"${u.status && u.status !== 'idle' ? ' disabled' : ''}>Check now</button>${u.available ? `<button class="btn pri" id="updInstall"${u.status !== 'idle' ? ' disabled' : ''}>Install and restart</button>` : ''}</div>`)
       + orow('Install updates by themselves', `When an update is ready and nothing is downloading, ${esc(APP.name)} installs it and restarts. Unfinished downloads continue afterwards.`, tog('id="updAuto"', u.auto, 'Install updates by themselves'))
