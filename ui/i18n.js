@@ -8,7 +8,7 @@
   'use strict';
   const NAMES = {en: 'English', es: 'Español', fr: 'Français', de: 'Deutsch', pt: 'Português (Brasil)', ru: 'Русский', tr: 'Türkçe',
     ar: 'العربية', ur: 'اردو', hi: 'हिन्दी', zh: '简体中文'};
-  const SHIPPED = ['es', 'fr', 'de', 'pt', 'ar', 'ur'];   // languages that have a file in i18n/ (written by scripts/i18n/build.mjs)
+  const SHIPPED = ['ur'];   // languages that have a file in i18n/ (written by scripts/i18n/build.mjs)
   const RTL = new Set(['ar', 'ur']);
   const dicts = {};            // code -> {exact: Map, pats: [{re, to, n}]}
   const ATTRS = ['title', 'placeholder', 'aria-label', 'alt'];
@@ -118,7 +118,7 @@
   }
   const pick = stored();
   lang = pick === 'auto' ? auto() : pick;
-  if (lang !== 'xx' && !NAMES[lang]) lang = 'en';
+  if (lang !== 'xx' && !SHIPPED.includes(lang)) lang = 'en';
   document.documentElement.lang = lang === 'xx' ? 'en' : lang;
   if (lang !== 'en' && lang !== 'xx') document.write('<script src="i18n/' + lang + '.js"><\/script>');
   if (RTL.has(lang)) { rtl = true; document.documentElement.dir = 'rtl'; }

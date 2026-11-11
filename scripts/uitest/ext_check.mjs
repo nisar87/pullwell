@@ -95,7 +95,7 @@ const menu = await sw.evaluate(() => new Promise(r => chrome.contextMenus.update
 check('"Download with ..." is in the right-click menu', menu);
 
 // languages: the popup follows the browser's language (popup.html?lang=xx stands in for it here)
-for (const [lg, retry, rtl] of [['es', 'Reintentar', false], ['de', 'Erneut versuchen', false], ['fr', 'Réessayer', false], ['pt', 'Tentar de novo', false], ['ar', 'حاول مرة أخرى', true], ['ur', 'دوبارہ کوشش کریں', true]]) {
+for (const [lg, retry, rtl] of [['ur', 'دوبارہ کوشش کریں', true]]) {
   const lp = await ctx.newPage();
   await lp.goto(`chrome-extension://${extId}/popup.html?lang=${lg}`); await sleep(600);
   const st = await lp.evaluate(() => ({retry: document.getElementById('retry').textContent, dir: document.documentElement.dir || 'ltr', h1: document.querySelector('h1').textContent.trim(), ph: document.getElementById('code').placeholder}));
