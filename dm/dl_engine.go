@@ -69,8 +69,9 @@ type dlInfo struct {
 }
 
 type dlHTTPErr struct {
-	Code  int
-	Retry time.Duration
+	Code   int
+	Retry  time.Duration
+	Server string // the Server header of the answer ("cloudflare", ...), to tell a site's own refusal from a protection service
 }
 
 func (e dlHTTPErr) Error() string {
@@ -203,12 +204,19 @@ func dlParseRange(v string) (start, end, total int64, ok bool) {
 
 // dlProbe asks the server about a link with a one byte ranged request (more reliable than HEAD).
 func dlProbe(ctx context.Context, c *http.Client, link string, hdr map[string]string) (dlInfo, error) {
+	return dlProbeWith(ctx, c, link, hdr, true)
+}
+
+// dlProbeWith is dlProbe; ranged false asks without a Range header (a few servers answer a ranged request with 403).
+func dlProbeWith(ctx context.Context, c *http.Client, link string, hdr map[string]string, ranged bool) (dlInfo, error) {
 	info := dlInfo{URL: link, Size: -1}
 	req, err := dlRequest(ctx, link, hdr)
 	if err != nil {
 		return info, err
 	}
-	req.Header.Set("Range", "bytes=0-0")
+	if ranged {
+		req.Header.Set("Range", "bytes=0-0")
+	}
 	resp, err := c.Do(req)
 	if err != nil {
 		return info, err
@@ -238,7 +246,7 @@ func dlProbe(ctx context.Context, c *http.Client, link string, hdr map[string]st
 			return info, dlHTTPErr{Code: 416}
 		}
 	default:
-		return info, dlHTTPErr{Code: resp.StatusCode, Retry: dlRetryAfter(resp)}
+		return info, dlHTTPErr{Code: resp.StatusCode, Retry: dlRetryAfter(resp), Server: resp.Header.Get("Server")}
 	}
 	if info.Type == "text/html" || info.Type == "application/xhtml+xml" {
 		low := strings.ToLower(info.Name)
@@ -255,25 +263,52 @@ func dlProbe(ctx context.Context, c *http.Client, link string, hdr map[string]st
 func dlProbeReferer(ctx context.Context, c *http.Client, link string, hdr map[string]string) (dlInfo, map[string]string, error) {
 	info, err := dlProbe(ctx, c, link, hdr)
 	var he dlHTTPErr
-	if err == nil || !errors.As(err, &he) || he.Code != 403 {
+	if err == nil || !errors.As(err, &he) || (he.Code != 403 && he.Code != 401) {
 		return info, hdr, err
-	}
-	for k := range hdr {
-		if strings.EqualFold(k, "Referer") {
-			return info, hdr, err // the person or the browser gave one: do not second-guess it
-		}
 	}
 	u, perr := url.Parse(link)
 	if perr != nil || u.Host == "" || (u.Scheme != "http" && u.Scheme != "https") {
 		return info, hdr, err
 	}
-	h2 := make(map[string]string, len(hdr)+1)
-	for k, v := range hdr {
-		h2[k] = v
+	withHdr := func(extra map[string]string) map[string]string {
+		h2 := make(map[string]string, len(hdr)+len(extra))
+		for k, v := range extra {
+			h2[k] = v
+		}
+		for k, v := range hdr { // what the person or the browser sent wins
+			h2[k] = v
+		}
+		return h2
 	}
-	h2["Referer"] = u.Scheme + "://" + u.Host + "/"
-	if info2, err2 := dlProbe(ctx, c, link, h2); err2 == nil {
-		return info2, h2, nil
+	hasReferer := false
+	for k := range hdr {
+		if strings.EqualFold(k, "Referer") {
+			hasReferer = true
+		}
+	}
+	ref := map[string]string{}
+	if !hasReferer {
+		ref["Referer"] = u.Scheme + "://" + u.Host + "/"
+	}
+	// Second try: the site's own address as the referer (download managers do this; many servers only answer requests
+	// that look as if they came from their own page). Third: the headers a browser sends when it follows a link.
+	// Fourth: the same without a Range header. The first one that works is returned, so the download keeps using it.
+	browser := map[string]string{"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8", "Accept-Language": "en-US,en;q=0.9",
+		"Upgrade-Insecure-Requests": "1", "Sec-Fetch-Dest": "document", "Sec-Fetch-Mode": "navigate", "Sec-Fetch-Site": "same-origin", "Sec-Fetch-User": "?1"}
+	for k, v := range ref {
+		browser[k] = v
+	}
+	tries := []struct {
+		h      map[string]string
+		ranged bool
+	}{{withHdr(ref), true}, {withHdr(browser), true}, {withHdr(browser), false}}
+	for i, t := range tries {
+		if i == 0 && hasReferer {
+			continue // the first try would repeat the original
+		}
+		if info2, err2 := dlProbeWith(ctx, c, link, t.h, t.ranged); err2 == nil {
+			return info2, t.h, nil
+		}
 	}
 	return info, hdr, err
 }

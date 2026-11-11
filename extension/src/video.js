@@ -2,6 +2,9 @@
 // allowed the extension for all sites (the extension adds this script itself then). It reads nothing from the page
 // except where the video is and its link; the link goes to {{NAME}}, which shows its "Download file info" box.
 (function () {
+  // YouTube and similar sites play video in many small pieces with picture and sound apart, and Chrome Web Store policy
+  // does not allow extensions that download YouTube: no button there, rather than one that fails.
+  if (/(^|\.)(youtube\.com|youtube-nocookie\.com|youtu\.be)$/i.test(location.hostname)) return;
   if (window.__pullwellVideo) return;
   window.__pullwellVideo = true;
   var api = globalThis.browser || globalThis.chrome;

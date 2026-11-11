@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 	"time"
 )
@@ -369,5 +370,32 @@ func TestDLGivenRefererIsKept(t *testing.T) {
 	defer r.Close()
 	if _, _, err := dlProbeReferer(context.Background(), c, r.URL+"/x", nil); err == nil {
 		t.Fatal("a server that always refuses must still be refused")
+	}
+}
+
+// Some sites only answer what looks like a browser's own request, or refuse a ranged probe: the later tries of
+// dlProbeReferer must find them, and report the headers that worked.
+func TestProbeRetriesLikeABrowser(t *testing.T) {
+	var sawRange bool
+	s := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Sec-Fetch-Mode") != "navigate" || r.Header.Get("Range") != "" {
+			http.Error(w, "no", 403)
+			return
+		}
+		sawRange = r.Header.Get("Range") != ""
+		w.Header().Set("Content-Length", "1234")
+		w.Header().Set("Content-Type", "application/octet-stream")
+	}))
+	defer s.Close()
+	info, h, err := dlProbeReferer(context.Background(), &http.Client{}, s.URL+"/f.bin", nil)
+	if err != nil || info.Size != 1234 || h["Sec-Fetch-Mode"] != "navigate" || sawRange {
+		t.Fatalf("info=%+v header=%v err=%v", info, h, err)
+	}
+}
+
+func TestRefusalMessageNamesTheStatus(t *testing.T) {
+	msg, _ := dlFriendly(dlHTTPErr{Code: 403, Server: "cloudflare"})
+	if !strings.Contains(msg, "HTTP 403, cloudflare") {
+		t.Fatalf("message: %q", msg)
 	}
 }

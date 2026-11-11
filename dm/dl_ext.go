@@ -295,6 +295,12 @@ func (m *dlManager) addFromBrowser(link, referrer, cookie, ua, name string) (map
 	if err := dlRefuseLocalTarget(link); err != nil {
 		return nil, err
 	}
+	// A site that refuses us even after the retries (a login wall, bot protection) would leave the person with a
+	// dead "Download file info" box and a cancelled browser download. Ask the site once now, briefly; when it refuses,
+	// say no, and the extension lets the browser carry on with its own download (it has the person's sign-in).
+	if refused := m.refusedForUs(link, h); refused != "" {
+		return nil, errors.New(refused)
+	}
 	if ext.asks() {
 		// Like IDM: the person sees the "Download file info" box first (a wrong click costs nothing). The browser's own
 		// download is cancelled once we answer ok, so the link waits here until the window takes it.
@@ -324,6 +330,27 @@ func (m *dlManager) addFromBrowser(link, referrer, cookie, ua, name string) (map
 		return nil, err
 	}
 	return map[string]any{"ok": true, "id": it.ID}, nil
+}
+
+// refusedForUs returns a message when the site answers 401/403 to every way we ask; "" otherwise (including
+// when the check itself could not run: no line, timeout, other errors - those are handled by the normal flow).
+func (m *dlManager) refusedForUs(link string, h map[string]string) string {
+	if dlIsFTP(link) || len(m.lines()) == 0 {
+		return ""
+	}
+	l := m.lines()[0]
+	ctx, cancel := context.WithTimeout(context.Background(), 8*time.Second)
+	defer cancel()
+	pc := dlLineClient(l, dlLocalHost(dlHostOf(link)))
+	defer pc.CloseIdleConnections()
+	_, _, err := dlProbeReferer(ctx, pc, link, h)
+	var he dlHTTPErr
+	if errors.As(err, &he) && (he.Code == 401 || he.Code == 403) {
+		msg, _ := dlFriendly(err)
+		hLog("browser download %s refused by the site: %s", dlHostOf(link), msg)
+		return msg
+	}
+	return ""
 }
 
 // restartDuplicate looks at the existing download of a link: "running" (queued or downloading), "restarted" (it was paused or

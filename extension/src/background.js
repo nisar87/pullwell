@@ -59,7 +59,7 @@ async function cookiesFor(url) {
 }
 
 async function send(url, referrer, filename) {
-  return nm('/ext/add', { body: { url, referrer: referrer || '', cookie: await cookiesFor(url), userAgent: navigator.userAgent, filename: filename || '' } });
+  return nm('/ext/add', { timeout: 12000, body: { url, referrer: referrer || '', cookie: await cookiesFor(url), userAgent: navigator.userAgent, filename: filename || '' } });
 }
 
 function flash(text, color) {

@@ -836,7 +836,11 @@ func dlFriendly(err error) (string, bool) {
 	case errors.As(err, &he):
 		switch he.Code {
 		case 401, 403:
-			return "The website refused the download (it may need you to sign in, or the link expired). Open the page in your browser and add the link again.", false
+			why := fmt.Sprintf(" [HTTP %d", he.Code)
+			if he.Server != "" {
+				why += ", " + he.Server
+			}
+			return "The website refused the download (it may need you to sign in, or the link expired). Open the page in your browser and add the link again." + why + "]", false
 		case 404, 410:
 			return "The file was not found on the website. The link may be old.", false
 		case 429, 503:
