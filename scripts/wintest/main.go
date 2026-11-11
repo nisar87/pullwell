@@ -159,8 +159,17 @@ func main() {
 	code := run(exe)
 	check("a second start ends at once and hands over", code == 0 && time.Since(t0) < 15*time.Second && logHas("already running"), code)
 	run(exe, "https://files.example.test/setup.zip")
-	got := post("api/app", map[string]any{"take": "add"})
-	check("a link on the command line reaches the running copy's Add dialog", got["add"] == "https://files.example.test/setup.zip", got)
+	// the hand-over arrives asynchronously, and a running window may take the pending link before this check asks:
+	// either way the link has reached the Add dialog, and the log says when the window took it
+	var got map[string]any
+	linkOK := waitFor(15*time.Second, func() bool {
+		if !logHas(`second start: "link https://files.example.test/setup.zip"`) {
+			return false
+		}
+		got = post("api/app", map[string]any{"take": "add"})
+		return got["add"] == "https://files.example.test/setup.zip" || logHas("add dialog: a link was handed to the window")
+	})
+	check("a link on the command line reaches the running copy's Add dialog", linkOK, got)
 	run(exe, scheme+"://show")
 	check(scheme+"://show reaches the running copy", waitFor(5*time.Second, func() bool { return logHas(`second start: "link ` + scheme + `://show`) }))
 	run(exe, scheme+"://open?item=x&t="+strings.Repeat("0", 32))
