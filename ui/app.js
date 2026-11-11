@@ -360,7 +360,10 @@ function closeMenu(){
 function showMenu(x, y, entries, drop){
   closeMenu();
   const m = document.createElement('div'); m.className = 'ctx' + (drop ? ' drop' : ''); m.setAttribute('role', 'menu');
+  const syncOpen = () => m.querySelectorAll('button.sub.open').forEach(o => { if (![...m.querySelectorAll('.ctx.subm')].some(s => s.opener === o)) o.classList.remove('open'); });
   const build = (box, list) => list.forEach(e => {
+    // the highlight is the focus, so mouse and keyboard share one row: hovering moves it (a disabled row keeps the previous one)
+    const hot = b => { if (!b.disabled) b.focus({preventScroll: true}); };
     if (e === '-') { box.appendChild(document.createElement('hr')); return; }
     const b = document.createElement('button'); b.setAttribute('role', 'menuitem');
     b.innerHTML = esc(e.t) + (e.k ? `<kbd>${esc(e.k)}</kbd>` : '');
@@ -375,10 +378,10 @@ function showMenu(x, y, entries, drop){
         const r = b.getBoundingClientRect(), Z = zoomNow(); const sw = s.offsetWidth * Z, sh = s.offsetHeight * Z; // screen pixels; styles are in zoomed pixels
         s.style.left = (r.right + sw > innerWidth ? r.left - sw : r.right) / Z + 'px'; s.style.top = Math.max(4, Math.min(r.top - 4, innerHeight - sh - 4)) / Z + 'px';
       };
-      b.onmouseenter = open; b.onclick = ev => { ev.stopPropagation(); open(); const f = m.querySelector('.ctx.subm button:not(:disabled)'); if (f) f.focus(); };
+      b.onmouseenter = () => { open(); hot(b); }; b.onclick = ev => { ev.stopPropagation(); open(); const f = m.querySelector('.ctx.subm button:not(:disabled)'); if (f) f.focus(); };
       b.openSub = () => b.onclick({stopPropagation(){}});
     } else {
-      b.onmouseenter = () => { m.querySelectorAll('.ctx.subm').forEach(s => { if (!s.contains(b)) s.remove(); }); };
+      b.onmouseenter = () => { m.querySelectorAll('.ctx.subm').forEach(s => { if (!s.contains(b)) s.remove(); }); syncOpen(); hot(b); };
       b.onclick = ev => { ev.stopPropagation(); closeMenu(); e.do(); };
     }
     box.appendChild(b);
