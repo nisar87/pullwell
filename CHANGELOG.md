@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.7.2 (2026-11-11)
+
+- **Sites that only let a real browser in (Cloudflare and similar).** testfile.org answers Pullwell with HTTP 403 from
+  Cloudflare however the request is made, while the browser is let in; Pullwell cannot get past that. Before, a
+  right-click "Download with Pullwell" on such a link did nothing. Now the browser downloads it itself (the extension's
+  badge shows B), and so does the video button. A download the browser starts by itself on such a site stays with the
+  browser, as in 0.7.1.
+
 ## 0.7.1 (2026-11-11)
 
 - **Sites that refuse Pullwell (for example testfile.org).** When a site answers "refused" (HTTP 401/403), Pullwell

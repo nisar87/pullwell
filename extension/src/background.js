@@ -62,6 +62,15 @@ async function send(url, referrer, filename) {
   return nm('/ext/add', { timeout: 12000, body: { url, referrer: referrer || '', cookie: await cookiesFor(url), userAgent: navigator.userAgent, filename: filename || '' } });
 }
 
+// A site can refuse the program (some protection services block everything but a real browser) while the browser
+// itself is let in. For a link the person chose by hand (right-click menu, video button) the browser then downloads it
+// itself, so the click is never silently lost. The link is remembered so the download it starts is not offered again.
+const browserOwn = new Set();
+function refusedByTheSite(r) { return !r.ok && r.status === 400 && /refused/i.test((r.data && r.data.error) || ''); }
+async function browserDownload(url) {
+  try { browserOwn.add(url); setTimeout(() => browserOwn.delete(url), 60000); await api.downloads.download({ url }); return true; } catch (e) { return false; }
+}
+
 function flash(text, color) {
   try {
     const a = api.action || api.browserAction;
@@ -76,7 +85,7 @@ api.downloads.onCreated.addListener(async (item) => {
     const s = await store();
     const cfg = { paired: !!s.token, enabled: s.enabled !== false, localOn: s.localOn !== false, minMB: s.minMB == null ? 5 : s.minMB, ignore: s.ignore || [], types: s.types || [] };
     const d = NMCore.shouldCatch(item, cfg);
-    if (!d.catch) return;
+    if (!d.catch || browserOwn.has(item.url)) return;
     try { await api.downloads.pause(item.id); } catch (e) { }
     const r = await send(item.url, item.referrer, NMCore.cleanName(item.filename));
     if (r.ok) {
@@ -121,6 +130,7 @@ api.contextMenus.onClicked.addListener(async (info, tab) => {
   if (!url || !/^(https?:|magnet:)/i.test(url)) return;
   if (/^https?:/i.test(url) && NMCore.isLocalHost(NMCore.hostOf(url))) return flash('!', '#dc2626');
   const r = await send(url, info.pageUrl || (tab && tab.url) || '', '');
+  if (refusedByTheSite(r) && /^https?:/i.test(url) && await browserDownload(url)) return flash('B', '#d97706'); // the site only lets the browser in
   flash(r.ok ? (r.data.duplicate ? '=' : '+') : '!', r.ok ? '#16a34a' : '#dc2626');
 });
 
@@ -162,6 +172,7 @@ api.runtime.onMessage.addListener((msg, sender, reply) => {
       }
       if (!url || NMCore.isLocalHost(NMCore.hostOf(url))) return reply({ ok: false, none: !url });
       const r = await send(url, (sender.tab && sender.tab.url) || msg.frame || '', '');
+      if (refusedByTheSite(r) && await browserDownload(url)) { flash('B', '#d97706'); return reply({ ok: true, browser: true }); }
       flash(r.ok ? (r.data.duplicate ? '=' : '+') : '!', r.ok ? '#16a34a' : '#dc2626');
       return reply({ ok: r.ok, duplicate: !!(r.data && r.data.duplicate) });
     }

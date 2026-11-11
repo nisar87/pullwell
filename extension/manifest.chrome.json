@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "{{NAME}} Downloads",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Sends big downloads to {{NAME}}, which downloads them with several connections at once and never loses a file.",
   "minimum_chrome_version": "110",
   "permissions": ["downloads", "storage", "contextMenus", "alarms", "cookies", "webRequest", "scripting"],
