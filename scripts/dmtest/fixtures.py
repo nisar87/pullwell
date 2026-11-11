@@ -15,6 +15,7 @@ Content is deterministic (byte i = i % 251) so a download can be checked against
   /changing/<name>        a different ETag and different content from the 2nd request on
   /slow/<name>?bps=N      throttled (default 200000 bytes/s), supports Range
   /auth/<name>            Basic auth, user "user", password "pass"
+  /meta/<name>.meta4      Metalink file: first address is a 404, the second serves /file/<name>
   /disp?name=<text>       tiny file whose Content-Disposition filename is <text> (try ../x, CON, long names, unicode)
   /nolength/<name>        HTTP/1.0 style: no Content-Length, connection close
   /page                   HTML page with .zip, .pdf, .torrent, magnet and page links (link grabber)
@@ -135,6 +136,11 @@ class H(http.server.BaseHTTPRequestHandler):
         if kind == "disp":
             nm = q.get("name", ["x.bin"])[0]
             return self.send_body(1024, name=nm.encode("utf-8", "replace").decode("latin-1", "replace") if False else nm)
+        if kind == "meta":
+            host = "http://%s" % self.headers.get("Host")
+            base = name.rsplit(".", 1)[0]
+            return self.text('<?xml version="1.0" encoding="UTF-8"?><metalink xmlns="urn:ietf:params:xml:ns:metalink"><file name="meta-%s.bin">'
+                '<url priority="1">%s/status404x/%s</url><url priority="2">%s/file/%s</url></file></metalink>' % (base, host, base, host, base), "application/metalink4+xml")
         if sz is None: return self.text("unknown fixture", code=404)
         fn = name if "." in name else name + ".bin"
         if kind == "sha256": return self.text(sha_of(sz))

@@ -62,7 +62,8 @@ function dlOptions(){
     <label class="hint2">Other addresses of the same file (mirrors, one per line). They are tried if the first fails.<textarea class="inp" id="oMir" rows="2" style="width:100%;margin-top:4px" spellcheck="false"></textarea></label>
     <div class="row" style="gap:10px;flex-wrap:wrap"><label class="hint2" style="flex:1;min-width:150px">Queue<select class="sel" id="oQ" style="width:100%;margin-top:4px">${dlQueueOpts('')}</select></label>
       <label class="hint2" style="flex:1;min-width:150px">Connections<select class="sel" id="oConns" style="width:100%;margin-top:4px"><option value="0">Automatic</option>${[1,2,4,6,8,12,16].map(n => `<option>${n}</option>`).join('')}</select></label></div>
-    <label class="hint2">Checksum (optional)<input class="inp" id="oHash" style="width:100%;margin-top:4px" placeholder="SHA-256, SHA-1 or MD5"></label>
+    <div class="row" style="gap:10px;flex-wrap:wrap"><label class="hint2" style="flex:1;min-width:150px">Checksum (optional)<input class="inp" id="oHash" style="width:100%;margin-top:4px" placeholder="SHA-256, SHA-1 or MD5"></label>
+      <label class="hint2" style="flex:1;min-width:150px">Speed limit, KB/s (optional)<input class="inp" id="oLim" inputmode="numeric" style="width:100%;margin-top:4px" placeholder="No limit"></label></div>
     </div>
     <div class="note" style="margin-bottom:10px">A password is only used for this link and is not shown again.</div>
     <div class="row" style="justify-content:flex-end;gap:8px"><button class="btn" id="dlCancel">Cancel</button><button class="btn" id="oLater">Add, start later</button><button class="btn pri" id="oGo">Download now</button></div></div>`);
@@ -74,6 +75,8 @@ function dlOptions(){
     const u = $('#oUser').value; if (u) { body.user = u; body.pass = $('#oPass').value; }
     const mir = dlRowsOf($('#oMir').value); if (mir.length) body.mirrors = mir;
     const h = $('#oHash').value.trim(); if (h) body.hash = h;
+    const lim = dlLimitInput($('#oLim').value); if (lim === null) return toast('Type the speed limit as a number of KB/s, or leave it empty', true);
+    if (lim) body.limit = lim;
     const r = await dlAct(body, start ? 'Download started' : 'Added');
     if (r) dlClose();
   };
@@ -136,6 +139,7 @@ async function dlProps(id){
     ${edit && v.kind !== 'torrent' ? `<div style="display:grid;gap:10px;margin:8px 0">
       <div class="row" style="gap:10px;flex-wrap:wrap"><label class="hint2" style="flex:1;min-width:160px">Queue<select class="sel" id="pQ" style="width:100%;margin-top:4px">${dlQueueOpts(v.queue)}</select></label>
         <label class="hint2" style="flex:1;min-width:160px">Connections<select class="sel" id="pC" style="width:100%;margin-top:4px"><option value="0">Automatic</option>${[1,2,4,6,8,12,16].map(n => `<option${v.conns===n?' selected':''}>${n}</option>`).join('')}</select></label></div>
+      <label class="hint2">Speed limit for this download, in KB/s (empty = none)<input class="inp" id="pLim" inputmode="numeric" value="${v.limit > 0 ? Math.round(v.limit / 1024) : ''}" placeholder="No limit" style="width:100%;margin-top:4px"></label>
       <label class="hint2">Other addresses of the same file (mirrors, one per line)<textarea class="inp" id="pM" rows="2" style="width:100%;margin-top:4px" spellcheck="false">${esc((v.mirrors||[]).join('\n'))}</textarea></label>
       <div class="row" style="gap:8px"><button class="btn" id="pSave">Save these</button></div>
       <label class="hint2">The link stopped working? Paste a new link for the same file: what is already downloaded is kept. ${v.state === 'downloading' ? '<b>Pause the download first.</b>' : ''}<div class="row" style="gap:8px;margin-top:4px"><input class="inp" id="pLink" style="flex:1" placeholder="https://…" spellcheck="false"><button class="btn" id="pRelink"${v.state==='downloading'?' disabled':''}>Use this link</button></div></label>
@@ -150,7 +154,9 @@ async function dlProps(id){
   $('#pSave').onclick = async () => {
     const r1 = await dlAct({action:'setQueue', id, queue: $('#pQ').value});
     const r2 = r1 !== null ? await dlAct({action:'setConns', id, conns: +$('#pC').value}) : null;
-    const r3 = r2 !== null ? await dlAct({action:'setMirrors', id, urls: dlRowsOf($('#pM').value)}, 'Saved') : null;
+    const lim = dlLimitInput($('#pLim').value); if (lim === null) return toast('Type the speed limit as a number of KB/s, or leave it empty', true);
+    const r2b = r2 !== null ? await dlAct({action:'limit', id, limitBytes: lim}) : null;
+    const r3 = r2b !== null ? await dlAct({action:'setMirrors', id, urls: dlRowsOf($('#pM').value)}, 'Saved') : null;
     if (r3 !== null) dlClose();
   };
   $('#pRelink').onclick = async () => { const u = $('#pLink').value.trim(); if (!u) return; const r = await dlAct({action:'relink', id, url: u}, 'Link changed'); if (r !== null) dlClose(); };
@@ -240,6 +246,7 @@ document.addEventListener('click', async e => {
   if (a === 'options') return dlOptions();
   if (a === 'grab') return dlGrab();
   if (a === 'queues') return dlQueues();
+  if (a === 'logins') return dlLogins();
   if (a === 'folders') return dlFolders();
   if (a === 'props') return dlProps(t.dataset.id);
   if (a === 'export') return dlExport();
@@ -259,3 +266,43 @@ document.addEventListener('change', e => {
   if (e.target.id === 'dlSort') { dlSort = e.target.value; paintDL(); }
   if (e.target.id === 'dlQf') { dlQf = e.target.value; paintDL(); }
 });
+
+
+/* ----- a speed limit typed in KB/s: 0 = none, null = not a number ----- */
+function dlLimitInput(text){
+  const t = String(text || '').trim(); if (!t) return 0;
+  if (!/^\d{1,7}$/.test(t)) return null;
+  return +t * 1024;
+}
+
+/* ----- saved logins: one user name and password per website ----- */
+async function dlLogins(){
+  let list = [];
+  try { list = (await api('downloads', {action:'loginList'})).logins || []; } catch(e){ return toast(e.message || 'That did not work', true); }
+  const draw = () => {
+    dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Saved logins" style="max-width:600px;max-height:calc(92vh / var(--zoom, 1));overflow:auto"><h3 style="margin:0">Saved logins</h3>
+      <div class="hint2" style="margin:6px 0 12px">For a website that asks for a user name and password. It is used for every download from that website and its subdomains, and is never sent to another website. Passwords stay on this PC, protected by your Windows account, and are never shown again.</div>
+      <div id="lgList">${list.length ? list.map((l, i) => `<div class="row" style="gap:8px;padding:6px 0;border-bottom:1px solid var(--line)"><b style="flex:1;word-break:break-all">${esc(l.host)}</b><span class="hint2">${esc(l.user)}</span><button class="btn" data-lg="del" data-i="${i}" aria-label="Remove the login for ${esc(l.host)}">Remove</button></div>`).join('') : '<div class="hint2">No logins saved yet.</div>'}</div>
+      <h4 style="margin:14px 0 6px">Add or change a login</h4>
+      <div style="display:grid;gap:10px">
+        <label class="hint2">Website<input class="inp" id="lgHost" style="width:100%;margin-top:4px" placeholder="example.com" spellcheck="false" autocomplete="off"></label>
+        <div class="row" style="gap:10px;flex-wrap:wrap"><label class="hint2" style="flex:1;min-width:150px">User name<input class="inp" id="lgUser" autocomplete="off" style="width:100%;margin-top:4px"></label>
+          <label class="hint2" style="flex:1;min-width:150px">Password<input class="inp" type="password" id="lgPass" autocomplete="new-password" style="width:100%;margin-top:4px"></label></div>
+      </div>
+      <div class="row" style="justify-content:flex-end;gap:8px;margin-top:14px"><button class="btn" id="dlCancel">Close</button><button class="btn pri" id="lgSave">Save login</button></div></div>`);
+    $('#dlCancel').onclick = dlClose;
+    $('#lgSave').onclick = async () => {
+      const host = $('#lgHost').value.trim(), user = $('#lgUser').value, pass = $('#lgPass').value;
+      if (!host || !user) return toast('Type the website and the user name', true);
+      try { list = (await api('downloads', {action:'loginSet', host, user, pass})).logins || []; toast('Login saved'); draw(); } catch(e){ toast(e.message || 'That did not work', true); }
+    };
+    $$('[data-lg="del"]').forEach(b => b.onclick = async () => {
+      const l = list[+b.dataset.i];
+      const ans = await askBox({title:`Remove the login for ${l.host}?`, text:'Downloads from that website will ask for a login again. Nothing already downloaded is touched.', ok:'Remove'});
+      if (!ans.ok) return draw();
+      try { list = (await api('downloads', {action:'loginRemove', host: l.host})).logins || []; toast('Login removed'); draw(); } catch(e){ toast(e.message || 'That did not work', true); }
+    });
+    const f = $('#lgHost'); if (f) f.focus();
+  };
+  draw();
+}

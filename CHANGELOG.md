@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.8.0 (2026-11-12)
+
+- **Saved logins per website.** Options → Connection → Manage logins: type a website, a user name and a password once.
+  Every download from that website and its subdomains then uses it, also the "Download file info" check, and it is
+  never sent to another website (not even to a mirror). The password is kept in `data/logins.json` sealed with your
+  Windows account (it is useless on another PC or for another Windows user) and is never shown again.
+- **Speed limit for one download, any number.** Properties and Add with options have a "Speed limit, KB/s" field (the
+  right-click menu still has its presets).
+- **Metalink.** A `.meta4` or `.metalink` link (typed, pasted, or right-click → Download with Pullwell) adds every file
+  it lists: the best address first, the others as mirrors, with its checksum (SHA-256, SHA-1 or MD5) and its name.
+  Both Metalink versions 3 and 4 are read.
+- A link that is already in the list as a mirror of another download now counts as a duplicate.
+
 ## 0.7.5 (2026-11-11)
 
 - **Only one highlighted row in menus.** In the menu bar and the right-click menu, a row could stay highlighted
