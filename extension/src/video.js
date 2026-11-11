@@ -36,7 +36,7 @@
       api.runtime.sendMessage({ type: 'grab', src: src, frame: location.href }, function (r) {
         var ok = r && r.ok;
         btn.className = 'b ' + (ok ? 'ok' : 'bad');
-        label.textContent = ok ? (r.duplicate ? 'Already in {{NAME}}' : 'Sent to {{NAME}}') : (r && r.none ? 'No video link found' : '{{NAME}} is not running');
+        label.textContent = ok ? (r.browser ? 'Downloading in browser' : r.duplicate ? 'Already in {{NAME}}' : 'Sent to {{NAME}}') : (r && r.none ? 'No video link found' : '{{NAME}} is not running');
         setTimeout(function () { btn.className = 'b'; label.textContent = 'Download with {{NAME}}'; }, 2200);
       });
     }, true);
