@@ -155,7 +155,7 @@ function statusCell(v){
     : `<div class="pb ${cls}"><i style="width:${v.state === 'error' && !(p > 0) ? 100 : p}%"></i></div>`;
   return `<div class="st">${line}<span class="pt ${tcls}">${txt}</span></div>`;
 }
-const when = t => { if (!t) return ''; const d = new Date(t*1000), now = new Date(); return d.toDateString() === now.toDateString() ? d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : d.toLocaleDateString([], {day:'numeric', month:'short'}) + ' ' + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); };
+const when = t => { if (!t) return ''; const d = new Date(t*1000), now = new Date(); return d.toDateString() === now.toDateString() ? d.toLocaleTimeString(I18N.locale, {hour:'2-digit', minute:'2-digit'}) : d.toLocaleDateString(I18N.locale, {day:'numeric', month:'short'}) + ' ' + d.toLocaleTimeString(I18N.locale, {hour:'2-digit', minute:'2-digit'}); };
 
 /* ---------- columns ---------- */
 const COLS = [
@@ -164,7 +164,7 @@ const COLS = [
   {k:'status', t:'Progress', w:190, sort: v => ({downloading:0, queued:1, paused:2, error:3, done:4})[v.state] * 1000 - pctOf(v), cell: v => `<td>${statusCell(v)}</td>`},
   {k:'speed', t:'Speed', w:84, r:1, sort: v => v.state === 'downloading' ? v.speed || 0 : -1, cell: v => `<td class="r sp">${v.state === 'downloading' ? bytes(v.speed) + '/s' : ''}</td>`},
   {k:'left', t:'Time left', w:78, r:1, sort: v => leftOf(v) || 1e12, cell: v => `<td class="r">${dur(leftOf(v))}</td>`},
-  {k:'added', t:'Added', w:120, sort: v => v.added || 0, cell: v => `<td class="n" title="${v.finished ? 'Finished ' + esc(new Date(v.finished*1000).toLocaleString()) : ''}">${when(v.added)}</td>`},
+  {k:'added', t:'Added', w:120, sort: v => v.added || 0, cell: v => `<td class="n" title="${v.finished ? 'Finished ' + esc(new Date(v.finished*1000).toLocaleString(I18N.locale)) : ''}">${when(v.added)}</td>`},
   {k:'site', t:'Website', w:140, sort: v => siteOf(v), cell: v => `<td title="${esc(v.url)}">${esc(siteOf(v))}</td>`},
   {k:'info', t:'Description', w:200, sort: v => (v.err || v.note || ''), cell: v => `<td class="info" title="${esc(v.detail || '')}">${infoOf(v)}</td>`},
 ];
@@ -330,7 +330,7 @@ async function doStop(){
 async function confirmNoResume(list){
   const lose = list.filter(v => v.state === 'downloading' && v.noResume && v.done > 0);
   if (!lose.length) return true;
-  const r = await askBox({title: lose.length === 1 ? `Pause "${lose[0].name}"?` : `Pause ${lose.length} downloads?`, text: `${lose.length === 1 ? 'This website does' : 'These websites do'} not allow resuming: when ${lose.length === 1 ? 'it starts' : 'they start'} again, ${lose.length === 1 ? 'it starts' : 'they start'} from the beginning (${bytes(lose.reduce((a, v) => a + v.done, 0))} downloaded so far).`, ok: 'Pause anyway', danger: true});
+  const r = await askBox({title: lose.length === 1 ? `Pause "${lose[0].name}"?` : `Pause ${lose.length} downloads?`, text: lose.length === 1 ? `This website does not allow resuming: when it starts again, it starts from the beginning (${bytes(lose.reduce((a, v) => a + v.done, 0))} downloaded so far).` : `These websites do not allow resuming: when they start again, they start from the beginning (${bytes(lose.reduce((a, v) => a + v.done, 0))} downloaded so far).`, ok: 'Pause anyway', danger: true});
   return r.ok;
 }
 async function doDelete(withFiles){
@@ -531,7 +531,7 @@ function paintProgress(){
     ['Saved as', v.path || '(decided when the download starts)'],
   ];
   setHTML($('#pgGrid'), rows.filter(Boolean).map(([k, t]) => `<div class="${k === 'Saved as' || k === 'Problem' ? 'wide' : ''}"><span class="k">${k}</span><span class="v ${k === 'Problem' ? 'bad' : k === 'Can resume' && v.noResume && v.state !== 'done' ? 'warnv' : ''}" title="${esc(t)}">${esc(t)}</span></div>`).join(''));
-  setHTML($('#pgLog'), (v.log || []).slice(-4).reverse().map(l => `<div><span>${new Date(l.t*1000).toLocaleTimeString()}</span>${esc(l.s)}</div>`).join(''));
+  setHTML($('#pgLog'), (v.log || []).slice(-4).reverse().map(l => `<div><span>${new Date(l.t*1000).toLocaleTimeString(I18N.locale)}</span>${esc(l.s)}</div>`).join(''));
   const m = $('#pgMain'), label = v.state === 'done' ? 'Open' : v.state === 'downloading' || v.state === 'queued' ? 'Pause' : 'Resume';
   if (m.textContent !== label) { if (m.textContent) m.dataset.changed = Date.now(); m.textContent = label; }
   $('#pgFolder').disabled = !v.path;
@@ -670,6 +670,7 @@ const BAR_MENUS = {
     {t:'Row spacing', sub: [['Comfortable', false], ['Compact', true]].map(([t, d]) => ({t, chk: !!uiPrefs.dense === d, do: () => { if (!!uiPrefs.dense !== d) setUiPref('dense'); }}))},
     {t:'Text size', sub: ZOOMS.map(([z, t]) => ({t, chk: store.get('zoom', 1) === z, do: () => { store.set('zoom', z); applyZoom(); }}))},
     {t:'Theme', sub: [['auto','Same as Windows'],['light','Light'],['dark','Dark']].map(([k, t]) => ({t, chk: store.get('theme', 'auto') === k, do: () => { store.set('theme', k); applyTheme(); }}))},
+    {t:'Language', sub: langChoices().map(([k, t]) => ({t, chk: I18N.choice === k, do: () => { if (I18N.choice !== k) I18N.set(k); }}))},
     '-',
     {t:'Refresh', k:'F5', do: () => loadDL()},
   ],
@@ -876,6 +877,7 @@ function optionsBody(tab){
     + (APPCFG ? orow('Show a finished download', 'Bring up its window with Open and Open folder as soon as it finishes (also when the window is closed).', tog('id="doneTog"', APPCFG.showDone, 'Show a finished download')) : '')
     + (APPCFG && APPCFG.canInstall ? orow('Start menu entry', `So Windows search and the Start menu find ${esc(APP.name)}, and notifications show its name and icon.`, tog('id="smTog"', APPCFG.startMenu, 'Start menu entry')) : '')
     + (APPCFG ? orow('Offer links I copy', `When you copy a link to a file (a program, archive, video, PDF …) anywhere, a notification asks whether to download it. Nothing is downloaded unless you click it and confirm.`, tog('id="clipTog"', APPCFG.clipboard, 'Offer copied links')) : '')
+    + orow('Language', 'The language of the menus and dialogs. Anything not translated yet stays in English.', `<select class="sel" id="optLang">${langChoices().map(o => `<option value="${o[0]}"${I18N.choice === o[0] ? ' selected' : ''}>${o[1]}</option>`).join('')}</select>`)
     + orow('Appearance', '', `<select class="sel" id="optTheme">${[['auto','Same as Windows'],['light','Light'],['dark','Dark']].map(o => `<option value="${o[0]}"${store.get('theme', 'auto') === o[0] ? ' selected' : ''}>${o[1]}</option>`).join('')}</select>`);
   if (tab === 'connection') return orow('Downloads at the same time', 'More than 3 can slow each one down. Recommended: 3.', num('dlMax', [1,2,3,4,5,6,8,10], c.maxActive))
     + orow('Connections per download', `How many parallel connections one file uses. Some websites refuse many; ${esc(APP.name)} lowers it by itself. Recommended: 8.`, num('dlPer', [1,2,4,6,8,12,16,24,32], c.maxPerLine))
@@ -1008,6 +1010,7 @@ document.addEventListener('change', async e => {
   const t = e.target; if (!DL) return;
   if (t.id === 'torFile') { const f = t.files && t.files[0]; return addTorrentFile(f); }
   if (t.id === 'optTheme') { store.set('theme', t.value); applyTheme(); return; }
+  if (t.id === 'optLang') { if (I18N.choice !== t.value) I18N.set(t.value); return; }
   if (t.id === 'pxMode') {
     $('#pxRow').style.display = t.value === 'manual' ? '' : 'none';
     if (t.value === 'manual') { $('#pxAddr').focus(); return; } // saved with its address
@@ -1167,10 +1170,14 @@ window.addEventListener('blur', closeMenu);
 window.addEventListener('resize', closeMenu);
 
 /* ---------- theme and start ---------- */
+// the tray menu and the notifications are drawn by the program: tell it the language shown here
+api('app', {lang: I18N.lang === 'xx' ? 'en' : I18N.lang}).catch(() => {});
 const siteOf = v => { try { return v.kind === 'torrent' && /^magnet:/i.test(v.url) ? 'torrent' : new URL(v.url).hostname.replace(/^www\./, ''); } catch(e){ return ''; } };
 const ZOOMS = [[0.9, 'Small'], [1, 'Normal'], [1.15, 'Large'], [1.3, 'Larger']];
 function zoomNow(){ return +store.get('zoom', 1) || 1; }
 function applyZoom(){ const z = zoomNow(); document.documentElement.style.zoom = z; document.documentElement.style.setProperty('--zoom', z); } // the layout height is divided by it, so the window still fits
+// 'Automatic' follows the browser's language; the others are written in their own language so they can be found
+function langChoices(){ return [['auto', 'Automatic']].concat(Object.keys(I18N.names).filter(c => c === 'en' || I18N.shipped.includes(c)).map(c => [c, I18N.names[c]])); }
 function applyTheme(){ const t = store.get('theme', 'auto'); if (t === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t; }
 applyTheme();
 // Bahnschrift (Windows 10 and 11) is the font for numbers; it needs a small nudge in the list (see app.css .bahn)

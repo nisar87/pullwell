@@ -65,7 +65,7 @@ func showToast(t toastSpec) {
 	if toastsUsable() && showToastXML(toastXML(t)) == nil {
 		return
 	}
-	showBalloon(t.Title, strings.Join(t.Lines, "\n"))
+	showBalloon(tr(t.Title), tr(strings.Join(t.Lines, "\n")))
 	setBalloonView(toastView(t.Tag))
 }
 

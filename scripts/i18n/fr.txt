@@ -1,0 +1,658 @@
+1|« {0} » est un programme ou un script. Ne l’ouvrez que si vous faites confiance au site d’où il vient.
+2|« {0} » est déplacé dans le dossier que vous saisissez (il est créé si besoin).
+3|(Edge :
+4|(décidé au début du téléchargement)
+5|(il va dans votre dossier de téléchargements, qui s’ouvre ensuite) :
+6|(dossier principal / {0})
+7|(aucun coché = tous les jours)
+8|(pas encore décidé)
+9|(ou dans son dossier d’outils) pour obtenir un seul fichier.
+10|(en pause)
+11|(la pièce de puzzle dans la barre d’outils), cliquez dessus et saisissez ce code :
+12|, cliquez sur
+13|, déposez ici un lien ou un fichier .torrent, ou choisissez
+14|, activez
+15|, {0} déjà présents ou inutilisables
+16|, {0} déjà dans votre liste
+17|, {0} sources (seeds)
+18|, {0} en attente
+19|Un gestionnaire de téléchargements pour Windows. Sans télémétrie et sans compte : il ne contacte que les sites d’où vous téléchargez, et GitHub pour chercher les mises à jour.
+20|Le dossier choisi à l’ajout d’un téléchargement l’emporte toujours. Puis le dossier du site, puis celui du type, puis votre dossier principal ({0}).
+21|Une notification de {0}.
+22|Un mot de passe n’est utilisé que pour ce lien et n’est plus affiché ensuite.
+23|Une file est un groupe de téléchargements avec ses propres horaires. Les téléchargements sans file (la file principale) suivent vos réglages généraux. Mettez un téléchargement dans une file depuis ses Propriétés ou à l’ajout.
+24|Un nom d’utilisateur et un mot de passe conservés pour un site, utilisés pour tous les téléchargements qui en viennent. Ils restent sur ce PC, protégés par votre compte Windows.
+25|À propos
+26|Ajouter un téléchargement
+27|Ajouter un téléchargement (Ctrl+N, ou Ctrl+V avec un lien copié)
+28|Ajouter une file
+29|Ajouter un fichier torrent…
+30|Ajouter un site
+31|Ajouter ou modifier un identifiant
+32|Ajouter le lien copié
+33|Ajouter un torrent
+34|Ajouter avec des options
+35|Ajouter avec des options…
+36|Ajouter, démarrer plus tard
+37|Ajouté
+38|Ajouté au menu Démarrer
+39|L’ajouter de nouveau crée une seconde copie.
+40|Avancé
+41|Tous ({0})
+42|Tous les téléchargements
+43|Tous les téléchargements limités à
+44|Tous les fichiers
+45|Tous en pause
+46|Toutes les files
+47|Tous démarrés
+48|Autoriser les torrents
+49|Déjà dans votre liste
+50|Supprimer aussi la liste des téléchargements, les réglages et le journal
+51|Supprimer aussi le fichier du disque
+52|Supprimer aussi les {0} fichiers terminés du disque
+53|Apparence
+54|Archives
+55|Demander avant le début d’un téléchargement du navigateur
+56|Immédiatement
+57|Automatique
+58|Meilleure ({0}p)
+59|Les gros téléchargements de Chrome, Edge, Brave ou Firefox vont vers {0} une fois l’extension connectée. Si {1} n’est pas lancé, le navigateur télécharge comme d’habitude.
+60|Affiche sa fenêtre avec Ouvrir et Ouvrir le dossier dès qu’il est terminé (même fenêtre fermée).
+61|Navigateur
+62|Par type
+63|Par site
+64|Reprise possible
+65|Annuler
+66|Annuler l’arrêt
+67|Fourni par
+68|Catégories
+69|Panneau des catégories
+70|À modifier dans les Options
+71|Vérifier
+72|Rechercher des mises à jour
+73|Vérifier maintenant
+74|Vérifier la somme de contrôle
+75|Vérifier la somme de contrôle…
+76|Vérification de la somme de contrôle…
+77|Vérification du lien
+78|Vérification du lien…
+79|Vérification…
+80|Somme de contrôle
+81|Somme de contrôle (facultatif)
+82|Somme de contrôle correcte
+83|La somme de contrôle ne correspond PAS : n’ouvrez pas
+84|Choisissez au moins un fichier
+85|Choisir des dossiers
+86|Choisir des dossiers…
+87|Effacer
+88|Effacer les terminés
+89|Effacé
+90|Cliquez pour fixer une limite de vitesse pour tous les téléchargements
+91|Fermer
+92|Ferme une boîte de dialogue ou un menu ; efface la sélection
+93|Colonnes
+94|Confortable
+95|Commandes
+96|Compact
+97|Terminé
+98|Connecter un navigateur
+99|Connecter un navigateur…
+100|Navigateurs connectés
+101|Connecté {0}{1}
+102|Connexion
+103|Connexions
+104|Connexions par téléchargement
+105|Les liens copiés ne sont pas proposés
+106|Les liens copiés seront proposés
+107|Copié : collez-le dans un nouvel onglet du navigateur
+108|Copier
+109|Copier le lien
+110|Impossible de rechercher les mises à jour.
+111|Copie impossible
+112|Sombre
+113|Jours
+114|Supprimer
+115|Supprimer de la liste
+116|Supprimer la file
+117|Supprimer la file « {0} » ?
+118|Supprimer les téléchargements sélectionnés (Suppr)
+119|Supprimer avec le fichier
+120|Supprimer avec le fichier
+121|Supprimé avec les fichiers
+122|Description
+123|Mode développeur
+124|Déconnecter
+125|Déconnecter ce navigateur ?
+126|Déconnecté
+127|Ne rien faire
+128|Documents
+129|Ne démarre pas avec Windows
+130|Terminé
+131|Une seule fois, après le dernier téléchargement. Un arrêt vous laisse une minute pour annuler.
+132|Télécharger
+133|Télécharger « {0} » de nouveau ?
+134|Télécharger de nouveau
+135|Informations sur le fichier à télécharger
+136|Horaires de téléchargement
+137|Télécharger plus tard
+138|Télécharger maintenant
+139|Télécharger seulement les fichiers cochés
+140|Télécharger la sélection
+141|Téléchargement démarré
+142|Télécharger {0} fichiers de nouveau ?
+143|Téléchargé
+144|Téléchargement en cours
+145|Nouveau téléchargement en cours
+146|Téléchargement… {0} %
+147|Téléchargements
+148|Des téléchargements attendent :
+149|Téléchargements simultanés
+150|Les téléchargements de ce site demanderont de nouveau un identifiant. Rien de ce qui est déjà téléchargé n’est touché.
+151|Les téléchargements du navigateur ne sont pas interceptés tant qu’il est fermé.
+152|Erreur
+153|Tout
+154|Tout ce qui est dans cette liste est déjà ici
+155|Échec
+156|Nom du fichier
+157|Taille du fichier
+158|Types de fichiers
+159|Fichiers
+160|Fichiers de ce torrent
+161|Rechercher
+162|Chercher des liens dans une page
+163|Chercher des liens dans une page web
+164|Chercher des liens dans une page web…
+165|Trouver les fichiers vers lesquels pointe une page web
+166|Terminés
+167|Téléchargements terminés effacés
+168|Dossier
+169|Dossier enregistré
+170|Dossiers
+171|Dossiers par types et par sites
+172|Dossiers par types et par sites…
+173|Pour un site qui demande un nom d’utilisateur et un mot de passe. Il sert pour tous les téléchargements de ce site et de ses sous-domaines et n’est jamais envoyé à un autre site. Les mots de passe restent sur ce PC, protégés par votre compte Windows, et ne sont plus affichés.
+174|Par exemple un antivirus. Utilisez
+175|Par exemple un antivirus. Écrivez le programme et utilisez
+176|Par exemple la nuit. Les téléchargements hors de ces horaires attendent.
+177|Pour les torrents seulement.
+178|Oublier
+179|Oublié
+180|Trouvé. Les vidéos avec une piste son séparée sont réunies en un seul fichier.
+181|Trouvé : les vidéos web avec une piste son séparée sont réunies en un seul fichier.
+182|ven.
+183|Général
+184|Revenir
+185|Revenir à la version précédente
+186|Revenir à la version précédente ?
+187|Retour en arrière…
+188|Récupérer des liens
+189|Récupérer les liens d’une page web…
+190|Des groupes de téléchargements avec leurs propres horaires et jours, par exemple « Nuit » (23:00 à 06:00) ou « Week-end ». {0} files.
+191|Des groupes de téléchargements avec leurs propres horaires et jours, par exemple « Nuit ». {0} files.
+192|Aide
+193|Combien de connexions parallèles un fichier utilise. Certains sites en refusent beaucoup ; {0} les réduit tout seul. Recommandé : 8.
+194|Si un fichier du même nom existe déjà
+195|Si le fichier existe
+196|Si la nouvelle version pose problème. Vous pourrez revenir à celle-ci de la même façon.
+197|Images
+198|Installer et redémarrer
+199|Installer les mises à jour automatiquement
+200|Installation de la mise à jour…
+201|Installation de la version {0}.
+202|Installation : {0} redémarre dans un instant.
+203|Ses téléchargements passent dans la file principale. Rien n’est supprimé de votre disque.
+204|Son extension cessera d’envoyer des téléchargements jusqu’à ce que vous la reconnectiez.
+205|Garder les deux
+206|Garder les deux (ajoute un numéro), remplacer l’ancien fichier ou ignorer le nouveau téléchargement.
+207|Garder le PC éveillé pendant les téléchargements
+208|Laisse un peu de vitesse libre pour tout le reste.
+209|Raccourcis clavier
+210|Type de fichier
+211|Langue
+212|Grand
+213|Plus grand
+214|Laisser vide pour démarrer maintenant
+215|Bibliothèque
+216|Clair
+217|Limite
+218|Limite retirée
+219|Limite définie
+220|Lien modifié
+221|Lien copié
+222|Liens copiés
+223|Liste enregistrée :
+224|Charger une liste…
+225|Charger la liste
+226|Charger la liste…
+227|Identifiant supprimé
+228|Identifiant enregistré
+229|Recherche…
+230|File principale
+231|Gérer les identifiants…
+232|Gérer les files
+233|Gérer les files…
+234|Menu
+235|Barre de menus (puis flèches, Entrée, Échap)
+236|Menu des téléchargements sélectionnés
+237|lun.
+238|Plus
+239|Plus d’options…
+240|Plus de 3 peut ralentir chacun. Recommandé : 3.
+241|Déplacer
+242|Descendre
+243|Déplacer dans la liste (Maj : sélectionner)
+244|Déplacer vers un autre dossier
+245|Déplacer vers un autre dossier…
+246|Placer en premier
+247|Monter
+248|Déplacé
+249|Musique
+250|Nom
+251|À traiter
+252|Nouveau téléchargement
+253|Les nouveaux téléchargements vont dans un dossier selon leur type (Vidéos, Programmes …) quand c’est activé.
+254|Nouveau téléchargement…
+255|Plus récents d’abord
+256|Prochain essai
+257|Aucun téléchargement pour l’instant
+258|Aucune limite
+259|Aucun identifiant enregistré pour l’instant.
+260|Aucun lien correspondant sur cette page.
+261|Pas de proxy
+262|Aucune file pour l’instant.
+263|Aucune limite de vitesse
+264|Aucun site pour l’instant.
+265|Non : une pause le redémarre depuis le début
+266|Aucun pour l’instant.
+267|Normal
+268|Indisponible pour cette copie de {0}.
+269|Pas encore vérifié.
+270|Introuvable. Les vidéos avec une piste son séparée sont enregistrées en deux fichiers. Placez ffmpeg à côté de
+271|Introuvable : ces vidéos sont enregistrées en deux fichiers. Placez ffmpeg.exe à côté de {0} pour les réunir.
+272|Rien ici.
+273|Rien ne correspond à votre recherche.
+274|Rien de mémorisé.
+275|Rien pour l’instant.
+276|Notification à la fin
+277|Me prévenir quand un téléchargement se termine
+278|Prévenir à la fin
+279|Proposer les liens copiés
+280|Proposer les liens que je copie
+281|Seulement entre
+282|Ne télécharger qu’à certaines heures
+283|Seulement les fichiers de plus de
+284|Ouvrir
+285|Ouvre Tâches, Téléchargements, Affichage, Outils, Aide
+286|Ouvrir un programme ?
+287|Ouvrir le dossier
+288|L’ouvrir une fois terminé
+289|Ouvrir le dossier de téléchargements
+290|Ouvrir le fichier (ou sa progression, s’il n’est pas terminé)
+291|Ouvrir le dossier du journal
+292|Ouvrir à la fin
+293|S’ouvre à la fin
+294|Facultatif
+295|Options
+296|Options…
+297|Autres
+298|Autres adresses du même fichier (miroirs, une par ligne)
+299|Autres adresses du même fichier (miroirs, une par ligne). Elles sont essayées si la première échoue.
+300|Adresse de la page
+301|Parties du fichier
+302|Parties du fichier déjà téléchargées
+303|Mot de passe
+304|Coller
+305|Collez un lien (http, https, ftp ou magnet). Plusieurs liens : un par ligne.
+306|Collez d’abord un lien
+307|Collez un lien avec
+308|Collez la somme de contrôle que le site donne pour ce fichier (SHA-256, SHA-1, MD5 ou SHA-512). Le résultat s’affiche dans la colonne Description.
+309|Pause
+310|Mettre « {0} » en pause ?
+311|Tout mettre en pause
+312|Mettre en pause quand même
+313|Mettre en pause tous les téléchargements
+314|Pause ou reprise
+315|Mettez d’abord le téléchargement en pause.
+316|Mettre en pause les téléchargements sélectionnés (Espace)
+317|Mettre {0} téléchargements en pause ?
+318|En pause
+319|Pairs
+320|L’image et le son sont réunis avec ffmpeg.
+321|Morceaux
+322|Les morceaux que vous avez déjà repartent vers d’autres pendant que le reste arrive.
+323|Épingler l’icône de {0}
+324|Appuyez sur Ctrl+V dans la zone
+325|Problème
+326|Les problèmes sont toujours affichés.
+327|Programme à lancer après un téléchargement
+328|Programmes
+329|Progression
+330|Propriétés
+331|Proxy
+332|Proxy enregistré
+333|Mettre le PC en veille
+334|Qualité
+335|File
+336|Nom de la file
+337|Ordre de la file
+338|Files
+339|Files et leurs horaires
+340|Files enregistrées
+341|Quitter
+342|Quitter {0} ?
+343|Événements récents
+344|Actualiser
+345|Versions
+346|Retirer
+347|Retirer de la liste tous les téléchargements terminés (les fichiers restent)
+348|Supprimer l’identifiant pour {0}
+349|Supprimer l’identifiant pour {0} ?
+350|Retirer {0} téléchargements terminés de la liste ?
+351|Retiré de la liste
+352|Retiré du menu Démarrer
+353|Supprime l’entrée du menu Démarrer, l’entrée de démarrage et le fichier du programme. Vos fichiers téléchargés restent où ils sont.
+354|Renommer
+355|Renommé
+356|Renommer…
+357|Remplacer l’ancien fichier
+358|Signaler un problème…
+359|Réinitialiser les largeurs
+360|Reprendre
+361|Tout reprendre
+362|Tout reprendre dans cette file
+363|Reprendre tous les téléchargements en pause
+364|Reprendre les téléchargements sélectionnés (Espace)
+365|Nouvel essai bientôt
+366|Espacement des lignes
+367|Lancer un programme après chaque téléchargement
+368|Lancer ceci après chaque téléchargement terminé ?
+369|SHA-256, SHA-1 ou MD5
+370|SHA-256, SHA-1 ou MD5 donné par le site (facultatif)
+371|Comme Windows
+372|sam.
+373|Enregistrer
+374|Enregistrer les téléchargements dans
+375|Enregistrer dans
+376|Enregistrer dans (vide pour le dossier habituel)
+377|Enregistrer la liste
+378|Enregistrer la liste…
+379|Enregistrer l’identifiant
+380|Enregistrer l’extension
+381|Enregistrez la liste des téléchargements dans un fichier, ou chargez-en une (aussi un fichier texte avec un lien par ligne).
+382|Enregistrez la liste des téléchargements dans un fichier, ou chargez-en une (depuis cette application, ou un fichier texte avec un lien par ligne).
+383|Enregistrer la liste…
+384|Enregistrer ceux-ci
+385|Enregistré
+386|Enregistré sous
+387|Identifiants enregistrés
+388|Enregistrement dans {0}
+389|Planification
+390|Planificateur
+391|Planificateur et files…
+392|Rechercher
+393|Rechercher des téléchargements
+394|Rechercher des téléchargements (Ctrl+F)
+395|Tout sélectionner
+396|Envoyez les vidéos dans un dossier, la musique dans un autre, ou tout ce qui vient d’un site dans son propre dossier.
+397|Envoyez les vidéos dans un dossier, ou tout ce qui vient d’un site dans son propre dossier.
+398|Partager pendant le téléchargement
+399|Afficher
+400|Afficher un téléchargement terminé
+401|Affiche d’abord la boîte « Informations sur le fichier à télécharger », pour qu’un mauvais clic ne lance pas un téléchargement. Vous pouvez y changer le nom et le dossier.
+402|Éteindre à la fin
+403|Éteindre le PC
+404|Éteindre le PC quand tous les téléchargements seront terminés ?
+405|Arrêt annulé
+406|Taille
+407|Taille (plus grands d’abord)
+408|Taille inconnue
+409|Ignorer le téléchargement
+410|Petit
+411|Les petits fichiers partent plus vite avec le navigateur.
+412|Pour que la recherche Windows et le menu Démarrer trouvent {0}, et que les notifications affichent son nom et son icône.
+413|Certains sites n’acceptent qu’une connexion par fichier. {0}
+414|Un problème est survenu
+415|Trier
+416|Trier par
+417|Ranger dans des dossiers
+418|Ranger dans des dossiers par type
+419|Tri : actifs d’abord
+420|Tri : {0}
+421|Code source et versions :
+422|Vitesse
+423|Limite de vitesse
+424|Limite de vitesse pour tous les téléchargements
+425|Limite de vitesse pour ce téléchargement, en Ko/s (vide = aucune)
+426|Limite de vitesse, Ko/s (facultatif)
+427|Vitesse sur les {0} dernières secondes, pic {1}/s
+428|Démarrer à
+429|Démarrer le téléchargement
+430|Entrée du menu Démarrer
+431|Démarrer avec Windows
+432|Démarré
+433|Démarre avec Windows
+434|État
+435|Barre d’état
+436|dim.
+437|Prendre en charge les téléchargements du navigateur
+438|Prendre en charge les téléchargements du navigateur
+439|Tâches
+440|Me prévenir quand un téléchargement se termine
+441|Versions de test
+442|Les versions de test sont chaque modification dès qu’elle est faite ; les versions publiées sont les versions testées.
+443|Taille du texte
+444|Ça n’a pas marché
+445|Ce fichier est trop gros
+446|Ce fichier est trop gros pour être un torrent
+447|Le PC peut se mettre en veille pendant les téléchargements
+448|Le PC s’éteint dans moins d’une minute
+449|Le PC reste éveillé pendant les téléchargements
+450|Le presse-papiers ne contient aucun lien
+451|Le code a expiré. Fermez ceci et reconnectez-vous.
+452|Le téléchargement est retiré de la liste.
+453|Le téléchargement sera enregistré sous ce nom.
+454|L’extension n’est pas encore dans les boutiques des navigateurs ; elle s’ajoute donc à la main, une seule fois (environ une minute).
+455|Le fichier est renommé dans son dossier.
+456|Le fichier est découpé en parties et téléchargé avec plusieurs connexions à la fois.
+457|Le fichier que vous avez déjà est conservé ; la nouvelle copie reçoit un numéro si le nom est pris.
+458|Les fichiers restent sur votre disque.
+459|La langue des menus et des boîtes de dialogue. Ce qui n’est pas encore traduit reste en anglais.
+460|Le lien n’a pas pu être vérifié.
+461|Le lien ne fonctionne plus ? Collez un nouveau lien pour le même fichier : ce qui est déjà téléchargé est conservé. {0}
+462|Le site veut peut-être que vous vous connectiez d’abord.
+463|La taille est inconnue : une seule connexion est utilisée.
+464|Le son est une piste séparée ; sans ffmpeg, vous obtenez deux fichiers.
+465|Thème
+466|Ces sites
+467|Cette copie a son propre dossier de données et ne touche pas à la copie installée
+468|Ce téléchargement a été retiré
+469|Ce lien est déjà dans votre liste.
+470|Cela ressemble à une page web, pas à un fichier.
+471|Ce proxy :
+472|Ce torrent est déjà dans votre liste.
+473|Ce site n’autorise qu’une connexion pour ce fichier.
+474|Ce site
+475|Ce site n’autorise pas le découpage du fichier : une seule connexion est utilisée.
+476|jeu.
+477|Temps restant
+478|Libellés de la barre d’outils
+479|Torrent ajouté
+480|Fichier torrent…
+481|Torrents
+482|Torrents et liens magnet
+483|Les torrents fonctionnent à tour de rôle : pendant qu’un fichier arrive, les morceaux que vous avez déjà repartent vers d’autres. Désactivez pour télécharger seulement.
+484|Trackers
+485|Nouvel essai bientôt
+486|mar.
+487|Désactivez pour refuser les liens magnet et les fichiers .torrent.
+488|Saisissez l’adresse d’une page. {0} liste les fichiers vers lesquels elle pointe, et vous choisissez lesquels télécharger.
+489|Saisissez la limite de vitesse en Ko/s, ou laissez vide
+490|Saisissez le site et le nom d’utilisateur
+491|Non terminés
+492|Désinstaller
+493|Désinstaller {0}
+494|Désinstaller {0} ?
+495|Désinstaller…
+496|Mises à jour
+497|Limite de vitesse d’envoi
+498|Envoyé
+499|Utiliser ce lien
+500|Nom d’utilisateur
+501|Nom d’utilisateur (site qui demande un identifiant)
+502|Utilise le même proxy que Windows
+503|Valable {0}:{1}, usage unique.
+504|Version
+505|La version {0} est prête.
+506|Version {0}{1}{2}
+507|Vidéo en {0} parties, téléchargées plusieurs à la fois et réunies en un seul fichier.
+508|Flux vidéo · environ
+509|Vidéos
+510|Vidéos, Programmes, Documents, etc.
+511|Affichage
+512|En attente
+513|Site
+514|mer.
+515|Ce qui s’est passé
+516|Ce que {0} a appris sur les sites
+517|Nouveautés
+518|Quand une mise à jour est prête et que rien n’est en cours de téléchargement, {0} l’installe et redémarre. Les téléchargements non terminés reprennent ensuite.
+519|Quand tout est terminé
+520|Quand vous copiez n’importe où un lien vers un fichier (programme, archive, vidéo, PDF …), une notification demande s’il faut le télécharger. Rien n’est téléchargé tant que vous ne cliquez pas dessus et ne confirmez pas.
+521|Quelles versions
+522|Ne s’ouvrira pas tout seul
+523|Windows ne se met pas en veille pendant un téléchargement (l’écran peut s’éteindre). Il peut se remettre en veille quand rien n’est téléchargé.
+524|Ça marche : github.com a répondu
+525|Oui
+526|Vous avez une minute pour annuler.
+527|Vous avez la dernière version.
+528|Votre liste
+529|ajoute une série numérotée.
+530|et choisissez ce dossier.
+531|et choisissez le zip (Firefox l’oublie à sa fermeture).
+532|parce que vos téléchargements sont terminés.
+533|vérification…
+534|ffmpeg (réunit l’image et le son des vidéos web)
+535|pour un sur cinq.
+536|pour le fichier :
+537|est en pause
+538|il démarre
+539|crée une série numérotée)
+540|aucune limite
+541|non installé
+542|inconnue
+543|pas encore connue
+544|d’entre eux
+545|sont en pause
+546|sélectionnés · {0}
+547|ils démarrent
+548|via ce réglage
+549|décompressez-le dans un dossier que vous gardez. Ouvrez
+550|calcul en cours
+551|calcul du temps restant
+552|fonctionne avec des lettres et
+553|· dernière utilisation
+554|· limite {0}/s
+555|· torrent privé
+556|· ratio
+557|— n’utilisez qu’un programme de confiance.
+558|✓ correspond
+559|✓ prêt
+560|✗ ne correspond PAS
+561|{0} restant
+562|En pause {0} %
+563|En pause à {0} %
+564|{0} téléchargé
+565|ratio {0}
+566|{0} pairs
+567|{0} pairs, {1} sources
+568|{0} sources
+569|File : {0}
+570|Limite {0}
+571|Terminé {0}
+572|Terminé : {0}
+573|Terminés ({0})
+574|Miroirs : {0}
+575|Connexions par ligne : {0}
+576|Déplacé vers la file « {0} »
+577|Ajouté depuis {0}
+578|{0} ajoutés
+579|{0} téléchargement ajouté
+580|{0} téléchargements ajoutés
+581|{0} téléchargements
+582|téléchargement en cours, {0} en attente
+583|Tous les téléchargements limités à {0}
+584|le serveur a répondu {0}
+585|Windows utilise le proxy {0}.
+586|En attente des horaires de la file « {0} » ({1} à {2})
+587|En attente d’une place libre dans la file « {0} »
+588|En attente de vos horaires de téléchargement ({0})
+589|Supprimer « {0} » ?
+590|Retirer {0} téléchargement terminé de la liste ?
+591|Retirer {0} téléchargements terminés de la liste ?
+592|Pullwell
+593|Quitter Pullwell
+594|À propos de Pullwell
+595|Pullwell s’affiche dans votre navigateur. Fermer cet onglet n’arrête pas les téléchargements.
+596|Pullwell {0}. Sans télémétrie : il ne contacte que les sites d’où vous téléchargez.
+597|Pullwell {0} · Pas encore vérifié.
+598|Supprimer {0} téléchargements ?
+599|Le fichier est introuvable sur le site. Le lien est peut-être ancien.
+600|Le fichier du site a changé pendant le téléchargement. Relancez-le.
+601|Le site a refusé le téléchargement (il faut peut-être se connecter, ou le lien a expiré). Ouvrez la page dans votre navigateur et ajoutez de nouveau le lien.
+602|Le site est occupé ou limite les téléchargements. {0} réessaiera.
+603|En attente d’une connexion Internet.
+604|Pas assez d’espace libre pour ce fichier ({0} ; {1} garde 32 Mo de réserve). Libérez de l’espace ou choisissez un autre dossier, puis appuyez sur Reprendre.
+605|Le disque est plein. Libérez de l’espace et appuyez sur Reprendre.
+606|{0} ne peut pas écrire dans le dossier de téléchargements. Choisissez un autre dossier dans les réglages Téléchargements.
+607|Le nom du fichier ou le chemin du dossier est trop long pour Windows. Choisissez un dossier plus court, ou renommez le téléchargement dans ses Propriétés.
+608|Le dossier de téléchargements n’existe plus (lecteur retiré ou dossier supprimé). Choisissez un autre dossier dans les réglages Téléchargements, ou reconnectez le lecteur et appuyez sur Reprendre.
+609|L’adresse du site est introuvable. Vérifiez le lien ou votre DNS.
+610|Le site a refusé la connexion.
+611|Le site n’a pas répondu à temps.
+612|La connexion a été coupée par le site ou le réseau.
+613|La connexion n’atteint pas Internet.
+614|Le téléchargement n’a pas pu continuer.
+615|La somme de contrôle ne correspond pas
+616|Un fichier de ce nom est déjà dans le dossier ; ce téléchargement a donc été ignoré.
+617|Ce site n’autorise pas le découpage du fichier, une seule connexion est donc utilisée
+618|Ce site n’accepte qu’une seule adresse de connexion (appris plus tôt), une seule ligne est donc utilisée
+619|Une ligne a été écartée : ce site ne donne le fichier que depuis une seule adresse
+620|Essai d’une autre adresse
+621|La commande après le téléchargement a été exécutée
+622|Les torrents sont désactivés dans les réglages de téléchargement.
+623|Aucune version trouvée sur GitHub. Le projet est peut-être encore privé.
+624|Impossible de joindre GitHub.
+625|Impossible de lire les informations de version.
+626|Le gestionnaire de téléchargements est désactivé. Activez-le dans les Réglages.
+627|Téléchargement terminé
+628|Un téléchargement demande votre attention
+629|Les téléchargements continuent
+630|Téléchargements terminés
+631|Le PC va se mettre en veille.
+632|Ordinateur
+633|téléchargement
+634|téléchargements
+635|en cours de téléchargement
+636|Outils
+637|{0} est prête
+638|sélectionnés
+639|Pour que les gros téléchargements de Chrome, Edge ou Firefox arrivent ici tout seuls :
+640|Enregistrement dans
+641|Lien (plusieurs : un par ligne ;
+642|et
+643|le proxy a besoin d’un port, par exemple 10.0.0.1:8080
+644|Ce site n’autorise pas la reprise : quand il redémarrera, il repartira du début ({0} téléchargés jusqu’ici).
+645|Ces sites n’autorisent pas la reprise : quand ils redémarreront, ils repartiront du début ({0} téléchargés jusqu’ici).
+646|Il n’est pas terminé : la partie déjà téléchargée est supprimée.
+647|{0} d’entre eux ne sont pas terminés : la partie déjà téléchargée est supprimée.
+648|Certains sites n’acceptent qu’une connexion par fichier.
+649|Le lien ne fonctionne plus ? Collez un nouveau lien pour le même fichier : ce qui est déjà téléchargé est conservé.
+650|Copie séparée
+651|Tester
+652|Ouvrir {0}
+653|Ajouter un téléchargement...
+654|{0} téléchargements terminés
+655|{0} téléchargements demandent votre attention
+656|Télécharger ceci avec {0} ?
+657|Cliquez ici pour l’ajouter.
+658|Télécharger…

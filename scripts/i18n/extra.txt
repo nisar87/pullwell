@@ -1,0 +1,77 @@
+{0} left
+Paused {0}%
+Paused at {0}%
+{0} downloaded
+ratio {0}
+{0} peers
+{0} peers, {1} seeds
+{0} seeds
+Queue: {0}
+Limit {0}
+Finished {0}
+Finished: {0}
+Finished ({0})
+Mirrors: {0}
+Connections per line: {0}
+Moved to queue "{0}"
+Added from {0}
+{0} added
+{0} download added
+{0} downloads added
+{0} downloads
+downloading, {0} waiting
+All downloads limited to {0}
+the server answered {0}
+Windows uses the proxy {0}.
+Waiting for the hours of queue "{0}" ({1} to {2})
+Waiting for a free place in queue "{0}"
+Waiting for your download hours ({0})
+Delete "{0}"?
+Remove {0} finished download from the list?
+Remove {0} finished downloads from the list?
+Pause {0} downloads?
+Automatic
+Pullwell
+Quit Pullwell
+About Pullwell
+Pullwell is shown in your browser. Closing this tab does not stop downloads.
+Pullwell {0}. No telemetry: it contacts only the sites you download from.
+Pullwell {0} · Not checked yet.
+Download "{0}" again?
+Download {0} files again?
+Delete {0} downloads?
+The file was not found on the website. The link may be old.
+The file on the website changed while it was downloading. Start it again.
+The website refused the download (it may need you to sign in, or the link expired). Open the page in your browser and add the link again.
+The website is busy or limits downloads. {0} will try again.
+Waiting for an internet connection.
+Not enough free space for this file ({0}; {1} keeps 32 MB spare). Free some space or choose another folder, then press Resume.
+The disk is full. Free some space and press Resume.
+{0} cannot write to the download folder. Choose another folder in the Downloads settings.
+The file name or the folder path is too long for Windows. Choose a shorter folder, or rename the download in its Properties.
+The download folder is not there any more (a removed drive, or a deleted folder). Choose another folder in the Downloads settings, or reconnect the drive and press Resume.
+The website address could not be found. Check the link, or your DNS.
+The website refused the connection.
+The website did not answer in time.
+The connection was cut by the website or the network.
+The connection is not reaching the internet.
+The download could not continue.
+Checksum does not match
+A file with this name is already in the folder, so this download was skipped.
+This site does not allow splitting the file, so one connection is used
+This site only accepts one connection address (learned earlier), so one line is used
+A line was left out: this site only accepts the file from one address
+Trying another address
+The command after the download ran
+Torrents are switched off in the download settings.
+Torrent added
+No release found on GitHub. The project may still be private.
+Could not reach GitHub.
+Could not read the release information.
+The download manager is off. Turn it on in Settings.
+Download finished
+Download needs attention
+Downloads continue
+Downloads finished
+The PC is going to sleep.
+Computer

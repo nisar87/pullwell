@@ -42,17 +42,17 @@ func toastXML(t toastSpec) string {
 	}
 	var b strings.Builder
 	b.WriteString(`<toast activationType="protocol" launch="` + xmlEsc(launch) + `"><visual><binding template="ToastGeneric">`)
-	b.WriteString(`<text>` + xmlEsc(t.Title) + `</text>`)
+	b.WriteString(`<text>` + xmlEsc(tr(t.Title)) + `</text>`)
 	if len(t.Lines) > 0 {
-		b.WriteString(`<text>` + xmlEsc(strings.Join(t.Lines, "\n")) + `</text>`)
+		b.WriteString(`<text>` + xmlEsc(tr(strings.Join(t.Lines, "\n"))) + `</text>`)
 	}
 	b.WriteString(`</binding></visual>`)
 	if t.ItemID != "" && toastView(t.Tag) == "finished" {
 		b.WriteString(`<actions>`)
 		if name := dm.ItemFile(t.ItemID); name != "" && !isProgramFile(name) {
-			b.WriteString(`<action content="Open" activationType="protocol" arguments="` + xmlEsc(link("open", t.ItemID)) + `"/>`)
+			b.WriteString(`<action content="` + xmlEsc(tr("Open")) + `" activationType="protocol" arguments="` + xmlEsc(link("open", t.ItemID)) + `"/>`)
 		}
-		b.WriteString(`<action content="Open folder" activationType="protocol" arguments="` + xmlEsc(link("reveal", t.ItemID)) + `"/>`)
+		b.WriteString(`<action content="` + xmlEsc(tr("Open folder")) + `" activationType="protocol" arguments="` + xmlEsc(link("reveal", t.ItemID)) + `"/>`)
 		b.WriteString(`</actions>`)
 	}
 	b.WriteString(`</toast>`)
