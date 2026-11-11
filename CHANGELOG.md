@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.5 (2026-11-11)
+
+- **Only one highlighted row in menus.** In the menu bar and the right-click menu, a row could stay highlighted
+  (the first one, or the one that opened a submenu) while the row under the mouse was highlighted too, so two or three
+  rows were green at once, mostly in menus with a submenu. The highlight now follows the mouse and the keyboard
+  together, so there is one green row; a menu title or submenu parent that is open is only tinted grey.
+
 ## 0.7.4 (2026-11-11)
 
 - **One word for pausing a download.** The toolbar and right-click menu said "Stop", the list said "Paused", the

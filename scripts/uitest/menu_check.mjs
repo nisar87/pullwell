@@ -150,6 +150,23 @@ p = await center('#menubar [data-mb="downloads"]'); await click(p[0], p[1]); awa
 await send('Emulation.setDeviceMetricsOverride', {width: 820, height: 560, deviceScaleFactor: 1, mobile: false}); await sleep(300);
 check('no page scroll at 820x560', await js('document.documentElement.scrollHeight <= innerHeight && document.documentElement.scrollWidth <= innerWidth'));
 
+// one highlighted row at a time, also while a submenu is open and the mouse goes back to the first menu
+const greenRows = () => js(`(() => { const a = document.activeElement; if (!a || !a.closest('.ctx')) return -1; const c = getComputedStyle(a).backgroundColor; return [...document.querySelectorAll('.ctx button')].filter(b => getComputedStyle(b).backgroundColor === c).length; })()`);
+await send('Emulation.setDeviceMetricsOverride', {width: 1180, height: 760, deviceScaleFactor: 1, mobile: false}); await sleep(300);
+p = await center('#menubar [data-mb="downloads"]'); await click(p[0], p[1]); await sleep(200);
+const subAt = await js(`(() => { const b = [...document.querySelectorAll('.ctx > button.sub')][0]; if (!b) return null; const r = b.getBoundingClientRect(); return [r.left + r.width/2, r.top + r.height/2]; })()`);
+if (subAt) {
+  await mouse('mouseMoved', subAt[0], subAt[1]); await sleep(200);
+  const inSub = await js(`(() => { const b = document.querySelector('.ctx.subm button:not(:disabled)'); if (!b) return null; const r = b.getBoundingClientRect(); return [r.left + r.width/2, r.top + r.height/2]; })()`);
+  if (inSub) { await mouse('mouseMoved', inSub[0], inSub[1]); await sleep(200); }
+  check('one green row while the mouse is in a submenu', (await greenRows()) === 1, await greenRows());
+  const other = await js(`(() => { const b = [...document.querySelectorAll('.ctx > button:not(.sub):not(:disabled)')][0]; const r = b.getBoundingClientRect(); return [r.left + r.width/2, r.top + r.height/2]; })()`);
+  await mouse('mouseMoved', other[0], other[1]); await sleep(200);
+  check('one green row after going back to the first menu', (await greenRows()) === 1, await greenRows());
+  check('the submenu closed and its parent is no longer marked open', await js(`!document.querySelector('.ctx.subm') && !document.querySelector('.ctx > button.sub.open')`));
+} else check('Downloads menu has a submenu to test', false);
+await key('Escape'); await sleep(100);
+
 check('no script errors', errors.length === 0, errors.join(' ; '));
 console.log(results.join('\n'));
 console.log(`${results.filter(r => r.startsWith('PASS')).length}/${results.length} passed`);

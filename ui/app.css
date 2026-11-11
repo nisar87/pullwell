@@ -80,7 +80,7 @@ code{font-family:var(--mono);font-size:.92em;background:var(--sunk);padding:0 4p
 .mb{display:flex;gap:1px}
 .mb button{padding:5px 9px;border:0;border-radius:var(--r);background:none;color:var(--mute);font-size:var(--fs)}
 .mb button:hover,.mb button.open,.mb button:focus-visible{background:var(--hover);color:var(--text);outline:none}
-.mb button.open{background:var(--sel);color:var(--text)}
+.mb button.open{background:var(--hover);color:var(--text)} /* its menu is open: lighter than the green item inside it */
 .mb button u{text-decoration:none}
 .mb.keys button u{text-decoration:underline;text-underline-offset:2px}
 .top .sp{flex:1}
@@ -199,7 +199,10 @@ td.info{color:var(--mute)}
 .ctx{position:fixed;z-index:60;min-width:220px;padding:5px;background:var(--raised);border:1px solid var(--line2);border-radius:var(--r-l);box-shadow:var(--shadow);animation:pop .12s var(--ease)}
 @keyframes pop{from{opacity:0;transform:translateY(-3px)}}
 .ctx button{display:flex;align-items:center;gap:8px;width:100%;height:30px;padding:0 10px 0 28px;border:0;border-radius:var(--r);background:none;text-align:left;color:var(--text);position:relative;white-space:nowrap}
-.ctx button:hover:not(:disabled),.ctx button.open,.ctx button:focus-visible{background:var(--sel);outline:none}
+.ctx button{outline:none}
+/* One green row only: the item with the focus, which the mouse moves too (see showMenu). A parent whose submenu is open is only tinted. */
+.ctx button.open{background:var(--hover)}
+.ctx button:focus:not(:disabled){background:var(--sel)}
 .ctx button:disabled{color:var(--dim);cursor:default}
 .ctx button kbd{margin-left:auto;padding-left:24px;font:var(--fs-s) var(--sans);color:var(--dim)}
 .ctx button.chk::before{content:"";position:absolute;left:10px;top:50%;width:9px;height:5px;margin-top:-4px;border-left:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:rotate(-45deg)}
