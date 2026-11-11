@@ -30,8 +30,8 @@ def fill(text):
     return text
 
 def png(size):
-    # blue rounded square with a white down arrow and a bar
-    bg, fg = (37, 99, 235), (255, 255, 255)
+    # teal rounded square (the product colour) with a white down arrow and a bar
+    bg, fg = (13, 127, 119), (255, 255, 255)
     rows = []
     r = size * 0.22
     for y in range(size):

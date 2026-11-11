@@ -38,4 +38,4 @@ Set up once: install Pullwell, open Options → Browser → "Connect a browser",
 **Remote code:** No. All code is inside the package.
 **Data use certification:** the extension handles web history-like data (download and video addresses) and authentication information (cookies for the download link). It is used only for the single purpose, sent only to the program on the same computer, never sold or used for unrelated purposes.
 
-**Assets** (this folder): screenshot-1-connect.png, screenshot-2-video-button.png, screenshot-3-confirm.png (1280x800), promo-small-440x280.png, icon: extension/icons/128.png.
+**Assets** (this folder): screenshot-1-connect.png, screenshot-2-video-button.png, screenshot-3-confirm.png (1280x800), promo-small-440x280.png, marquee-promo-1400x560.png, store-icon-128x128.png (the store icon: 96 px artwork inside a 16 px transparent margin). Rebuild the upload package with scripts/store/build.sh; the pictures with scripts/store/shots.mjs and scripts/store/tiles.mjs.
