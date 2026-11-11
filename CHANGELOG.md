@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.4 (2026-11-11)
+
+- **One word for pausing a download.** The toolbar and right-click menu said "Stop", the list said "Paused", the
+  progress window said "Pause" and the bulk buttons said "Stop all" / "Start all". It is now Pause, Paused and Resume
+  everywhere: Pause, Pause all, Resume, Resume all (also in the keyboard help, the warning for sites that cannot
+  resume, the queue dialog and the quit question).
+
 ## 0.7.3 (2026-11-11)
 
 - **Update check no longer fails with "GitHub answered HTTP 403".** GitHub limits anonymous requests to its programming
