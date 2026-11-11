@@ -97,7 +97,7 @@ const (
 // ---- http plumbing -------------------------------------------------------------------------------------------------
 
 var dlAllowedHeaders = map[string]string{"cookie": "Cookie", "referer": "Referer", "user-agent": "User-Agent", "authorization": "Authorization",
-	"accept": "Accept", "accept-language": "Accept-Language", "origin": "Origin"}
+	"accept": "Accept", "accept-language": "Accept-Language", "origin": "Origin", "x-auth-scope": authScopeKey}
 
 func dlCleanHeader(in map[string]string) map[string]string {
 	out := map[string]string{}
@@ -165,7 +165,11 @@ func dlRequest(ctx context.Context, link string, hdr map[string]string) (*http.R
 	req.Header.Set("User-Agent", dlUA())
 	req.Header.Set("Accept", "*/*")
 	req.Header.Set("Accept-Encoding", "identity")
+	scope := hdr[authScopeKey]
 	for k, v := range hdr {
+		if k == authScopeKey || (scope != "" && strings.EqualFold(k, "Authorization") && !dlHostCovers(scope, req.URL.Hostname())) {
+			continue // a login saved for one site is not given to a mirror on another
+		}
 		req.Header.Set(k, v)
 	}
 	return req, nil

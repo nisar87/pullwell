@@ -19,6 +19,8 @@ type dlReq struct {
 	dlAdd
 	Config *dlConfig `json:"config"`
 	Move   string    `json:"move"`
+	// Host names the website of a saved login (actions "loginSet", "loginRemove"; the user name and password come as User and Pass).
+	Host string `json:"host"`
 	// LimitBytes is the speed limit for one download (action "limit").
 	LimitBytes float64 `json:"limitBytes"`
 	// Browser extension settings (actions "extCode", "extRevoke", "extConfig").
@@ -96,9 +98,24 @@ func (m *dlManager) handle(in dlReq) (map[string]any, error) {
 			return nil, errors.New("too many links at once (500 at most)")
 		}
 		var expanded []string
+		var metaAdded []*dlItem
+		metaSkipped := 0
 		for _, u := range urls {
 			if in.Torrent != "" || strings.HasPrefix(strings.ToLower(strings.TrimSpace(u)), "magnet:") {
 				expanded = append(expanded, strings.TrimSpace(u))
+				continue
+			}
+			if dlIsMetalink(u) { // a list of files with their mirrors and checksums
+				base := in.dlAdd
+				base.Name = ""
+				its, sk, err := m.addMetalink(strings.TrimSpace(u), base)
+				if err != nil {
+					if len(urls) == 1 {
+						return nil, err
+					}
+					continue
+				}
+				metaAdded, metaSkipped = append(metaAdded, its...), metaSkipped+sk
 				continue
 			}
 			list, err := dlExpand(strings.TrimSpace(u))
@@ -111,8 +128,8 @@ func (m *dlManager) handle(in dlReq) (map[string]any, error) {
 		if len(urls) > 500 {
 			return nil, errors.New("too many links at once (500 at most)")
 		}
-		var added []*dlItem
-		skipped := 0
+		added := metaAdded
+		skipped := metaSkipped
 		for _, u := range urls {
 			a := in.dlAdd
 			a.URL = u
@@ -171,6 +188,18 @@ func (m *dlManager) handle(in dlReq) (map[string]any, error) {
 		return nil, m.move(in.ID, in.Move)
 	case "limit":
 		return nil, m.setLimit(in.ID, in.LimitBytes)
+	case "loginList":
+		return map[string]any{"logins": savedLogins.list()}, nil
+	case "loginSet":
+		if err := savedLogins.set(in.Host, in.User, in.Pass); err != nil {
+			return nil, err
+		}
+		return map[string]any{"logins": savedLogins.list()}, nil
+	case "loginRemove":
+		if err := savedLogins.remove(in.Host); err != nil {
+			return nil, err
+		}
+		return map[string]any{"logins": savedLogins.list()}, nil
 	case "cancelPower":
 		m.mu.Lock()
 		m.powerAt = 0
@@ -289,6 +318,7 @@ func (m *dlManager) probe(link string, hdr map[string]string, height int) (map[s
 		}
 		h["Authorization"] = auth
 	}
+	h = dlWithSavedLogin(link, h)
 	for _, l := range lines {
 		ctx, cancel := context.WithTimeout(context.Background(), 12*time.Second)
 		if dlIsFTP(link) {

@@ -16,6 +16,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -546,6 +547,7 @@ func (m *dlManager) add(a dlAdd) (*dlItem, error) {
 	if a.Conns < 0 || a.Conns > 16 {
 		a.Conns = 0
 	}
+	a.Header = dlWithSavedLogin(link, a.Header)
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if a.Queue != "" && m.cfg.queue(a.Queue) == nil {
@@ -556,7 +558,7 @@ func (m *dlManager) add(a dlAdd) (*dlItem, error) {
 	}
 	if !a.Force {
 		for _, o := range m.items {
-			if o.URL == link {
+			if o.URL == link || slices.Contains(o.Mirrors, link) { // a download that switched to its mirror is still the same file
 				return nil, errDlDuplicate
 			}
 		}

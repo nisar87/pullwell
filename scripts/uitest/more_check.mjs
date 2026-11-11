@@ -90,13 +90,52 @@ check('and nothing was added yet', !(await items()).some(v => v.url.endsWith('/f
 await js(`document.querySelector('#dlGo').click()`); await sleep(2000);
 const fromBr = (await items()).find(v => v.url.endsWith('/file/70KB'));
 check('Start download adds it with the chosen name', !!fromBr && fromBr.name === 'from-browser.bin', fromBr && fromBr.name);
+// saved logins: kept per website, used without typing, never shown again
+await js(`showOptions('connection')`); await sleep(300);
+check('Options → Connection has a Saved logins row', await js(`document.body.innerText.includes('Saved logins') && !!document.querySelector('[data-dm="logins"]')`));
+await js(`document.querySelector('[data-dm="logins"]').click()`); await sleep(600);
+check('Manage logins opens the dialog', await js(`!!document.querySelector('#lgHost') && !!document.querySelector('#lgPass')`));
+await js(`(() => { document.querySelector('#lgHost').value = 'http://127.0.0.1:8765/some/page'; document.querySelector('#lgUser').value = 'user'; document.querySelector('#lgPass').value = 'pass'; document.querySelector('#lgSave').click(); })()`); await sleep(800);
+check('Save login lists it by site and user name', await js(`document.querySelector('#lgList').innerText.includes('127.0.0.1') && document.querySelector('#lgList').innerText.includes('user')`));
+check('and the page never holds the password', !(await js(`document.documentElement.outerHTML`)).includes('>pass<') && !JSON.stringify(await call({action: 'loginList'})).includes('pass'));
+await js('dlClose()');
+const lgAdd = await call({action: 'add', urls: [fx + '/auth/90KB'], force: true});
+const lgId = lgAdd.added && lgAdd.added[0].id; await sleep(3500);
+check('a protected link then downloads without typing the login', !!lgId && (await items()).find(v => v.id === lgId)?.state === 'done', JSON.stringify((await items()).find(v => v.id === lgId) || lgAdd).slice(0, 200));
+await js(`dlLogins()`); await sleep(600);
+await js(`document.querySelector('[data-lg="del"]').click()`); await sleep(400); await js(`document.querySelector('#askYes').click()`); await sleep(800);
+check('Remove deletes the login', (await call({action: 'loginList'})).logins.length === 0 && await js(`document.querySelector('#lgList').innerText.includes('No logins saved yet')`));
+await js('dlClose()');
+// a speed limit typed in Properties and in Add with options
+const limAdd = await call({action: 'add', urls: [fx + '/slow/3MB?bps=100000'], force: true, start: false});
+const limId = limAdd.added && limAdd.added[0].id;
+await js(`loadDL()`); await sleep(400);
+await js(`dlProps('${limId}')`); await sleep(500);
+check('Properties has a speed limit field', await js(`!!document.querySelector('#pLim')`));
+await js(`document.querySelector('#pLim').value = '300'; document.querySelector('#pSave').click()`); await sleep(900);
+check('saving it sets the limit in KB/s', Math.round(((await items()).find(v => v.id === limId) || {}).limit) === 300 * 1024, String(((await items()).find(v => v.id === limId) || {}).limit));
+await js(`loadDL()`); await sleep(400);
+await js(`dlProps('${limId}')`); await sleep(500);
+check('and shows it again', await js(`document.querySelector('#pLim').value === '300'`));
+await js(`document.querySelector('#pLim').value = 'fast'; document.querySelector('#pSave').click()`); await sleep(500);
+check('text that is not a number is refused', await js(`!!document.querySelector('#pLim') && document.querySelector('#toast') && /number/i.test(document.querySelector('#toast').innerText)`));
+await js('dlClose()');
+await js(`dlOptions()`); await sleep(400);
+check('Add with options has a speed limit field', await js(`!!document.querySelector('#oLim')`));
+await js('dlClose()');
+// a Metalink link adds the files it lists, using the working address
+const meta = await call({action: 'add', urls: [fx + '/meta/110KB.meta4']});
+await sleep(3500);
+const metaItem = (await items()).find(v => v.name === 'meta-110KB.bin');
+check('a Metalink link adds its file under the name it gives', !!metaItem, JSON.stringify(meta).slice(0, 160));
+check('and downloads it from the address that works', !!metaItem && metaItem.state === 'done' && metaItem.size === 110 * 1024, metaItem && metaItem.state + ' ' + metaItem.size);
 // every dialog is one of four widths, and the Options window keeps its size on every tab
 const cardSize = async () => await js(`(() => { const c = document.querySelector('#dlDlg .card'); if (!c) return null; const r = c.getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)]; })()`);
 const optSizes = [];
 for (const t of ['general', 'connection', 'schedule', 'browser', 'torrents', 'updates', 'advanced']) { await js(`showOptions('${t}')`); await sleep(300); optSizes.push((await cardSize()).join('x')); await js('dlClose()'); }
 check('the Options window is the same size on every tab', new Set(optSizes).size === 1, optSizes.join(' '));
 const widths = {};
-for (const [n, e] of [['add', `addDialog('')`], ['more', `dlOptions()`], ['props', `dlProps(DL.items[0].id)`], ['queues', `dlQueues()`], ['grab', `dlGrab()`], ['folders', `dlFolders()`], ['browser', `extConnect()`], ['about', `aboutBox()`], ['shortcuts', `shortcutsBox()`], ['rename', `renameBox(DL.items[0])`]]) {
+for (const [n, e] of [['add', `addDialog('')`], ['more', `dlOptions()`], ['props', `dlProps(DL.items[0].id)`], ['queues', `dlQueues()`], ['logins', `dlLogins()`], ['grab', `dlGrab()`], ['folders', `dlFolders()`], ['browser', `extConnect()`], ['about', `aboutBox()`], ['shortcuts', `shortcutsBox()`], ['rename', `renameBox(DL.items[0])`]]) {
   await js(`void (${e}); 1`); await sleep(400); const z = await cardSize(); if (z) widths[n] = z[0]; await js('dlClose()');
 }
 check('dialogs use only four widths (440, 520, 600, 720)', Object.values(widths).every(w => [440, 520, 600, 720].includes(w)), JSON.stringify(widths));

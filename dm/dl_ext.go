@@ -301,6 +301,16 @@ func (m *dlManager) addFromBrowser(link, referrer, cookie, ua, name string) (map
 	if refused := m.refusedForUs(link, h); refused != "" {
 		return nil, errors.New(refused)
 	}
+	if dlIsMetalink(link) { // the file lists what to download: add those files (no box: the person asked for the list)
+		its, _, err := m.addMetalink(link, dlAdd{Header: h, FromWeb: true})
+		if err != nil {
+			return nil, err
+		}
+		if len(its) == 0 {
+			return map[string]any{"ok": true, "duplicate": true}, nil // all of them are in the list already
+		}
+		return map[string]any{"ok": true, "id": its[0].ID}, nil
+	}
 	if ext.asks() {
 		// Like IDM: the person sees the "Download file info" box first (a wrong click costs nothing). The browser's own
 		// download is cancelled once we answer ok, so the link waits here until the window takes it.
