@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.1 (2026-11-11)
+
+- **Sites that refuse Pullwell (for example testfile.org).** When a site answers "refused" (HTTP 401/403), Pullwell
+  now asks again the way a browser does (with the site's own address as the page it came from, then browser-style
+  headers, then without a range request) before giving up. The message now shows the HTTP status and server, so the
+  cause is visible. For a browser download, if the site still refuses Pullwell, the browser keeps its own download
+  instead of the download being lost.
+- **No download button on YouTube.** YouTube plays video in small separate pieces, so the button could only say "No
+  video link found" there. It no longer appears on YouTube.
+
 ## 0.7.0 (2026-11-11)
 
 - **Ask before a browser download starts.** A download the browser extension takes over now opens the "Download file

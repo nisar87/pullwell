@@ -295,7 +295,7 @@ func (m *dlManager) addFromBrowser(link, referrer, cookie, ua, name string) (map
 	if err := dlRefuseLocalTarget(link); err != nil {
 		return nil, err
 	}
-	// A site that refuses Pullwell even after the retries (a login wall, bot protection) would leave the person with a
+	// A site that refuses us even after the retries (a login wall, bot protection) would leave the person with a
 	// dead "Download file info" box and a cancelled browser download. Ask the site once now, briefly; when it refuses,
 	// say no, and the extension lets the browser carry on with its own download (it has the person's sign-in).
 	if refused := m.refusedForUs(link, h); refused != "" {
@@ -332,7 +332,7 @@ func (m *dlManager) addFromBrowser(link, referrer, cookie, ua, name string) (map
 	return map[string]any{"ok": true, "id": it.ID}, nil
 }
 
-// refusedForUs returns a message when the site answers 401/403 to every way Pullwell asks; "" otherwise (including
+// refusedForUs returns a message when the site answers 401/403 to every way we ask; "" otherwise (including
 // when the check itself could not run: no line, timeout, other errors - those are handled by the normal flow).
 func (m *dlManager) refusedForUs(link string, h map[string]string) string {
 	if dlIsFTP(link) || len(m.lines()) == 0 {
@@ -347,7 +347,7 @@ func (m *dlManager) refusedForUs(link string, h map[string]string) string {
 	var he dlHTTPErr
 	if errors.As(err, &he) && (he.Code == 401 || he.Code == 403) {
 		msg, _ := dlFriendly(err)
-		hLog("browser download %s refused for Pullwell: %s", dlHostOf(link), msg)
+		hLog("browser download %s refused by the site: %s", dlHostOf(link), msg)
 		return msg
 	}
 	return ""
