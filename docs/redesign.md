@@ -71,7 +71,7 @@ Layout:
 +--------------------------------------------------------------------------------+
 | [mark] Pullwell   Tasks  Downloads  View  Tools  Help        [ search      ]   |  top bar
 +--------------------------------------------------------------------------------+
-| [+ New download]  Resume  Stop  Delete  |  Start all  Stop all  Clear finished  ...  Queues Grab Options |
+| [+ New download]  Resume  Pause  Delete  |  Resume all  Pause all  Clear finished  ...  Queues Grab Options |
 +--------------+-----------------------------------------------------------------+
 | Library      | Name                          Size   Progress        Speed  Left |
 |  All      12 | [zip] holiday-photos.zip      14 MB  ────────── Done           |
@@ -102,7 +102,7 @@ Shift+Del, F2, F5, Ctrl+N, Insert, Ctrl+V), right-click menu, drag and drop of l
 (update ready/installing, shutdown, downloads waiting), status bar (counts, speed, sparkline, limit menu,
 download folder), empty state with Connect a browser.
 
-0.5.0: text size (4 levels), Website column, non-resumable warnings (Stop, Stop all, progress window), Can resume
+0.5.0: text size (4 levels), Website column, non-resumable warnings (Pause, Pause all, progress window), Can resume
 line, Open when finished (add dialog, remembered; right-click), safety (programs only revealed; checksum-gated),
 Move to another folder, Check the checksum, partial-file names and takeover (engine, untouched).
 
@@ -117,7 +117,7 @@ Engine, API, Windows integration, update and release files: not touched.
 - `ui/app.css`: rewritten around tokens (colour, type, radius, row height, shadows) for light and dark; the
   Windows theme setting still decides between them, and View > Theme still overrides it.
 - `ui/index.html`: a top bar (mark, name, menus, search) and a command bar with one primary action
-  (New download), the list commands, the bulk commands (Start all, Stop all, Clear finished) and the tools on the
+  (New download), the list commands, the bulk commands (Resume all, Pause all, Clear finished) and the tools on the
   right. Labels collapse by the window's own width, so they also fit at the larger text sizes.
 - `ui/app.js`:
   - the flow line in the Progress column, with the engine's part map folded to at most 16 cells

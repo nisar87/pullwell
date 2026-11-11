@@ -330,7 +330,7 @@ async function doStop(){
 async function confirmNoResume(list){
   const lose = list.filter(v => v.state === 'downloading' && v.noResume && v.done > 0);
   if (!lose.length) return true;
-  const r = await askBox({title: lose.length === 1 ? `Stop "${lose[0].name}"?` : `Stop ${lose.length} downloads?`, text: `${lose.length === 1 ? 'This website does' : 'These websites do'} not allow resuming: when ${lose.length === 1 ? 'it starts' : 'they start'} again, ${lose.length === 1 ? 'it starts' : 'they start'} from the beginning (${bytes(lose.reduce((a, v) => a + v.done, 0))} downloaded so far).`, ok: 'Stop anyway', danger: true});
+  const r = await askBox({title: lose.length === 1 ? `Pause "${lose[0].name}"?` : `Pause ${lose.length} downloads?`, text: `${lose.length === 1 ? 'This website does' : 'These websites do'} not allow resuming: when ${lose.length === 1 ? 'it starts' : 'they start'} again, ${lose.length === 1 ? 'it starts' : 'they start'} from the beginning (${bytes(lose.reduce((a, v) => a + v.done, 0))} downloaded so far).`, ok: 'Pause anyway', danger: true});
   return r.ok;
 }
 async function doDelete(withFiles){
@@ -400,7 +400,7 @@ function rowMenu(x, y){
     {t:'Open folder', off: !(one && one.path), do: () => openItem(one, true)},
     '-',
     {t:'Resume', off: !any(v => v.state === 'paused' || v.state === 'error'), do: doResume},
-    {t:'Stop', off: !any(v => v.state === 'downloading' || v.state === 'queued'), do: doStop},
+    {t:'Pause', off: !any(v => v.state === 'downloading' || v.state === 'queued'), do: doStop},
     '-',
     {t:'Move to top', off: !movable, do: () => eachSel('move', {move:'top'})},
     {t:'Move up', off: !movable, do: () => eachSel('move', {move:'up'})},
@@ -426,8 +426,8 @@ function listMenu(x, y){
     {t:'Add a torrent file…', do: pickTorrent},
     '-',
     {t:'Select all', k:'Ctrl+A', off: !visible.length, do: () => { visible.forEach(id => sel.add(id)); render(); }},
-    {t:'Start all', off: !DL.items.some(v => v.state === 'paused' || v.state === 'error'), do: () => dlAct({action:'resumeAll'})},
-    {t:'Stop all', off: !DL.items.some(v => v.state === 'downloading' || v.state === 'queued'), do: () => command('stopall')},
+    {t:'Resume all', off: !DL.items.some(v => v.state === 'paused' || v.state === 'error'), do: () => dlAct({action:'resumeAll'})},
+    {t:'Pause all', off: !DL.items.some(v => v.state === 'downloading' || v.state === 'queued'), do: () => command('stopall')},
   ]);
 }
 /* ---------- rename ---------- */
@@ -524,7 +524,7 @@ function paintProgress(){
     ['Speed', v.state === 'downloading' ? bytes(v.speed || 0) + '/s' + (v.limit ? ' (limit ' + bytes(v.limit) + '/s)' : '') : '–'],
     ['Time left', v.state === 'downloading' ? (dur(leftOf(v)) || 'working it out') : '–'],
     ['Connections', v.state === 'downloading' ? String(conns || 1) : '–'],
-    ['Can resume', v.state === 'done' ? '–' : v.noResume ? 'No: stopping starts it again from the beginning' : v.state === 'downloading' ? 'Yes' : '–'],
+    ['Can resume', v.state === 'done' ? '–' : v.noResume ? 'No: pausing starts it again from the beginning' : v.state === 'downloading' ? 'Yes' : '–'],
     ['Saved as', v.path || '(decided when the download starts)'],
   ];
   setHTML($('#pgGrid'), rows.filter(Boolean).map(([k, t]) => `<div class="${k === 'Saved as' || k === 'Problem' ? 'wide' : ''}"><span class="k">${k}</span><span class="v ${k === 'Problem' ? 'bad' : k === 'Can resume' && v.noResume && v.state !== 'done' ? 'warnv' : ''}" title="${esc(t)}">${esc(t)}</span></div>`).join(''));
@@ -562,7 +562,7 @@ async function command(c){
     case 'add': return addDialog('');
     case 'resume': return doResume();
     case 'stop': return doStop();
-    case 'stopall': if (!(await confirmNoResume(DL.items))) return; return dlAct({action:'pauseAll'}, 'All stopped');
+    case 'stopall': if (!(await confirmNoResume(DL.items))) return; return dlAct({action:'pauseAll'}, 'All paused');
     case 'startall': return dlAct({action:'resumeAll'}, 'All started');
     case 'del': return doDelete(false);
     case 'delfin': { const n = DL.items.filter(v => v.state === 'done').length; const r = await askBox({title:`Remove ${n} finished download${n === 1 ? '' : 's'} from the list?`, text:'The files stay on your disk.', ok:'Clear'}); if (r.ok) dlAct({action:'clear'}, 'Finished downloads cleared'); return; }
@@ -574,7 +574,7 @@ async function command(c){
 async function openFolder(which){ try { await api('app', {open: which}); } catch(e){ toast(e.message, true); } }
 async function quitApp(){
   const n = busy();
-  const r = await askBox({title:`Quit ${APP.name}?`, text: (n ? `${n} download${n === 1 ? ' stops' : 's stop'} and continue${n === 1 ? 's' : ''} the next time you start ${APP.name}. ` : '') + 'Downloads from the browser are not caught while it is closed.', ok:'Quit'});
+  const r = await askBox({title:`Quit ${APP.name}?`, text: (n ? `${n} download${n === 1 ? ' is paused' : 's are paused'} and continue${n === 1 ? 's' : ''} the next time you start ${APP.name}. ` : '') + 'Downloads from the browser are not caught while it is closed.', ok:'Quit'});
   if (!r.ok) return;
   try { await api('app', {quit: true}); } catch(e){ return toast(e.message, true); }
   document.body.innerHTML = `<div class="empty" style="padding-top:20vh">${esc(APP.name)} has been closed. You can close this window.</div>`;
@@ -589,7 +589,7 @@ async function redownload(){
   await loadDL(); if (n) toast(n === 1 ? 'Downloading again' : `${n} downloading again`);
 }
 function shortcutsBox(){
-  const K = [['Ctrl+N or Insert','Add a download'],['Ctrl+V','Add the link you copied'],['Enter','Open the file (or its progress, when not finished)'],['F2','Rename'],['Alt+Enter','Properties'],['Space','Stop or resume'],['Delete','Delete from the list'],['Shift+Delete','Delete with the file'],['Ctrl+A','Select all'],['↑ ↓ Home End','Move in the list (Shift: select)'],['Ctrl+F','Search'],['F5','Refresh'],['Alt or F10','Menu bar (then arrows, Enter, Escape)'],['Alt+T, D, V, O, H','Open Tasks, Downloads, View, Tools, Help'],['Shift+F10','Menu for the selected downloads'],['Escape','Close a dialog or menu; clear the selection']];
+  const K = [['Ctrl+N or Insert','Add a download'],['Ctrl+V','Add the link you copied'],['Enter','Open the file (or its progress, when not finished)'],['F2','Rename'],['Alt+Enter','Properties'],['Space','Pause or resume'],['Delete','Delete from the list'],['Shift+Delete','Delete with the file'],['Ctrl+A','Select all'],['↑ ↓ Home End','Move in the list (Shift: select)'],['Ctrl+F','Search'],['F5','Refresh'],['Alt or F10','Menu bar (then arrows, Enter, Escape)'],['Alt+T, D, V, O, H','Open Tasks, Downloads, View, Tools, Help'],['Shift+F10','Menu for the selected downloads'],['Escape','Close a dialog or menu; clear the selection']];
   dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts" style="max-width:520px"><h3>Keyboard shortcuts</h3>
     <div class="keys-tbl">${K.map(k => `<kbd>${esc(k[0])}</kbd><span>${esc(k[1])}</span>`).join('')}</div>
     <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn pri" id="kbOk" autofocus>Close</button></div></div>`);
@@ -634,11 +634,11 @@ const BAR_MENUS = {
       {t:'Open folder', off: !(one && one.path), do: () => openItem(one, true)},
       '-',
       {t:'Resume', k:'Space', off: !any(v => v.state === 'paused' || v.state === 'error'), do: doResume},
-      {t:'Stop', k:'Space', off: !any(v => v.state === 'downloading' || v.state === 'queued'), do: doStop},
+      {t:'Pause', k:'Space', off: !any(v => v.state === 'downloading' || v.state === 'queued'), do: doStop},
       {t:'Download again', off: !any(canRedo), do: redownload},
       '-',
-      {t:'Start all', off: !DL.items.some(v => v.state === 'paused' || v.state === 'error'), do: () => command('startall')},
-      {t:'Stop all', off: !DL.items.some(v => v.state === 'downloading' || v.state === 'queued'), do: () => command('stopall')},
+      {t:'Resume all', off: !DL.items.some(v => v.state === 'paused' || v.state === 'error'), do: () => command('startall')},
+      {t:'Pause all', off: !DL.items.some(v => v.state === 'downloading' || v.state === 'queued'), do: () => command('stopall')},
       '-',
       {t:'Queue', off: !any(v => v.state !== 'done'), sub: qs.map(qq => ({t: qq.name, chk: curQ === qq.id, do: () => eachSel('setQueue', {queue: qq.id}, 'Moved')}))},
       {t:'Speed limit', off: !any(v => v.state !== 'done'), sub: LIMITS.map(l => ({t: limitLabel(l), chk: Math.abs(curLim - l * 1048576) < 1, do: () => eachSel('limit', {limitBytes: l * 1048576}, l ? 'Limit set' : 'Limit removed')}))},

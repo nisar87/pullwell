@@ -121,7 +121,7 @@ const doneRow = await js(`(() => { const r = [...document.querySelectorAll('#tb 
 await click(doneRow[0], doneRow[1]); await sleep(200);
 p = await center('#menubar [data-mb="downloads"]'); await click(p[0], p[1]); await sleep(150);
 const st = await js(`Object.fromEntries([...document.querySelectorAll('.ctx > button')].map(b => [b.textContent.replace(/(Enter|Space|Alt\\+Enter|Ctrl\\+A|Shift\\+Del|Del)$/, '').trim(), !b.disabled]))`);
-check('Downloads: Open and Download again on for a finished file, Resume and Stop off', st.Open && st['Download again'] && !st.Resume && !st.Stop, JSON.stringify(st));
+check('Downloads: Open and Download again on for a finished file, Resume and Pause off', st.Open && st['Download again'] && !st.Resume && !st.Pause, JSON.stringify(st));
 await shot('m03-downloads');
 const n0 = await js('document.querySelectorAll("#tb tr").length');
 await clickEntry('Download again'); await sleep(200);

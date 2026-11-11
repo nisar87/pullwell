@@ -31,7 +31,7 @@ Gate: all rows ✅, or a bug found, fixed, released through the self-update and 
 
 | | Item |
 | --- | --- |
-| ✅ | A menu bar above the toolbar: **Tasks** (Add URL, Add batch, Add torrent, Grabber, Import/Export list, Exit), **Downloads** (Resume, Stop, Stop all, Start all, Delete, Delete completed, Redownload, Properties, Queue, Speed limit), **View** (categories panel, toolbar labels, columns, theme, refresh), **Tools** (Scheduler, Options, Connect a browser, Open download folder, Open log), **Help** (Keyboard shortcuts, Check for updates, About) |
+| ✅ | A menu bar above the toolbar: **Tasks** (Add URL, Add batch, Add torrent, Grabber, Import/Export list, Exit), **Downloads** (Resume, Pause, Pause all, Resume all, Delete, Delete completed, Redownload, Properties, Queue, Speed limit), **View** (categories panel, toolbar labels, columns, theme, refresh), **Tools** (Scheduler, Options, Connect a browser, Open download folder, Open log), **Help** (Keyboard shortcuts, Check for updates, About) |
 | ✅ | Works with the mouse and the keyboard (Alt opens it, arrows move, Enter chooses, Escape closes), shows shortcuts |
 | ✅ | The design stays our own; IDM was only the reference for how things are found |
 
@@ -92,6 +92,6 @@ on a profile without a startup list, and Uninstall right after a start could lea
 | ✅ | Open when finished (programs are only shown in their folder; a file with a checksum only when it matched) |
 | ✅ | Move a finished file to another folder or drive (Windows check: C: to D:) |
 | ✅ | Check a finished file's checksum afterwards |
-| ✅ | Downloads that cannot resume are marked; Stop asks first |
+| ✅ | Downloads that cannot resume are marked; Pause asks first |
 | ✅ | View → Text size; Website column |
 | ✅ | Partial files named after the program (`.pullwell-part`), older ones taken over |
