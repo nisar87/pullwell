@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.1 (2026-11-12)
+
+- **Languages: English and اردو only.** The first release carried five more languages (Español, Français, Deutsch,
+  Português, العربية). They are removed: every language has to be proofread and tested on every change, and that is
+  more than one person can keep up with. Choosing one of them now falls back to English. The translation system
+  is unchanged, so another language can be added later by adding one file.
+
 ## 0.9.0 (2026-11-12)
 
 - **Languages.** Español, Français, Deutsch, Português (Brasil), العربية and اردو (right-to-left, mirrored layout) for the
