@@ -46,7 +46,7 @@ stop_app() {
 
 failed=0
 summary="$out/summary.txt"; : > "$summary"
-for c in ui_check menu_check prog_check feat_check flows_check more_check; do
+for c in ui_check menu_check prog_check feat_check flows_check more_check lang_check; do
   if ! start_app "$c"; then echo "$c: the window did not start" | tee -a "$summary"; failed=1; continue; fi
   mkdir -p "$out/$c"; node "$here/$c.mjs" $dbg $app $fx "$out/$c" > "$out/$c.txt" 2>&1
   rc=$?

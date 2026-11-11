@@ -119,7 +119,7 @@ async function dlProps(id){
   let v = v0;
   if (v0.kind === 'torrent' && v0.nFiles) { const r = await dlAct({action:'files', id}); if (r && r.files) v = {...v0, files: r.files, select: r.select, trackers: r.trackers, priv: r.private, pieceLen: r.pieceLen}; }
   const cfg = DL.config, edit = v.state !== 'done';
-  const when = t => t ? new Date(t*1000).toLocaleString() : '-';
+  const when = t => t ? new Date(t*1000).toLocaleString(I18N.locale) : '-';
   const sh = dlLineShare(v);
   dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Properties" style="max-width:720px;max-height:calc(92vh / var(--zoom, 1));overflow:auto"><h3 style="margin:0;word-break:break-all">${esc(v.name || 'Download')}</h3>
     <div class="hint2" style="margin:4px 0 10px;word-break:break-all">${esc(v.url)}</div>
@@ -145,7 +145,7 @@ async function dlProps(id){
       <label class="hint2">The link stopped working? Paste a new link for the same file: what is already downloaded is kept. ${v.state === 'downloading' ? '<b>Pause the download first.</b>' : ''}<div class="row" style="gap:8px;margin-top:4px"><input class="inp" id="pLink" style="flex:1" placeholder="https://…" spellcheck="false"><button class="btn" id="pRelink"${v.state==='downloading'?' disabled':''}>Use this link</button></div></label>
     </div>` : ''}
     <h4 style="margin:14px 0 6px">What happened</h4>
-    <div class="scrollbox" style="max-height:200px;overflow:auto;font-size:12.5px">${(v.log||[]).length ? (v.log||[]).slice().reverse().map(l => `<div style="padding:2px 0"><span class="hint2">${new Date(l.t*1000).toLocaleTimeString()}</span> &nbsp;${esc(l.s)}</div>`).join('') : '<div class="hint2">Nothing yet.</div>'}</div>
+    <div class="scrollbox" style="max-height:200px;overflow:auto;font-size:12.5px">${(v.log||[]).length ? (v.log||[]).slice().reverse().map(l => `<div style="padding:2px 0"><span class="hint2">${new Date(l.t*1000).toLocaleTimeString(I18N.locale)}</span> &nbsp;${esc(l.s)}</div>`).join('') : '<div class="hint2">Nothing yet.</div>'}</div>
     <div class="row" style="justify-content:flex-end;gap:8px;margin-top:14px"><button class="btn pri" id="dlCancel">Close</button></div></div>`);
   $('#dlCancel').onclick = dlClose;
   if ($('#tfSave')) $('#tfSave').onclick = async () => { const sel = $$('.tfSel').map(b => b.checked); const r = await dlAct({action:'select', id, select: sel}, 'Saved'); if (r !== null) dlClose(); };

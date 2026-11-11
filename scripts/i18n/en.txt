@@ -1,0 +1,658 @@
+1|"{0}" is a program or script. Only open it if you trust the website it came from.
+2|"{0}" is moved into the folder you type (it is made if needed).
+3|(Edge:
+4|(decided when the download starts)
+5|(it goes into your download folder, which then opens):
+6|(main folder / {0})
+7|(none ticked = every day)
+8|(not decided yet)
+9|(or in its tools folder) to get one file.
+10|(paused)
+11|(the puzzle piece in the toolbar), click it and type this code:
+12|, click
+13|, drop a link or a .torrent file here, or choose
+14|, switch on
+15|, {0} already here or not usable
+16|, {0} already in your list
+17|, {0} seeds
+18|, {0} waiting
+19|A download manager for Windows. No telemetry and no account: it contacts only the sites you download from, and GitHub to look for updates.
+20|A folder you choose while adding a download always wins. Then a website's folder, then the folder for the type, then your main folder ({0}).
+21|A notification from {0}.
+22|A password is only used for this link and is not shown again.
+23|A queue is a group of downloads with its own hours. Downloads in no queue (the main queue) follow your general settings. Put a download in a queue from its Properties, or when you add it.
+24|A user name and password kept for a website, used for every download from it. They stay on this PC, protected by your Windows account.
+25|About
+26|Add a download
+27|Add a download (Ctrl+N, or Ctrl+V with a link copied)
+28|Add a queue
+29|Add a torrent file…
+30|Add a website
+31|Add or change a login
+32|Add the link you copied
+33|Add torrent
+34|Add with options
+35|Add with options…
+36|Add, start later
+37|Added
+38|Added to the Start menu
+39|Adding it again makes a second copy.
+40|Advanced
+41|All ({0})
+42|All downloads
+43|All downloads limited to
+44|All files
+45|All paused
+46|All queues
+47|All started
+48|Allow torrents
+49|Already in your list
+50|Also delete the download list, settings and log
+51|Also delete the file from the disk
+52|Also delete the {0} finished file{1} from the disk
+53|Appearance
+54|Archives
+55|Ask before a browser download starts
+56|At once
+57|Automatic
+58|Best ({0}p)
+59|Big downloads in Chrome, Edge, Brave or Firefox go to {0} once the extension is connected. If {1} is not running, the browser downloads as usual.
+60|Bring up its window with Open and Open folder as soon as it finishes (also when the window is closed).
+61|Browser
+62|By type
+63|By website
+64|Can resume
+65|Cancel
+66|Cancel shutdown
+67|Carried by
+68|Categories
+69|Categories panel
+70|Change in Options
+71|Check
+72|Check for updates
+73|Check now
+74|Check the checksum
+75|Check the checksum…
+76|Checking checksum…
+77|Checking the link
+78|Checking the link…
+79|Checking…
+80|Checksum
+81|Checksum (optional)
+82|Checksum OK
+83|Checksum does NOT match: do not open
+84|Choose at least one file
+85|Choose folders
+86|Choose folders…
+87|Clear
+88|Clear finished
+89|Cleared
+90|Click to set a speed limit for all downloads
+91|Close
+92|Close a dialog or menu; clear the selection
+93|Columns
+94|Comfortable
+95|Commands
+96|Compact
+97|Complete
+98|Connect a browser
+99|Connect a browser…
+100|Connected browsers
+101|Connected {0}{1}
+102|Connection
+103|Connections
+104|Connections per download
+105|Copied links are not offered
+106|Copied links will be offered
+107|Copied: paste it in a new browser tab
+108|Copy
+109|Copy link
+110|Could not check for updates.
+111|Could not copy
+112|Dark
+113|Days
+114|Delete
+115|Delete from the list
+116|Delete queue
+117|Delete the queue "{0}"?
+118|Delete the selected downloads (Del)
+119|Delete with file
+120|Delete with the file
+121|Deleted with files
+122|Description
+123|Developer mode
+124|Disconnect
+125|Disconnect this browser?
+126|Disconnected
+127|Do nothing
+128|Documents
+129|Does not start with Windows
+130|Done
+131|Done once, after the last download. A shutdown gives you one minute to cancel.
+132|Download
+133|Download "{0}" again?
+134|Download again
+135|Download file info
+136|Download hours
+137|Download later
+138|Download now
+139|Download only the ticked files
+140|Download selected
+141|Download started
+142|Download {0} files again?
+143|Downloaded
+144|Downloading
+145|Downloading again
+146|Downloading… {0}%
+147|Downloads
+148|Downloads are waiting:
+149|Downloads at the same time
+150|Downloads from that website will ask for a login again. Nothing already downloaded is touched.
+151|Downloads from the browser are not caught while it is closed.
+152|Error
+153|Everything
+154|Everything in that list is already here
+155|Failed
+156|File name
+157|File size
+158|File types
+159|Files
+160|Files in this torrent
+161|Find
+162|Find links on a page
+163|Find links on a web page
+164|Find links on a web page…
+165|Find the files a web page links to
+166|Finished
+167|Finished downloads cleared
+168|Folder
+169|Folder saved
+170|Folders
+171|Folders for types and websites
+172|Folders for types and websites…
+173|For a website that asks for a user name and password. It is used for every download from that website and its subdomains, and is never sent to another website. Passwords stay on this PC, protected by your Windows account, and are never shown again.
+174|For example a virus scanner. Use
+175|For example a virus scanner. Write the program and use
+176|For example at night. Downloads outside these hours wait.
+177|For torrents only.
+178|Forget
+179|Forgotten
+180|Found. Videos with a separate sound track are joined into one file.
+181|Found: web videos with a separate sound track are joined into one file.
+182|Fri
+183|General
+184|Go back
+185|Go back to the previous version
+186|Go back to the previous version?
+187|Going back…
+188|Grab links
+189|Grab links from a web page…
+190|Groups of downloads with their own hours and days, for example “Night” (23:00 to 06:00) or “Weekend”. {0} queue{1}.
+191|Groups of downloads with their own hours and days, for example “Night”. {0} queue{1}.
+192|Help
+193|How many parallel connections one file uses. Some websites refuse many; {0} lowers it by itself. Recommended: 8.
+194|If a file with that name is already there
+195|If the file exists
+196|If the new version gives trouble. You can come back to this one the same way.
+197|Images
+198|Install and restart
+199|Install updates by themselves
+200|Installing the update…
+201|Installing version {0}.
+202|Installing: {0} restarts in a moment.
+203|Its downloads move to the main queue. Nothing is deleted from your disk.
+204|Its extension stops sending downloads until you connect it again.
+205|Keep both
+206|Keep both (adds a number), replace the old file, or skip the new download.
+207|Keep the PC awake while downloading
+208|Keeps some speed free for everything else.
+209|Keyboard shortcuts
+210|Kind of file
+211|Language
+212|Large
+213|Larger
+214|Leave empty to start now
+215|Library
+216|Light
+217|Limit
+218|Limit removed
+219|Limit set
+220|Link changed
+221|Link copied
+222|Links copied
+223|List saved:
+224|Load a list…
+225|Load list
+226|Load list…
+227|Login removed
+228|Login saved
+229|Looking…
+230|Main queue
+231|Manage logins…
+232|Manage queues
+233|Manage queues…
+234|Menu
+235|Menu bar (then arrows, Enter, Escape)
+236|Menu for the selected downloads
+237|Mon
+238|More
+239|More options…
+240|More than 3 can slow each one down. Recommended: 3.
+241|Move
+242|Move down
+243|Move in the list (Shift: select)
+244|Move to another folder
+245|Move to another folder…
+246|Move to top
+247|Move up
+248|Moved
+249|Music
+250|Name
+251|Needs attention
+252|New download
+253|New downloads go into a folder for their type (Videos, Programs …) when that is on.
+254|New download…
+255|Newest first
+256|Next try
+257|No downloads yet
+258|No limit
+259|No logins saved yet.
+260|No matching links found on that page.
+261|No proxy
+262|No queues yet.
+263|No speed limit
+264|No websites yet.
+265|No: pausing starts it again from the beginning
+266|None yet.
+267|Normal
+268|Not available for this copy of {0}.
+269|Not checked yet.
+270|Not found. Videos with a separate sound track are saved as two files. Put ffmpeg next to
+271|Not found: such videos are saved as two files. Put ffmpeg.exe next to {0} to join them.
+272|Nothing here.
+273|Nothing matches your search.
+274|Nothing remembered.
+275|Nothing yet.
+276|Notification when finished
+277|Notify me when a download finishes
+278|Notify when finished
+279|Offer copied links
+280|Offer links I copy
+281|Only between
+282|Only download at certain hours
+283|Only files bigger than
+284|Open
+285|Open Tasks, Downloads, View, Tools, Help
+286|Open a program?
+287|Open folder
+288|Open it when it has finished
+289|Open the download folder
+290|Open the file (or its progress, when not finished)
+291|Open the log folder
+292|Open when finished
+293|Opens when finished
+294|Optional
+295|Options
+296|Options…
+297|Other
+298|Other addresses of the same file (mirrors, one per line)
+299|Other addresses of the same file (mirrors, one per line). They are tried if the first fails.
+300|Page address
+301|Parts of the file
+302|Parts of the file already downloaded
+303|Password
+304|Paste
+305|Paste a link (http, https, ftp or magnet). Several links: one per line.
+306|Paste a link first
+307|Paste a link with
+308|Paste the checksum the website gives for this file (SHA-256, SHA-1, MD5 or SHA-512). The result shows in the Description column.
+309|Pause
+310|Pause "{0}"?
+311|Pause all
+312|Pause anyway
+313|Pause every download
+314|Pause or resume
+315|Pause the download first.
+316|Pause the selected downloads (Space)
+317|Pause {0} downloads?
+318|Paused
+319|Peers
+320|Picture and sound are joined with ffmpeg.
+321|Pieces
+322|Pieces you already have go out to others while the rest comes in.
+323|Pin the {0} icon
+324|Press Ctrl+V in the box
+325|Problem
+326|Problems are always shown.
+327|Program to run after a download
+328|Programs
+329|Progress
+330|Properties
+331|Proxy
+332|Proxy saved
+333|Put the PC to sleep
+334|Quality
+335|Queue
+336|Queue name
+337|Queue order
+338|Queues
+339|Queues and their hours
+340|Queues saved
+341|Quit
+342|Quit {0}?
+343|Recent events
+344|Refresh
+345|Releases
+346|Remove
+347|Remove all finished downloads from the list (the files stay)
+348|Remove the login for {0}
+349|Remove the login for {0}?
+350|Remove {0} finished download{1} from the list?
+351|Removed from list
+352|Removed from the Start menu
+353|Removes the Start menu entry, the startup entry and the program file. Your downloaded files stay where they are.
+354|Rename
+355|Renamed
+356|Rename…
+357|Replace the old file
+358|Report a problem…
+359|Reset widths
+360|Resume
+361|Resume all
+362|Resume all in this queue
+363|Resume every paused download
+364|Resume the selected downloads (Space)
+365|Retry soon
+366|Row spacing
+367|Run a program after each download
+368|Run this after every finished download?
+369|SHA-256, SHA-1 or MD5
+370|SHA-256, SHA-1 or MD5 from the website (optional)
+371|Same as Windows
+372|Sat
+373|Save
+374|Save downloads in
+375|Save in
+376|Save in (leave empty for the usual folder)
+377|Save list
+378|Save list…
+379|Save login
+380|Save the extension
+381|Save the list of downloads to a file, or load one (also a text file with one link per line).
+382|Save the list of downloads to a file, or load one (from this app, or a text file with one link per line).
+383|Save the list…
+384|Save these
+385|Saved
+386|Saved as
+387|Saved logins
+388|Saving to {0}
+389|Schedule
+390|Scheduler
+391|Scheduler and queues…
+392|Search
+393|Search downloads
+394|Search downloads (Ctrl+F)
+395|Select all
+396|Send Videos to one folder, Music to another, or everything from one website into its own folder.
+397|Send Videos to one folder, or everything from one website into its own folder.
+398|Share while downloading
+399|Show
+400|Show a finished download
+401|Shows the “Download file info” box first, so a wrong click does not start a download. You can change the name and folder there.
+402|Shut down when finished
+403|Shut the PC down
+404|Shut the PC down when all downloads are finished?
+405|Shutdown cancelled
+406|Size
+407|Size (largest first)
+408|Size not known
+409|Skip the download
+410|Small
+411|Smaller files are quicker to leave with the browser.
+412|So Windows search and the Start menu find {0}, and notifications show its name and icon.
+413|Some websites only accept one connection per file. {0}
+414|Something went wrong
+415|Sort
+416|Sort by
+417|Sort into folders
+418|Sort into folders by type
+419|Sort: active first
+420|Sort: {0}
+421|Source code and releases:
+422|Speed
+423|Speed limit
+424|Speed limit for all downloads
+425|Speed limit for this download, in KB/s (empty = none)
+426|Speed limit, KB/s (optional)
+427|Speed over the last {0} seconds, peak {1}/s
+428|Start at
+429|Start download
+430|Start menu entry
+431|Start with Windows
+432|Started
+433|Starts with Windows
+434|State
+435|Status bar
+436|Sun
+437|Take over browser downloads
+438|Take over downloads from the browser
+439|Tasks
+440|Tell me when a download finishes
+441|Test builds
+442|Test builds are every change as soon as it is made; releases are the tested versions.
+443|Text size
+444|That did not work
+445|That file is too big
+446|That file is too big to be a torrent
+447|The PC may sleep while downloading
+448|The PC shuts down in less than a minute
+449|The PC stays awake while downloading
+450|The clipboard has no link
+451|The code has expired. Close this and connect again.
+452|The download is removed from the list.
+453|The download will be saved under this name.
+454|The extension is not in the browser stores yet, so it is added by hand once (about a minute).
+455|The file is renamed in its folder.
+456|The file is split into parts and downloaded with several connections at once.
+457|The file you already have is kept; the new copy gets a number added to its name if the name is taken.
+458|The files stay on your disk.
+459|The language of the menus and dialogs. Anything not translated yet stays in English.
+460|The link could not be checked.
+461|The link stopped working? Paste a new link for the same file: what is already downloaded is kept. {0}
+462|The site may want you to sign in first.
+463|The size is not known: one connection is used.
+464|The sound is a separate track; without ffmpeg you get two files.
+465|Theme
+466|These websites do
+467|This copy has its own data folder and leaves the installed copy alone
+468|This download was removed
+469|This link is already in your list.
+470|This looks like a web page, not a file.
+471|This proxy:
+472|This torrent is already in your list.
+473|This website allows only one connection for this file.
+474|This website does
+475|This website does not allow splitting the file: one connection is used.
+476|Thu
+477|Time left
+478|Toolbar labels
+479|Torrent added
+480|Torrent file…
+481|Torrents
+482|Torrents and magnet links
+483|Torrents work by taking turns: while a file comes in, the pieces you already have go out to others. Turn off to only download.
+484|Trackers
+485|Trying again soon
+486|Tue
+487|Turn off to refuse magnet links and .torrent files.
+488|Type the address of a page. {0} lists the files it links to, and you choose which to download.
+489|Type the speed limit as a number of KB/s, or leave it empty
+490|Type the website and the user name
+491|Unfinished
+492|Uninstall
+493|Uninstall {0}
+494|Uninstall {0}?
+495|Uninstall…
+496|Updates
+497|Upload speed limit
+498|Uploaded
+499|Use this link
+500|User name
+501|User name (site that asks for a login)
+502|Using the same proxy as Windows
+503|Valid for {0}:{1}, one use only.
+504|Version
+505|Version {0} is ready.
+506|Version {0}{1}{2}
+507|Video in {0} parts, downloaded several at a time and joined into one file.
+508|Video stream · about
+509|Videos
+510|Videos, Programs, Documents and so on.
+511|View
+512|Waiting
+513|Website
+514|Wed
+515|What happened
+516|What {0} learned about websites
+517|What's new
+518|When an update is ready and nothing is downloading, {0} installs it and restarts. Unfinished downloads continue afterwards.
+519|When everything is finished
+520|When you copy a link to a file (a program, archive, video, PDF …) anywhere, a notification asks whether to download it. Nothing is downloaded unless you click it and confirm.
+521|Which versions
+522|Will not open by itself
+523|Windows does not go to sleep while a download is running (the screen can still turn off). It may sleep again when nothing is downloading.
+524|Works: github.com answered
+525|Yes
+526|You get one minute to cancel.
+527|You have the newest version.
+528|Your list
+529|adds a numbered series.
+530|and choose that folder.
+531|and choose the zip (Firefox forgets it when it closes).
+532|because your downloads finished.
+533|checking…
+534|ffmpeg (joins picture and sound of web videos)
+535|for every 5th.
+536|for the file:
+537|is paused
+538|it starts
+539|makes a numbered series)
+540|no limit
+541|not installed
+542|not known
+543|not known yet
+544|of them are
+545|s are paused
+546|selected · {0}
+547|they start
+548|through this setting
+549|unzip it into a folder you keep. Open
+550|working it out
+551|working out the time left
+552|works for letters and
+553|· last used
+554|· limit {0}/s
+555|· private torrent
+556|· ratio
+557|— only use a program you trust.
+558|✓ matches
+559|✓ ready
+560|✗ does NOT match
+561|{0} left
+562|Paused {0}%
+563|Paused at {0}%
+564|{0} downloaded
+565|ratio {0}
+566|{0} peers
+567|{0} peers, {1} seeds
+568|{0} seeds
+569|Queue: {0}
+570|Limit {0}
+571|Finished {0}
+572|Finished: {0}
+573|Finished ({0})
+574|Mirrors: {0}
+575|Connections per line: {0}
+576|Moved to queue "{0}"
+577|Added from {0}
+578|{0} added
+579|{0} download added
+580|{0} downloads added
+581|{0} downloads
+582|downloading, {0} waiting
+583|All downloads limited to {0}
+584|the server answered {0}
+585|Windows uses the proxy {0}.
+586|Waiting for the hours of queue "{0}" ({1} to {2})
+587|Waiting for a free place in queue "{0}"
+588|Waiting for your download hours ({0})
+589|Delete "{0}"?
+590|Remove {0} finished download from the list?
+591|Remove {0} finished downloads from the list?
+592|Pullwell
+593|Quit Pullwell
+594|About Pullwell
+595|Pullwell is shown in your browser. Closing this tab does not stop downloads.
+596|Pullwell {0}. No telemetry: it contacts only the sites you download from.
+597|Pullwell {0} · Not checked yet.
+598|Delete {0} downloads?
+599|The file was not found on the website. The link may be old.
+600|The file on the website changed while it was downloading. Start it again.
+601|The website refused the download (it may need you to sign in, or the link expired). Open the page in your browser and add the link again.
+602|The website is busy or limits downloads. {0} will try again.
+603|Waiting for an internet connection.
+604|Not enough free space for this file ({0}; {1} keeps 32 MB spare). Free some space or choose another folder, then press Resume.
+605|The disk is full. Free some space and press Resume.
+606|{0} cannot write to the download folder. Choose another folder in the Downloads settings.
+607|The file name or the folder path is too long for Windows. Choose a shorter folder, or rename the download in its Properties.
+608|The download folder is not there any more (a removed drive, or a deleted folder). Choose another folder in the Downloads settings, or reconnect the drive and press Resume.
+609|The website address could not be found. Check the link, or your DNS.
+610|The website refused the connection.
+611|The website did not answer in time.
+612|The connection was cut by the website or the network.
+613|The connection is not reaching the internet.
+614|The download could not continue.
+615|Checksum does not match
+616|A file with this name is already in the folder, so this download was skipped.
+617|This site does not allow splitting the file, so one connection is used
+618|This site only accepts one connection address (learned earlier), so one line is used
+619|A line was left out: this site only accepts the file from one address
+620|Trying another address
+621|The command after the download ran
+622|Torrents are switched off in the download settings.
+623|No release found on GitHub. The project may still be private.
+624|Could not reach GitHub.
+625|Could not read the release information.
+626|The download manager is off. Turn it on in Settings.
+627|Download finished
+628|Download needs attention
+629|Downloads continue
+630|Downloads finished
+631|The PC is going to sleep.
+632|Computer
+633|download
+634|downloads
+635|downloading
+636|Tools
+637|{0} is ready
+638|selected
+639|To let big downloads from Chrome, Edge or Firefox come here by themselves:
+640|Saving to
+641|Link (several: one per line;
+642|and
+643|the proxy needs a port, for example 10.0.0.1:8080
+644|This website does not allow resuming: when it starts again, it starts from the beginning ({0} downloaded so far).
+645|These websites do not allow resuming: when they start again, they start from the beginning ({0} downloaded so far).
+646|It is not finished: the part downloaded so far is deleted.
+647|{0} of them are not finished: the part downloaded so far is deleted.
+648|Some websites only accept one connection per file.
+649|The link stopped working? Paste a new link for the same file: what is already downloaded is kept.
+650|Separate copy
+651|Test
+652|Open {0}
+653|Add a download...
+654|{0} downloads finished
+655|{0} downloads need attention
+656|Download this with {0}?
+657|Click here to add it.
+658|Download…

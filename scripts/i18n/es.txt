@@ -1,0 +1,658 @@
+1|"{0}" es un programa o un script. Ábrelo solo si confías en el sitio web del que viene.
+2|"{0}" se mueve a la carpeta que escribas (se crea si hace falta).
+3|(Edge:
+4|(se decide al empezar la descarga)
+5|(va a tu carpeta de descargas, que luego se abre):
+6|(carpeta principal / {0})
+7|(si no marcas ninguno = todos los días)
+8|(aún sin decidir)
+9|(o en su carpeta de herramientas) para obtener un solo archivo.
+10|(en pausa)
+11|(la pieza de puzle de la barra de herramientas), haz clic y escribe este código:
+12|, haz clic en
+13|, suelta aquí un enlace o un archivo .torrent, o elige
+14|, activa
+15|, {0} ya están aquí o no se pueden usar
+16|, {0} ya están en tu lista
+17|, {0} semillas
+18|, {0} en espera
+19|Un gestor de descargas para Windows. Sin telemetría y sin cuenta: solo contacta con los sitios desde los que descargas y con GitHub para buscar actualizaciones.
+20|La carpeta que elijas al añadir una descarga manda siempre. Después, la carpeta del sitio web, luego la del tipo y por último tu carpeta principal ({0}).
+21|Una notificación de {0}.
+22|La contraseña solo se usa para este enlace y no se vuelve a mostrar.
+23|Una cola es un grupo de descargas con su propio horario. Las descargas sin cola (la cola principal) siguen tus ajustes generales. Pon una descarga en una cola desde sus Propiedades o al añadirla.
+24|Un usuario y una contraseña guardados para un sitio web, que se usan en todas sus descargas. Se quedan en este PC, protegidos por tu cuenta de Windows.
+25|Acerca de
+26|Añadir una descarga
+27|Añadir una descarga (Ctrl+N, o Ctrl+V con un enlace copiado)
+28|Añadir una cola
+29|Añadir un archivo torrent…
+30|Añadir un sitio web
+31|Añadir o cambiar un acceso
+32|Añadir el enlace copiado
+33|Añadir torrent
+34|Añadir con opciones
+35|Añadir con opciones…
+36|Añadir y empezar más tarde
+37|Añadida
+38|Añadido al menú Inicio
+39|Si la añades otra vez, se hace una segunda copia.
+40|Avanzado
+41|Todas ({0})
+42|Todas las descargas
+43|Todas las descargas limitadas a
+44|Todos los archivos
+45|Todas en pausa
+46|Todas las colas
+47|Todas iniciadas
+48|Permitir torrents
+49|Ya está en tu lista
+50|Eliminar también la lista de descargas, los ajustes y el registro
+51|Eliminar también el archivo del disco
+52|Eliminar también {0} archivos terminados del disco
+53|Apariencia
+54|Archivos comprimidos
+55|Preguntar antes de iniciar una descarga del navegador
+56|De inmediato
+57|Automático
+58|Mejor ({0}p)
+59|Las descargas grandes de Chrome, Edge, Brave o Firefox van a {0} cuando la extensión está conectada. Si {1} no está abierto, el navegador descarga como siempre.
+60|Abre su ventana con Abrir y Abrir carpeta en cuanto termina (también con la ventana cerrada).
+61|Navegador
+62|Por tipo
+63|Por sitio web
+64|Se puede reanudar
+65|Cancelar
+66|Cancelar apagado
+67|Servido por
+68|Categorías
+69|Panel de categorías
+70|Cambiar en Opciones
+71|Comprobar
+72|Buscar actualizaciones
+73|Comprobar ahora
+74|Comprobar la suma de verificación
+75|Comprobar la suma de verificación…
+76|Comprobando la suma de verificación…
+77|Comprobando el enlace
+78|Comprobando el enlace…
+79|Comprobando…
+80|Suma de verificación
+81|Suma de verificación (opcional)
+82|Suma de verificación correcta
+83|La suma de verificación NO coincide: no lo abras
+84|Elige al menos un archivo
+85|Elegir carpetas
+86|Elegir carpetas…
+87|Borrar
+88|Borrar terminadas
+89|Borrado
+90|Haz clic para fijar un límite de velocidad para todas las descargas
+91|Cerrar
+92|Cierra un cuadro de diálogo o un menú; borra la selección
+93|Columnas
+94|Cómodo
+95|Comandos
+96|Compacto
+97|Completa
+98|Conectar un navegador
+99|Conectar un navegador…
+100|Navegadores conectados
+101|Conectado {0}{1}
+102|Conexión
+103|Conexiones
+104|Conexiones por descarga
+105|No se ofrecen los enlaces copiados
+106|Se ofrecerán los enlaces copiados
+107|Copiado: pégalo en una pestaña nueva del navegador
+108|Copiar
+109|Copiar enlace
+110|No se pudo buscar actualizaciones.
+111|No se pudo copiar
+112|Oscuro
+113|Días
+114|Eliminar
+115|Eliminar de la lista
+116|Eliminar cola
+117|¿Eliminar la cola "{0}"?
+118|Eliminar las descargas seleccionadas (Supr)
+119|Eliminar con el archivo
+120|Eliminar con el archivo
+121|Eliminada con los archivos
+122|Descripción
+123|Modo desarrollador
+124|Desconectar
+125|¿Desconectar este navegador?
+126|Desconectado
+127|No hacer nada
+128|Documentos
+129|No se inicia con Windows
+130|Hecho
+131|Una sola vez, tras la última descarga. Al apagar tienes un minuto para cancelar.
+132|Descargar
+133|¿Descargar "{0}" otra vez?
+134|Descargar otra vez
+135|Información del archivo a descargar
+136|Horario de descargas
+137|Descargar más tarde
+138|Descargar ahora
+139|Descargar solo los archivos marcados
+140|Descargar la selección
+141|Descarga iniciada
+142|¿Descargar {0} archivos otra vez?
+143|Descargado
+144|Descargando
+145|Descargando otra vez
+146|Descargando… {0}%
+147|Descargas
+148|Las descargas están en espera:
+149|Descargas simultáneas
+150|Las descargas de ese sitio web volverán a pedir un acceso. No se toca nada de lo ya descargado.
+151|Las descargas del navegador no se capturan mientras está cerrado.
+152|Error
+153|Todo
+154|Todo lo de esa lista ya está aquí
+155|Fallida
+156|Nombre del archivo
+157|Tamaño del archivo
+158|Tipos de archivo
+159|Archivos
+160|Archivos de este torrent
+161|Buscar
+162|Buscar enlaces en una página
+163|Buscar enlaces en una página web
+164|Buscar enlaces en una página web…
+165|Busca los archivos a los que enlaza una página web
+166|Terminadas
+167|Descargas terminadas borradas
+168|Carpeta
+169|Carpeta guardada
+170|Carpetas
+171|Carpetas por tipos y sitios web
+172|Carpetas por tipos y sitios web…
+173|Para un sitio web que pide usuario y contraseña. Se usa en todas las descargas de ese sitio web y de sus subdominios, y nunca se envía a otro sitio. Las contraseñas se quedan en este PC, protegidas por tu cuenta de Windows, y no se vuelven a mostrar.
+174|Por ejemplo, un antivirus. Usa
+175|Por ejemplo, un antivirus. Escribe el programa y usa
+176|Por ejemplo, de noche. Las descargas fuera de este horario esperan.
+177|Solo para torrents.
+178|Olvidar
+179|Olvidado
+180|Encontrado. Los vídeos con pista de sonido aparte se unen en un solo archivo.
+181|Encontrado: los vídeos web con pista de sonido aparte se unen en un solo archivo.
+182|vie
+183|General
+184|Volver
+185|Volver a la versión anterior
+186|¿Volver a la versión anterior?
+187|Volviendo…
+188|Capturar enlaces
+189|Capturar enlaces de una página web…
+190|Grupos de descargas con sus propios horarios y días, por ejemplo “Noche” (23:00 a 06:00) o “Fin de semana”. {0} colas.
+191|Grupos de descargas con sus propios horarios y días, por ejemplo “Noche”. {0} colas.
+192|Ayuda
+193|Cuántas conexiones paralelas usa un archivo. Algunos sitios web rechazan muchas; {0} las reduce solo. Recomendado: 8.
+194|Si ya existe un archivo con ese nombre
+195|Si el archivo existe
+196|Por si la nueva versión da problemas. Puedes volver a esta del mismo modo.
+197|Imágenes
+198|Instalar y reiniciar
+199|Instalar las actualizaciones automáticamente
+200|Instalando la actualización…
+201|Instalando la versión {0}.
+202|Instalando: {0} se reinicia enseguida.
+203|Sus descargas pasan a la cola principal. No se borra nada de tu disco.
+204|Su extensión dejará de enviar descargas hasta que la conectes de nuevo.
+205|Conservar ambos
+206|Conservar ambos (añade un número), reemplazar el archivo antiguo u omitir la descarga nueva.
+207|Mantener el PC activo mientras se descarga
+208|Deja algo de velocidad libre para todo lo demás.
+209|Atajos de teclado
+210|Tipo de archivo
+211|Idioma
+212|Grande
+213|Más grande
+214|Déjalo vacío para empezar ahora
+215|Biblioteca
+216|Claro
+217|Límite
+218|Límite quitado
+219|Límite fijado
+220|Enlace cambiado
+221|Enlace copiado
+222|Enlaces copiados
+223|Lista guardada:
+224|Cargar una lista…
+225|Cargar lista
+226|Cargar lista…
+227|Acceso eliminado
+228|Acceso guardado
+229|Buscando…
+230|Cola principal
+231|Gestionar accesos…
+232|Gestionar colas
+233|Gestionar colas…
+234|Menú
+235|Barra de menús (luego flechas, Intro, Esc)
+236|Menú de las descargas seleccionadas
+237|lun
+238|Más
+239|Más opciones…
+240|Más de 3 pueden ralentizar cada una. Recomendado: 3.
+241|Mover
+242|Bajar
+243|Mover en la lista (Mayús: seleccionar)
+244|Mover a otra carpeta
+245|Mover a otra carpeta…
+246|Mover al principio
+247|Subir
+248|Movida
+249|Música
+250|Nombre
+251|Requiere atención
+252|Nueva descarga
+253|Las descargas nuevas van a una carpeta según su tipo (Vídeos, Programas …) cuando está activado.
+254|Nueva descarga…
+255|Más recientes primero
+256|Próximo intento
+257|Aún no hay descargas
+258|Sin límite
+259|Aún no hay accesos guardados.
+260|No se encontraron enlaces coincidentes en esa página.
+261|Sin proxy
+262|Aún no hay colas.
+263|Sin límite de velocidad
+264|Aún no hay sitios web.
+265|No: al pausar empieza de nuevo desde el principio
+266|Ninguno aún.
+267|Normal
+268|No disponible para esta copia de {0}.
+269|Aún sin comprobar.
+270|No encontrado. Los vídeos con pista de sonido aparte se guardan como dos archivos. Pon ffmpeg junto a
+271|No encontrado: esos vídeos se guardan como dos archivos. Pon ffmpeg.exe junto a {0} para unirlos.
+272|Nada aquí.
+273|Nada coincide con tu búsqueda.
+274|Nada recordado.
+275|Nada aún.
+276|Notificación al terminar
+277|Avisarme cuando termine una descarga
+278|Avisar al terminar
+279|Ofrecer los enlaces copiados
+280|Ofrecer los enlaces que copio
+281|Solo entre
+282|Descargar solo en ciertas horas
+283|Solo archivos mayores de
+284|Abrir
+285|Abre Tareas, Descargas, Ver, Herramientas, Ayuda
+286|¿Abrir un programa?
+287|Abrir carpeta
+288|Abrirlo cuando termine
+289|Abrir la carpeta de descargas
+290|Abrir el archivo (o su progreso, si no ha terminado)
+291|Abrir la carpeta del registro
+292|Abrir al terminar
+293|Se abre al terminar
+294|Opcional
+295|Opciones
+296|Opciones…
+297|Otros
+298|Otras direcciones del mismo archivo (réplicas, una por línea)
+299|Otras direcciones del mismo archivo (réplicas, una por línea). Se prueban si falla la primera.
+300|Dirección de la página
+301|Partes del archivo
+302|Partes del archivo ya descargadas
+303|Contraseña
+304|Pegar
+305|Pega un enlace (http, https, ftp o magnet). Varios enlaces: uno por línea.
+306|Pega primero un enlace
+307|Pega un enlace con
+308|Pega la suma de verificación que da el sitio web para este archivo (SHA-256, SHA-1, MD5 o SHA-512). El resultado aparece en la columna Descripción.
+309|Pausar
+310|¿Pausar "{0}"?
+311|Pausar todo
+312|Pausar de todos modos
+313|Pausar todas las descargas
+314|Pausar o reanudar
+315|Pausa primero la descarga.
+316|Pausar las descargas seleccionadas (Espacio)
+317|¿Pausar {0} descargas?
+318|En pausa
+319|Pares
+320|La imagen y el sonido se unen con ffmpeg.
+321|Piezas
+322|Las piezas que ya tienes salen hacia otros mientras llega el resto.
+323|Fija el icono de {0}
+324|Pulsa Ctrl+V en el cuadro
+325|Problema
+326|Los problemas se muestran siempre.
+327|Programa que se ejecuta tras una descarga
+328|Programas
+329|Progreso
+330|Propiedades
+331|Proxy
+332|Proxy guardado
+333|Suspender el PC
+334|Calidad
+335|Cola
+336|Nombre de la cola
+337|Orden de la cola
+338|Colas
+339|Colas y sus horarios
+340|Colas guardadas
+341|Salir
+342|¿Salir de {0}?
+343|Eventos recientes
+344|Actualizar
+345|Versiones
+346|Quitar
+347|Quitar de la lista todas las descargas terminadas (los archivos se quedan)
+348|Quitar el acceso de {0}
+349|¿Quitar el acceso de {0}?
+350|¿Quitar de la lista {0} descargas terminadas?
+351|Quitada de la lista
+352|Quitado del menú Inicio
+353|Quita la entrada del menú Inicio, la de inicio automático y el archivo del programa. Tus archivos descargados se quedan donde están.
+354|Renombrar
+355|Renombrada
+356|Renombrar…
+357|Reemplazar el archivo antiguo
+358|Informar de un problema…
+359|Restablecer anchos
+360|Reanudar
+361|Reanudar todo
+362|Reanudar todo en esta cola
+363|Reanudar todas las descargas en pausa
+364|Reanudar las descargas seleccionadas (Espacio)
+365|Reintento pronto
+366|Espaciado de filas
+367|Ejecutar un programa tras cada descarga
+368|¿Ejecutar esto tras cada descarga terminada?
+369|SHA-256, SHA-1 o MD5
+370|SHA-256, SHA-1 o MD5 del sitio web (opcional)
+371|Igual que Windows
+372|sáb
+373|Guardar
+374|Guardar las descargas en
+375|Guardar en
+376|Guardar en (vacío para la carpeta habitual)
+377|Guardar lista
+378|Guardar lista…
+379|Guardar acceso
+380|Guardar la extensión
+381|Guarda la lista de descargas en un archivo, o carga una (también un archivo de texto con un enlace por línea).
+382|Guarda la lista de descargas en un archivo, o carga una (de esta aplicación, o un archivo de texto con un enlace por línea).
+383|Guardar la lista…
+384|Guardar estos
+385|Guardado
+386|Guardado como
+387|Accesos guardados
+388|Se guarda en {0}
+389|Horario
+390|Programador
+391|Programador y colas…
+392|Buscar
+393|Buscar descargas
+394|Buscar descargas (Ctrl+F)
+395|Seleccionar todo
+396|Envía los vídeos a una carpeta, la música a otra, o todo lo de un sitio web a su propia carpeta.
+397|Envía los vídeos a una carpeta, o todo lo de un sitio web a su propia carpeta.
+398|Compartir mientras se descarga
+399|Mostrar
+400|Mostrar una descarga terminada
+401|Muestra primero el cuadro “Información del archivo a descargar”, para que un clic equivocado no inicie una descarga. Ahí puedes cambiar el nombre y la carpeta.
+402|Apagar al terminar
+403|Apagar el PC
+404|¿Apagar el PC cuando terminen todas las descargas?
+405|Apagado cancelado
+406|Tamaño
+407|Tamaño (mayor primero)
+408|Tamaño desconocido
+409|Omitir la descarga
+410|Pequeño
+411|Los archivos pequeños salen antes con el navegador.
+412|Para que la búsqueda de Windows y el menú Inicio encuentren {0}, y las notificaciones muestren su nombre e icono.
+413|Algunos sitios web solo aceptan una conexión por archivo. {0}
+414|Algo salió mal
+415|Ordenar
+416|Ordenar por
+417|Ordenar en carpetas
+418|Ordenar en carpetas por tipo
+419|Orden: activas primero
+420|Orden: {0}
+421|Código fuente y versiones:
+422|Velocidad
+423|Límite de velocidad
+424|Límite de velocidad para todas las descargas
+425|Límite de velocidad de esta descarga, en KB/s (vacío = ninguno)
+426|Límite de velocidad, KB/s (opcional)
+427|Velocidad de los últimos {0} segundos, máximo {1}/s
+428|Empezar a las
+429|Iniciar descarga
+430|Entrada del menú Inicio
+431|Iniciar con Windows
+432|Iniciada
+433|Se inicia con Windows
+434|Estado
+435|Barra de estado
+436|dom
+437|Encargarse de las descargas del navegador
+438|Encargarse de las descargas del navegador
+439|Tareas
+440|Avisarme cuando termine una descarga
+441|Versiones de prueba
+442|Las versiones de prueba son cada cambio en cuanto se hace; las versiones estables son las probadas.
+443|Tamaño del texto
+444|Eso no funcionó
+445|Ese archivo es demasiado grande
+446|Ese archivo es demasiado grande para ser un torrent
+447|El PC puede suspenderse mientras se descarga
+448|El PC se apaga en menos de un minuto
+449|El PC se mantiene activo mientras se descarga
+450|El portapapeles no tiene ningún enlace
+451|El código ha caducado. Ciérralo y conecta de nuevo.
+452|La descarga se quita de la lista.
+453|La descarga se guardará con este nombre.
+454|La extensión aún no está en las tiendas de los navegadores, así que se añade a mano una vez (un minuto).
+455|El archivo se renombra en su carpeta.
+456|El archivo se divide en partes y se descarga con varias conexiones a la vez.
+457|El archivo que ya tienes se conserva; la copia nueva recibe un número si el nombre está ocupado.
+458|Los archivos se quedan en tu disco.
+459|El idioma de los menús y los cuadros de diálogo. Lo que aún no está traducido sigue en inglés.
+460|No se pudo comprobar el enlace.
+461|¿El enlace dejó de funcionar? Pega un enlace nuevo del mismo archivo: lo ya descargado se conserva. {0}
+462|Puede que el sitio quiera que inicies sesión primero.
+463|Se desconoce el tamaño: se usa una conexión.
+464|El sonido es una pista aparte; sin ffmpeg obtienes dos archivos.
+465|Tema
+466|Estos sitios web
+467|Esta copia tiene su propia carpeta de datos y no toca la copia instalada
+468|Esta descarga se quitó
+469|Este enlace ya está en tu lista.
+470|Esto parece una página web, no un archivo.
+471|Este proxy:
+472|Este torrent ya está en tu lista.
+473|Este sitio web solo permite una conexión para este archivo.
+474|Este sitio web
+475|Este sitio web no permite dividir el archivo: se usa una conexión.
+476|jue
+477|Tiempo restante
+478|Etiquetas de la barra de herramientas
+479|Torrent añadido
+480|Archivo torrent…
+481|Torrents
+482|Torrents y enlaces magnet
+483|Los torrents funcionan por turnos: mientras llega un archivo, las piezas que ya tienes salen hacia otros. Desactívalo para solo descargar.
+484|Rastreadores
+485|Reintento pronto
+486|mar
+487|Desactívalo para rechazar enlaces magnet y archivos .torrent.
+488|Escribe la dirección de una página. {0} lista los archivos que enlaza y tú eliges cuáles descargar.
+489|Escribe el límite de velocidad como un número de KB/s, o déjalo vacío
+490|Escribe el sitio web y el usuario
+491|Sin terminar
+492|Desinstalar
+493|Desinstalar {0}
+494|¿Desinstalar {0}?
+495|Desinstalar…
+496|Actualizaciones
+497|Límite de velocidad de subida
+498|Subido
+499|Usar este enlace
+500|Usuario
+501|Usuario (sitio que pide acceso)
+502|Usa el mismo proxy que Windows
+503|Válido durante {0}:{1}, de un solo uso.
+504|Versión
+505|La versión {0} está lista.
+506|Versión {0}{1}{2}
+507|Vídeo en {0} partes, descargadas de varias en varias y unidas en un solo archivo.
+508|Flujo de vídeo · aprox.
+509|Vídeos
+510|Vídeos, Programas, Documentos, etc.
+511|Ver
+512|En espera
+513|Sitio web
+514|mié
+515|Qué pasó
+516|Lo que {0} aprendió sobre sitios web
+517|Novedades
+518|Cuando una actualización está lista y no se descarga nada, {0} la instala y se reinicia. Las descargas sin terminar continúan después.
+519|Cuando todo haya terminado
+520|Cuando copias en cualquier sitio un enlace a un archivo (un programa, archivo comprimido, vídeo, PDF …), una notificación pregunta si descargarlo. No se descarga nada hasta que hagas clic y confirmes.
+521|Qué versiones
+522|No se abrirá solo
+523|Windows no se suspende mientras se descarga (la pantalla sí puede apagarse). Puede suspenderse otra vez cuando no se descargue nada.
+524|Funciona: github.com respondió
+525|Sí
+526|Tienes un minuto para cancelar.
+527|Tienes la versión más reciente.
+528|Tu lista
+529|añade una serie numerada.
+530|y elige esa carpeta.
+531|y elige el zip (Firefox lo olvida al cerrarse).
+532|porque terminaron tus descargas.
+533|comprobando…
+534|ffmpeg (une imagen y sonido de los vídeos web)
+535|para cada 5.º.
+536|para el archivo:
+537|está en pausa
+538|empieza
+539|crea una serie numerada)
+540|sin límite
+541|no instalado
+542|desconocido
+543|aún desconocido
+544|de ellas
+545|están en pausa
+546|seleccionadas · {0}
+547|empiezan
+548|con este ajuste
+549|descomprímelo en una carpeta que conserves. Abre
+550|calculándolo
+551|calculando el tiempo restante
+552|funciona con letras y
+553|· último uso
+554|· límite {0}/s
+555|· torrent privado
+556|· ratio
+557|— usa solo un programa de confianza.
+558|✓ coincide
+559|✓ listo
+560|✗ NO coincide
+561|faltan {0}
+562|En pausa {0}%
+563|En pausa en {0}%
+564|{0} descargado
+565|ratio {0}
+566|{0} pares
+567|{0} pares, {1} semillas
+568|{0} semillas
+569|Cola: {0}
+570|Límite {0}
+571|Terminada {0}
+572|Terminada: {0}
+573|Terminadas ({0})
+574|Réplicas: {0}
+575|Conexiones por línea: {0}
+576|Movida a la cola "{0}"
+577|Añadida desde {0}
+578|{0} añadidas
+579|{0} descarga añadida
+580|{0} descargas añadidas
+581|{0} descargas
+582|descargando, {0} en espera
+583|Todas las descargas limitadas a {0}
+584|el servidor respondió {0}
+585|Windows usa el proxy {0}.
+586|Esperando el horario de la cola "{0}" ({1} a {2})
+587|Esperando un puesto libre en la cola "{0}"
+588|Esperando tu horario de descargas ({0})
+589|¿Eliminar "{0}"?
+590|¿Quitar de la lista {0} descarga terminada?
+591|¿Quitar de la lista {0} descargas terminadas?
+592|Pullwell
+593|Salir de Pullwell
+594|Acerca de Pullwell
+595|Pullwell se muestra en tu navegador. Cerrar esta pestaña no detiene las descargas.
+596|Pullwell {0}. Sin telemetría: solo contacta con los sitios desde los que descargas.
+597|Pullwell {0} · Aún sin comprobar.
+598|¿Eliminar {0} descargas?
+599|No se encontró el archivo en el sitio web. Puede que el enlace sea antiguo.
+600|El archivo del sitio web cambió mientras se descargaba. Vuelve a iniciarlo.
+601|El sitio web rechazó la descarga (puede que necesite que inicies sesión, o que el enlace haya caducado). Abre la página en tu navegador y añade el enlace de nuevo.
+602|El sitio web está ocupado o limita las descargas. {0} lo intentará de nuevo.
+603|Esperando una conexión a Internet.
+604|No hay espacio libre suficiente para este archivo ({0}; {1} deja 32 MB de reserva). Libera espacio o elige otra carpeta y pulsa Reanudar.
+605|El disco está lleno. Libera espacio y pulsa Reanudar.
+606|{0} no puede escribir en la carpeta de descargas. Elige otra carpeta en los ajustes de Descargas.
+607|El nombre del archivo o la ruta de la carpeta es demasiado largo para Windows. Elige una carpeta más corta o renombra la descarga en sus Propiedades.
+608|La carpeta de descargas ya no existe (una unidad extraída o una carpeta borrada). Elige otra carpeta en los ajustes de Descargas, o reconecta la unidad y pulsa Reanudar.
+609|No se encontró la dirección del sitio web. Revisa el enlace o tu DNS.
+610|El sitio web rechazó la conexión.
+611|El sitio web no respondió a tiempo.
+612|El sitio web o la red cortó la conexión.
+613|La conexión no llega a Internet.
+614|La descarga no pudo continuar.
+615|La suma de verificación no coincide
+616|Ya hay un archivo con este nombre en la carpeta, así que se omitió esta descarga.
+617|Este sitio no permite dividir el archivo, así que se usa una conexión
+618|Este sitio solo acepta una dirección de conexión (aprendido antes), así que se usa una línea
+619|Se dejó una línea fuera: este sitio solo da el archivo desde una dirección
+620|Probando otra dirección
+621|Se ejecutó el comando posterior a la descarga
+622|Los torrents están desactivados en los ajustes de descarga.
+623|No se encontró ninguna versión en GitHub. Puede que el proyecto aún sea privado.
+624|No se pudo conectar con GitHub.
+625|No se pudo leer la información de la versión.
+626|El gestor de descargas está apagado. Actívalo en Ajustes.
+627|Descarga terminada
+628|Una descarga requiere atención
+629|Las descargas continúan
+630|Descargas terminadas
+631|El PC se va a suspender.
+632|Ordenador
+633|descarga
+634|descargas
+635|descargando
+636|Herramientas
+637|{0} está lista
+638|seleccionadas
+639|Para que las descargas grandes de Chrome, Edge o Firefox lleguen aquí solas:
+640|Se guarda en
+641|Enlace (varios: uno por línea;
+642|y
+643|el proxy necesita un puerto, por ejemplo 10.0.0.1:8080
+644|Este sitio web no permite reanudar: cuando vuelva a empezar, lo hará desde el principio ({0} descargados hasta ahora).
+645|Estos sitios web no permiten reanudar: cuando vuelvan a empezar, lo harán desde el principio ({0} descargados hasta ahora).
+646|No ha terminado: la parte descargada hasta ahora se elimina.
+647|{0} de ellas no han terminado: la parte descargada hasta ahora se elimina.
+648|Algunos sitios web solo aceptan una conexión por archivo.
+649|¿El enlace dejó de funcionar? Pega un enlace nuevo del mismo archivo: lo ya descargado se conserva.
+650|Copia separada
+651|Probar
+652|Abrir {0}
+653|Añadir una descarga...
+654|{0} descargas terminadas
+655|{0} descargas requieren atención
+656|¿Descargar esto con {0}?
+657|Haz clic aquí para añadirlo.
+658|Descargar…

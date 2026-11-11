@@ -303,3 +303,13 @@ input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;margin:0}
 .prog .pfoot{display:flex;gap:8px;align-items:center;padding:14px 22px 18px;margin-top:12px;background:var(--bg);border-top:1px solid var(--line)}
 .prog .pfoot .sp{flex:1}
 @media (max-width:620px){ .pggrid{grid-template-columns:repeat(2,minmax(0,1fr))} }
+
+/* right-to-left languages: each cell and line takes its direction from its own text, so "3.1 MB" and file names stay readable */
+html[dir=rtl] td, html[dir=rtl] .toast, html[dir=rtl] .sb > span, html[dir=rtl] .hint2, html[dir=rtl] .d, html[dir=rtl] .bn, html[dir=rtl] .ctx button { unicode-bidi: plaintext; }
+html[lang=ur] body, html[lang=ar] body { font-family: "Segoe UI", "Tahoma", "Noto Naskh Arabic", system-ui, sans-serif; }
+html[lang=hi] body { font-family: "Segoe UI", "Nirmala UI", "Noto Sans Devanagari", system-ui, sans-serif; }
+html[lang=zh] body { font-family: "Segoe UI", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif; }
+html[dir=rtl] input, html[dir=rtl] textarea, html[dir=rtl] select { unicode-bidi: plaintext; }
+/* translated labels are longer than the English ones: the toolbar drops its labels earlier */
+@container app (max-width:1360px){ html:not([lang=en]) .tb .tbtn.quiet span{display:none} html:not([lang=en]) .tb .tbtn.quiet{padding:0 8px} }
+@container app (max-width:1040px){ html:not([lang=en]) .tb .tbtn:not(.pri) span{display:none} html:not([lang=en]) .tb .tbtn:not(.pri){padding:0 8px} html:not([lang=en]) .search{width:170px;flex-basis:170px} }

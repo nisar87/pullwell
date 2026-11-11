@@ -1,0 +1,38 @@
+1|Added
+2|Allow for all sites
+3|Already in {{NAME}}
+4|Already there
+5|Always send these file types, whatever their size (for example pdf, epub)
+6|Connect
+7|Connect to {{NAME}}
+8|Connected. Nothing downloading now.
+9|Could not connect
+10|Disconnect
+11|Download
+12|Download with {{NAME}}
+13|Downloading in browser
+14|Failed
+15|Files of {0} MB and more are sent (change this in {{NAME}}, Options).
+16|In {{NAME}} open
+17|Keep these sites in the browser (one per line)
+18|Needs “Allow for all sites” below. Reload a page after changing this.
+19|No video link found
+20|Open {{NAME}} and try again. Until then your browser downloads files as usual.
+21|Open {{NAME}}, then try again. Until then your browser downloads files as usual.
+22|Options → Browser → Connect a browser
+23|Send big downloads to {{NAME}}
+24|Sent to {{NAME}}
+25|Show a download button on videos
+26|Switched off in {{NAME}}.
+27|To download files from sites where you are signed in, {{NAME}} needs to pass your sign-in cookie for that link along.
+28|Try again
+29|Videos on this page
+30|, then type the code here.
+31|{{NAME}} is not running
+32|{{NAME}} is not running.
+33|{{NAME}} is not taking downloads.
+34|{{NAME}} Downloads
+35|{0} downloading
+36|Stream
+37|Sound
+38|Video

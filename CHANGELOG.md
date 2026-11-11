@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.9.0 (2026-11-12)
+
+- **Languages.** Español, Français, Deutsch, Português (Brasil), العربية and اردو (right-to-left, mirrored layout) for the
+  whole window: menus, dialogs, Options, messages and errors. Choose it in View → Language or Options → General;
+  "Automatic" follows the browser's language. Text that has no translation stays in English, never blank. The
+  tray menu and the Windows notifications follow the window's language too, and the browser extension (its popup and
+  the button on videos) follows the browser's language. The translations were written by Claude and have not been
+  reviewed by native speakers yet: wording corrections are welcome.
+- The toolbar drops its labels earlier in the translated languages so everything still fits.
+- Dates and times in the list follow the chosen language.
+- Checks: every language is tested on GitHub's Windows runners (translated menus and buttons, no English left in any Options
+  tab, right-to-left for Arabic and Urdu, the choice kept after a restart), and a missing or mismatched translation fails
+  the build.
+
 ## 0.8.0 (2026-11-12)
 
 - **Saved logins per website.** Options → Connection → Manage logins: type a website, a user name and a password once.

@@ -257,14 +257,14 @@ func trayMenu(hwnd uintptr) {
 		p, _ := syscall.UTF16PtrFromString(text)
 		pAppendMenu.Call(menu, 0, id, uintptr(unsafe.Pointer(p)))
 	}
-	add(1, "Open "+AppName)
-	add(5, "Add a download...")
-	add(6, "Open the download folder")
+	add(1, tr("Open "+AppName))
+	add(5, tr("Add a download..."))
+	add(6, tr("Open the download folder"))
 	pAppendMenu.Call(menu, 0x800, 0, 0)
-	add(2, "Pause all")
-	add(3, "Resume all")
+	add(2, tr("Pause all"))
+	add(3, tr("Resume all"))
 	pAppendMenu.Call(menu, 0x800, 0, 0) // separator
-	add(4, "Quit "+AppName)
+	add(4, tr("Quit "+AppName))
 	var pt [2]int32
 	pGetCursorPos.Call(uintptr(unsafe.Pointer(&pt)))
 	pSetForeground.Call(hwnd)

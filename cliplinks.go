@@ -236,14 +236,14 @@ func offerCopiedLink(text string, ourWindowInFront bool) {
 		key := offerKey(l)
 		if tok, err := toastTokens.issue(key, "add"); err == nil {
 			x := `<toast activationType="protocol" launch="` + xmlEsc(appScheme+"://add?item="+key+"&t="+tok) + `"><visual><binding template="ToastGeneric">` +
-				`<text>` + xmlEsc("Download this with "+AppName+"?") + `</text><text>` + xmlEsc(name) + `</text></binding></visual>` +
-				`<actions><action content="Download…" activationType="protocol" arguments="` + xmlEsc(appScheme+"://add?item="+key+"&t="+tok) + `"/></actions></toast>`
+				`<text>` + xmlEsc(tr("Download this with "+AppName+"?")) + `</text><text>` + xmlEsc(name) + `</text></binding></visual>` +
+				`<actions><action content="` + xmlEsc(tr("Download…")) + `" activationType="protocol" arguments="` + xmlEsc(appScheme+"://add?item="+key+"&t="+tok) + `"/></actions></toast>`
 			if showToastXML(x) == nil {
 				return
 			}
 		}
 	}
-	showBalloon("Download this with "+AppName+"?", name+"\nClick here to add it.")
+	showBalloon(tr("Download this with "+AppName+"?"), name+"\n"+tr("Click here to add it."))
 	setBalloonLink(l)
 }
 

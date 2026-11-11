@@ -1,0 +1,38 @@
+1|Ajouté
+2|Autoriser pour tous les sites
+3|Déjà dans {{NAME}}
+4|Déjà là
+5|Toujours envoyer ces types de fichiers, quelle que soit leur taille (par exemple pdf, epub)
+6|Connecter
+7|Se connecter à {{NAME}}
+8|Connecté. Aucun téléchargement en cours.
+9|Connexion impossible
+10|Déconnecter
+11|Télécharger
+12|Télécharger avec {{NAME}}
+13|Téléchargement dans le navigateur
+14|Échec
+15|Les fichiers de {0} Mo et plus sont envoyés (à modifier dans {{NAME}}, Options).
+16|Dans {{NAME}}, ouvrez
+17|Garder ces sites dans le navigateur (un par ligne)
+18|Nécessite « Autoriser pour tous les sites » ci-dessous. Rechargez une page après avoir changé ceci.
+19|Aucun lien vidéo trouvé
+20|Ouvrez {{NAME}} et réessayez. D’ici là, votre navigateur télécharge les fichiers comme d’habitude.
+21|Ouvrez {{NAME}}, puis réessayez. D’ici là, votre navigateur télécharge les fichiers comme d’habitude.
+22|Options → Navigateur → Connecter un navigateur
+23|Envoyer les gros téléchargements à {{NAME}}
+24|Envoyé à {{NAME}}
+25|Afficher un bouton de téléchargement sur les vidéos
+26|Désactivé dans {{NAME}}.
+27|Pour télécharger des fichiers depuis des sites où vous êtes connecté, {{NAME}} doit transmettre votre cookie de connexion pour ce lien.
+28|Réessayer
+29|Vidéos de cette page
+30|, puis saisissez le code ici.
+31|{{NAME}} n’est pas lancé
+32|{{NAME}} n’est pas lancé.
+33|{{NAME}} n’accepte pas les téléchargements.
+34|Téléchargements {{NAME}}
+35|{0} en cours de téléchargement
+36|Flux
+37|Son
+38|Vidéo

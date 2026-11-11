@@ -94,6 +94,27 @@ await vpage.close();
 const menu = await sw.evaluate(() => new Promise(r => chrome.contextMenus.update('nm', {}, () => r(!chrome.runtime.lastError))));
 check('"Download with ..." is in the right-click menu', menu);
 
+// languages: the popup follows the browser's language (popup.html?lang=xx stands in for it here)
+for (const [lg, retry, rtl] of [['es', 'Reintentar', false], ['de', 'Erneut versuchen', false], ['fr', 'Réessayer', false], ['pt', 'Tentar de novo', false], ['ar', 'حاول مرة أخرى', true], ['ur', 'دوبارہ کوشش کریں', true]]) {
+  const lp = await ctx.newPage();
+  await lp.goto(`chrome-extension://${extId}/popup.html?lang=${lg}`); await sleep(600);
+  const st = await lp.evaluate(() => ({retry: document.getElementById('retry').textContent, dir: document.documentElement.dir || 'ltr', h1: document.querySelector('h1').textContent.trim(), ph: document.getElementById('code').placeholder}));
+  check(`the popup in ${lg}: a button is translated`, st.retry === retry, st.retry);
+  check(`the popup in ${lg}: ${rtl ? 'right-to-left' : 'left-to-right'}`, st.dir === (rtl ? 'rtl' : 'ltr'), st.dir);
+  check(`the popup in ${lg}: the name and the code box are kept`, /Pullwell/.test(st.h1) && st.ph === 'xxxxx-xxxxx', st.h1 + ' | ' + st.ph);
+  await lp.close();
+}
+const en0 = await ctx.newPage(); await en0.goto(`chrome-extension://${extId}/popup.html?lang=en`); await sleep(400);
+check('the popup in English stays English', (await en0.evaluate(() => document.getElementById('retry').textContent)) === 'Try again'); await en0.close();
+// the button over a video follows the language too, and a web page's own text is never translated
+{
+  const lv = await ctx.newPage();
+  await lv.route('http://files.example.test/lang-page', r => r.fulfill({contentType: 'text/html', body: '<body><p id="p">Try again</p></body>'}));
+  await lv.goto('http://files.example.test/lang-page'); await sleep(1200);
+  check('a web page keeps its own text (nothing translated in it)', (await lv.evaluate(() => document.getElementById('p').textContent)) === 'Try again');
+  await lv.close();
+}
+
 // the program is not reachable: the browser keeps the download
 process.stdout.write(''); fs.writeFileSync(work + '/stop', '1');
 console.error('STOP_PROGRAM'); // the shell stops the program, then touches work/stopped

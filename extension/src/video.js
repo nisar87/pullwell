@@ -8,6 +8,7 @@
   if (window.__pullwellVideo) return;
   window.__pullwellVideo = true;
   var api = globalThis.browser || globalThis.chrome;
+  var T = (globalThis.I18N && globalThis.I18N.t) || function (s) { return s; };   // i18n.js (the browser's language) is loaded before this file
   var MIN_W = 200, MIN_H = 110;
   var host = null, btn = null, label = null, current = null, hideTimer = 0, videos = [];
 
@@ -24,7 +25,7 @@
     btn.className = 'b'; btn.type = 'button';
     btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg>';
     label = document.createElement('span');
-    label.textContent = 'Download with {{NAME}}';
+    label.textContent = T('Download with {{NAME}}');
     btn.appendChild(label);
     root.appendChild(css); root.appendChild(btn);
     btn.addEventListener('mouseenter', function () { clearTimeout(hideTimer); });
@@ -36,8 +37,8 @@
       api.runtime.sendMessage({ type: 'grab', src: src, frame: location.href }, function (r) {
         var ok = r && r.ok;
         btn.className = 'b ' + (ok ? 'ok' : 'bad');
-        label.textContent = ok ? (r.browser ? 'Downloading in browser' : r.duplicate ? 'Already in {{NAME}}' : 'Sent to {{NAME}}') : (r && r.none ? 'No video link found' : '{{NAME}} is not running');
-        setTimeout(function () { btn.className = 'b'; label.textContent = 'Download with {{NAME}}'; }, 2200);
+        label.textContent = T(ok ? (r.browser ? 'Downloading in browser' : r.duplicate ? 'Already in {{NAME}}' : 'Sent to {{NAME}}') : (r && r.none ? 'No video link found' : '{{NAME}} is not running'));
+        setTimeout(function () { btn.className = 'b'; label.textContent = T('Download with {{NAME}}'); }, 2200);
       });
     }, true);
     document.documentElement.appendChild(host);

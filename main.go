@@ -59,6 +59,7 @@ func main() {
 	dir, _ = filepath.Abs(dir)
 	appRoot = dir
 	logInit(dir)
+	loadUILang()
 	logf("%s %s starting; data folder %s", AppName, appVersion, filepath.Join(dir, "data"))
 
 	if *waitPid > 0 { // the old version is still closing: wait for it to release the port and the lock

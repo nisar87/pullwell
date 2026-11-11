@@ -116,7 +116,7 @@ async function videoScript() {
     const s = await api.storage.local.get(['videoBtn']);
     const want = s.videoBtn !== false && await api.permissions.contains({ origins: ['<all_urls>'] });
     const have = (await api.scripting.getRegisteredContentScripts({ ids: ['pw-video'] })).length > 0;
-    if (want && !have) await api.scripting.registerContentScripts([{ id: 'pw-video', js: ['video.js'], matches: ['http://*/*', 'https://*/*'], allFrames: true, runAt: 'document_idle', persistAcrossSessions: true }]);
+    if (want && !have) await api.scripting.registerContentScripts([{ id: 'pw-video', js: ['i18n.js', 'video.js'], matches: ['http://*/*', 'https://*/*'], allFrames: true, runAt: 'document_idle', persistAcrossSessions: true }]);
     if (!want && have) await api.scripting.unregisterContentScripts({ ids: ['pw-video'] });
   } catch (e) { }
 }
