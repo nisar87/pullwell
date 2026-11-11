@@ -170,7 +170,7 @@ function dlQueues(){
           <input type="time" class="inp qf" data-i="${i}" value="${esc(q.window.from)}" style="min-width:0"> <span class="hint2">and</span> <input type="time" class="inp qt" data-i="${i}" value="${esc(q.window.to)}" style="min-width:0"></div>
         <div class="row" style="gap:10px;flex-wrap:wrap;margin-top:8px"><span class="hint2">Days</span>${DL_DAYS.map((d,k) => `<label style="display:flex;gap:4px;align-items:center" class="hint2"><input type="checkbox" class="qd" data-i="${i}" data-k="${k}"${(q.days||[]).includes(k)?' checked':''}>${d}</label>`).join('')}<span class="hint2">(none ticked = every day)</span></div>
         <div class="row" style="gap:12px;margin-top:8px"><label style="display:flex;gap:6px;align-items:center" class="hint2"><input type="checkbox" class="qp" data-i="${i}"${q.paused?' checked':''}> Paused</label>
-          <button class="btn" data-q="start" data-i="${i}" data-id="${esc(q.id)}">Start all in this queue</button></div></div>`).join('') : '<div class="hint2">No queues yet.</div>'}
+          <button class="btn" data-q="start" data-i="${i}" data-id="${esc(q.id)}">Resume all in this queue</button></div></div>`).join('') : '<div class="hint2">No queues yet.</div>'}
       <div class="row" style="gap:8px;margin-top:10px"><button class="btn" data-q="add"${qs.length>=12?' disabled':''}>Add a queue</button></div>
       <div class="row" style="justify-content:flex-end;gap:8px;margin-top:14px"><button class="btn" id="dlCancel">Cancel</button><button class="btn pri" id="qSave">Save</button></div></div>`);
     $('#dlCancel').onclick = dlClose;
