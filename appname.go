@@ -9,7 +9,7 @@ const AppName = "Pullwell"
 // appVersion must equal the VERSION file (checked by appname_test.go). appBuild is the commit, set by the build
 // (-ldflags "-X main.appBuild=<commit>"); "dev" for a local build.
 var (
-	appVersion = "0.7.2"
+	appVersion = "0.7.3"
 	appBuild   = "dev"
 )
 

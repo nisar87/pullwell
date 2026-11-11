@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.3 (2026-11-11)
+
+- **Update check no longer fails with "GitHub answered HTTP 403".** GitHub limits anonymous requests to its programming
+  interface now and then, so the check failed at random times while the window still said "You have the newest
+  version". The check now falls back to GitHub's ordinary release page, which has no such limit, and when it cannot
+  check at all the window says "Could not check for updates" instead of claiming you are up to date.
+
 ## 0.7.2 (2026-11-11)
 
 - **Sites that only let a real browser in (Cloudflare and similar).** testfile.org answers Pullwell with HTTP 403 from

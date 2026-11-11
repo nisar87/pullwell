@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -233,5 +234,40 @@ func TestRollBackRemembersTheVersionLeft(t *testing.T) {
 	}
 	if !takeWentBack() || takeWentBack() {
 		t.Fatal("the next start should say once that it went back")
+	}
+}
+
+// GitHub's API refuses anonymous checks now and then (HTTP 403): the release page is used instead, and when that
+// fails too, the message says what is going on rather than claiming there is nothing new.
+func TestUpdateCheckFallsBackToTheReleasePage(t *testing.T) {
+	resetUpdate(t)
+	web := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/"+appRepo+"/releases/latest" {
+			http.Redirect(w, r, "/"+appRepo+"/releases/tag/v9.9.9", http.StatusFound)
+			return
+		}
+		http.NotFound(w, r)
+	}))
+	defer web.Close()
+	api := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { http.Error(w, "rate limit", 403) }))
+	defer api.Close()
+	updateAPI, updateWeb = api.URL, web.URL
+	defer func() { updateAPI, updateWeb = "https://api.github.com", "https://github.com" }()
+
+	rel, err := webRelease(context.Background(), "release")
+	if err != nil || rel.Tag != "v9.9.9" || len(rel.Assets) != 2 || !strings.HasSuffix(rel.Assets[0].URL, "/releases/download/v9.9.9/"+AppName+".exe") {
+		t.Fatalf("rel %+v err %v", rel, err)
+	}
+	checkGitHub(true)
+	if u := updateSnapshot(); u.Latest != "9.9.9" || u.Error != "" {
+		t.Fatalf("the page was not used: %+v", u)
+	}
+
+	// both fail: the message names the limit
+	resetUpdate(t)
+	web.Close()
+	checkGitHub(true)
+	if e := updateSnapshot().Error; !strings.Contains(e, "limiting") {
+		t.Fatalf("error %q", e)
 	}
 }

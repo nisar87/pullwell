@@ -35,6 +35,7 @@ import (
 )
 
 var updateAPI = "https://api.github.com" // tests point it at a local server
+var updateWeb = "https://github.com"     // the release pages; tests point it at a local server too
 
 type updateState struct {
 	Current   string `json:"current"`
@@ -225,6 +226,44 @@ func httpGet(ctx context.Context, u string) (*http.Response, error) {
 	return updClient.Do(req)
 }
 
+// webRelease finds the newest release from github.com itself (the "latest" page redirects to the tag), not from the
+// limited API, and names the two files of a release by their fixed addresses.
+func webRelease(ctx context.Context, channel string) (ghRelease, error) {
+	var rel ghRelease
+	base := updateWeb + "/" + appRepo
+	tag := "test-build"
+	if channel != "test" {
+		req, err := http.NewRequestWithContext(ctx, "GET", base+"/releases/latest", nil)
+		if err != nil {
+			return rel, err
+		}
+		req.Header.Set("User-Agent", AppName+"/"+appVersion)
+		c := &http.Client{Transport: updClient.Transport, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+		resp, err := c.Do(req)
+		if err != nil {
+			return rel, err
+		}
+		resp.Body.Close()
+		loc := resp.Header.Get("Location")
+		i := strings.LastIndex(loc, "/releases/tag/")
+		if resp.StatusCode < 300 || resp.StatusCode > 399 || i < 0 {
+			return rel, errors.New("no release page")
+		}
+		if tag, err = url.PathUnescape(loc[i+len("/releases/tag/"):]); err != nil || tag == "" || strings.ContainsAny(tag, "/?#") {
+			return rel, errors.New("bad release tag")
+		}
+	}
+	rel.Tag, rel.Name, rel.Page = tag, tag, base+"/releases/tag/"+url.PathEscape(tag)
+	for _, n := range []string{AppName + ".exe", AppName + ".exe.sha256"} {
+		rel.Assets = append(rel.Assets, struct {
+			Name   string `json:"name"`
+			URL    string `json:"browser_download_url"`
+			Digest string `json:"digest"`
+		}{Name: n, URL: base + "/releases/download/" + url.PathEscape(tag) + "/" + n})
+	}
+	return rel, nil
+}
+
 // updClient goes through the same proxy as the downloads.
 var updClient = &http.Client{Transport: &http.Transport{Proxy: proxyFor, TLSHandshakeTimeout: 15 * time.Second, ResponseHeaderTimeout: 30 * time.Second}}
 
@@ -247,22 +286,42 @@ func checkGitHub(manual bool) {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
+	var rel ghRelease
 	resp, err := httpGet(ctx, updateAPI+path)
-	if err != nil {
-		fail("Could not reach GitHub.")
-		return
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode == 404 {
+	if err == nil && resp.StatusCode == 404 {
+		resp.Body.Close()
 		fail("No release found on GitHub. The project may still be private.")
 		return
 	}
-	if resp.StatusCode != 200 {
-		fail(fmt.Sprintf("GitHub answered HTTP %d.", resp.StatusCode))
-		return
+	if err == nil && resp.StatusCode == 200 {
+		derr := json.NewDecoder(io.LimitReader(resp.Body, 4<<20)).Decode(&rel)
+		resp.Body.Close()
+		if derr != nil || rel.Tag == "" {
+			err = errors.New("unreadable")
+		}
+	} else {
+		// GitHub's programming interface limits anonymous requests (HTTP 403/429 when many programs share an address, or
+		// after many checks), and may be unreachable. The ordinary release page is not limited that way: use it.
+		code := 0
+		if err == nil {
+			code = resp.StatusCode
+			resp.Body.Close()
+		}
+		var werr error
+		if rel, werr = webRelease(ctx, channel); werr != nil {
+			switch {
+			case code == 403 || code == 429:
+				fail(fmt.Sprintf("GitHub is limiting requests from your network (HTTP %d). Try again in a few minutes.", code))
+			case code != 0:
+				fail(fmt.Sprintf("GitHub answered HTTP %d.", code))
+			default:
+				fail("Could not reach GitHub.")
+			}
+			return
+		}
+		err = nil
 	}
-	var rel ghRelease
-	if err := json.NewDecoder(io.LimitReader(resp.Body, 4<<20)).Decode(&rel); err != nil || rel.Tag == "" {
+	if err != nil {
 		fail("Could not read the release information.")
 		return
 	}
