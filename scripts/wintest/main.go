@@ -159,8 +159,17 @@ func main() {
 	code := run(exe)
 	check("a second start ends at once and hands over", code == 0 && time.Since(t0) < 15*time.Second && logHas("already running"), code)
 	run(exe, "https://files.example.test/setup.zip")
-	got := post("api/app", map[string]any{"take": "add"})
-	check("a link on the command line reaches the running copy's Add dialog", got["add"] == "https://files.example.test/setup.zip", got)
+	// the hand-over arrives asynchronously, and a running window may take the pending link before this check asks:
+	// either way the link has reached the Add dialog, and the log says when the window took it
+	var got map[string]any
+	linkOK := waitFor(15*time.Second, func() bool {
+		if !logHas(`second start: "add https://files.example.test/setup.zip"`) {
+			return false
+		}
+		got = post("api/app", map[string]any{"take": "add"})
+		return got["add"] == "https://files.example.test/setup.zip" || logHas("add dialog: a link was handed to the window")
+	})
+	check("a link on the command line reaches the running copy's Add dialog", linkOK, got)
 	run(exe, scheme+"://show")
 	check(scheme+"://show reaches the running copy", waitFor(5*time.Second, func() bool { return logHas(`second start: "link ` + scheme + `://show`) }))
 	run(exe, scheme+"://open?item=x&t="+strings.Repeat("0", 32))
@@ -210,7 +219,14 @@ func main() {
 	post("api/app", map[string]any{"autostart": true})
 	runMain := regQuery(runKey, *name)
 	cmdMain := regQuery(`HKCU\Software\Classes\`+scheme+`\shell\open\command`, "")
+	// the installed copy has just restarted and its Start menu upkeep may still be writing the shortcut: wait until it rests
 	lnkBefore, _ := os.Stat(lnk)
+	for settled, i := time.Now(), 0; i < 40 && time.Since(settled) < 4*time.Second; i++ {
+		time.Sleep(500 * time.Millisecond)
+		if st, _ := os.Stat(lnk); st != nil && (lnkBefore == nil || !st.ModTime().Equal(lnkBefore.ModTime())) {
+			lnkBefore, settled = st, time.Now()
+		}
+	}
 	sdir := filepath.Join(work, "separate")
 	os.MkdirAll(sdir, 0o755)
 	sexe := filepath.Join(sdir, *name+".exe")

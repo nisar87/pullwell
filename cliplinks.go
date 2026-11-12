@@ -184,6 +184,9 @@ func takePendingAdd() string {
 	defer pendingMu.Unlock()
 	u := pendingURL
 	pendingURL = ""
+	if u != "" {
+		logf("add dialog: a link was handed to the window")
+	}
 	return u
 }
 

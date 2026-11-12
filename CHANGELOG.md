@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.2 (2026-11-12)
+
+- Test-only: the Windows check "a link on the command line reaches the running copy" no longer fails at random; it
+  waits for the hand-over and accepts the window taking the link first. The log now says when the window took it.
+
 ## 0.9.1 (2026-11-12)
 
 - **Languages: English and اردو only.** The first release carried five more languages (Español, Français, Deutsch,
