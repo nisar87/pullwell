@@ -2,7 +2,7 @@
 
 A fast, reliable download manager for Windows 10 and 11, with a browser extension and no telemetry.
 
-![Pullwell's main window: navigation, live transfers and the list of downloads](docs/superpowers/evidence/2026-11-12/desktop-light.png)
+![Pullwell's main window: navigation, live transfers and the list of downloads](docs/screenshots/main-light.png)
 
 > **Status: first public versions, in daily use.** "Pullwell" is a working name and may change after a trademark
 > check.
@@ -59,8 +59,8 @@ downloads the file itself.
 
 | | |
 | --- | --- |
-| ![Progress of one download](docs/superpowers/evidence/2026-11-12/progress-light.png) | ![Separate progress window](docs/superpowers/evidence/2026-11-12/popout-light.png) |
-| ![Options](docs/superpowers/evidence/2026-11-12/options-light.png) | ![Dark mode](docs/superpowers/evidence/2026-11-12/desktop-dark.png) |
+| ![Progress of one download](docs/screenshots/progress.png) | ![Separate progress window](docs/superpowers/evidence/2026-11-12/popout-light.png) |
+| ![Options](docs/screenshots/options.png) | ![Dark mode](docs/screenshots/main-dark.png) |
 
 The previews use sample downloads and local test files from `scripts/dmtest/fixtures.py`.
 
