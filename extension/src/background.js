@@ -58,8 +58,8 @@ async function cookiesFor(url) {
   try { return NMCore.cookieHeader(await api.cookies.getAll({ url })); } catch (e) { return ''; }
 }
 
-async function send(url, referrer, filename) {
-  return nm('/ext/add', { timeout: 12000, body: { url, referrer: referrer || '', cookie: await cookiesFor(url), userAgent: navigator.userAgent, filename: filename || '' } });
+async function send(url, referrer, filename, auto) {
+  return nm('/ext/add', { timeout: 12000, body: { url, referrer: referrer || '', cookie: await cookiesFor(url), userAgent: navigator.userAgent, filename: filename || '', auto: !!auto } });
 }
 
 // A site can refuse the program (some protection services block everything but a real browser) while the browser
@@ -87,7 +87,7 @@ api.downloads.onCreated.addListener(async (item) => {
     const d = NMCore.shouldCatch(item, cfg);
     if (!d.catch || browserOwn.has(item.url)) return;
     try { await api.downloads.pause(item.id); } catch (e) { }
-    const r = await send(item.url, item.referrer, NMCore.cleanName(item.filename));
+    const r = await send(item.url, item.referrer, NMCore.cleanName(item.filename), true);
     if (r.ok) {
       try { await api.downloads.cancel(item.id); } catch (e) { }
       try { await api.downloads.erase({ id: item.id }); } catch (e) { }

@@ -283,3 +283,23 @@ func TestBrowserDownloadWaitsForTheBox(t *testing.T) {
 		t.Fatal(v)
 	}
 }
+
+func TestCancelledLinkIsNotAskedAboutAgain(t *testing.T) {
+	const l = "https://site.example/mydata.zip?sig=abc"
+	if recentlyDeclined(l) {
+		t.Fatal("a link nobody cancelled must be asked about")
+	}
+	declineAsk(l)
+	if !recentlyDeclined(l) {
+		t.Fatal("a cancelled link must be remembered")
+	}
+	if recentlyDeclined(l + "2") {
+		t.Fatal("only the cancelled link is remembered")
+	}
+	declineMu.Lock()
+	declined[l] = time.Now().Add(-declineFor - time.Second)
+	declineMu.Unlock()
+	if recentlyDeclined(l) {
+		t.Fatal("after a few minutes the link is asked about again")
+	}
+}

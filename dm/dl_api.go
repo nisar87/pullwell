@@ -213,6 +213,9 @@ func (m *dlManager) handle(in dlReq) (map[string]any, error) {
 		return nil, nil
 	case "extConfig":
 		return nil, ext.setConfig(in.ExtMinMB, in.ExtOff, in.ExtNoAsk)
+	case "askDecline":
+		declineAsk(in.URL)
+		return nil, nil
 	case "takeAsk":
 		if a := takeAsk(); a != nil {
 			return map[string]any{"ask": a}, nil

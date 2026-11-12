@@ -264,9 +264,16 @@ func registerExtRoutes(mux *http.ServeMux) {
 			Cookie    string `json:"cookie"`
 			UserAgent string `json:"userAgent"`
 			Filename  string `json:"filename"`
+			Auto      bool   `json:"auto"` // the browser started it (not a right-click or the video button)
 		}
 		if json.NewDecoder(http.MaxBytesReader(w, r.Body, 64<<10)).Decode(&in) != nil {
 			writeErr(w, 400, "bad request")
+			return
+		}
+		if in.Auto && recentlyDeclined(in.URL) {
+			// The person just pressed Cancel in the "Download file info" box for this very link, and the page (or the
+			// browser) started it again: say ok so the extension drops the browser's copy, and do not ask again.
+			writeJSON(w, map[string]any{"ok": true, "declined": true})
 			return
 		}
 		res, err := dlMgr.addFromBrowser(in.URL, in.Referrer, in.Cookie, in.UserAgent, in.Filename)
@@ -468,4 +475,34 @@ func takeAsk() *extAsk {
 	a := askQ[0]
 	askQ = askQ[1:]
 	return &a
+}
+
+// A link the person cancelled in the "Download file info" box is not offered again for a while when the browser
+// starts it again by itself (some pages retry a download that was cancelled). A link chosen by hand is never held back.
+const declineFor = 3 * time.Minute
+
+var (
+	declineMu sync.Mutex
+	declined  = map[string]time.Time{}
+)
+
+func declineAsk(link string) {
+	declineMu.Lock()
+	defer declineMu.Unlock()
+	now := time.Now()
+	for k, t := range declined {
+		if now.Sub(t) > declineFor {
+			delete(declined, k)
+		}
+	}
+	if len(declined) < 200 {
+		declined[link] = now
+	}
+}
+
+func recentlyDeclined(link string) bool {
+	declineMu.Lock()
+	defer declineMu.Unlock()
+	t, ok := declined[link]
+	return ok && time.Since(t) <= declineFor
 }

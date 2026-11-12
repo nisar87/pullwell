@@ -54,6 +54,10 @@ await pa.setContent(`<a id="a" href="http://files.example.test/file/22MB">ask</a
 const asked = await post({action: 'takeAsk'});
 check('a browser download waits for the person\'s yes', (await items()).length === nA && (await askedNow()) === a0 + 1, 'held: ' + ((await askedNow()) - a0));
 if (asked.ask) check('the box gets the browser\'s details', asked.ask.url.includes('/file/22MB') && !!(asked.ask.header && asked.ask.header['User-Agent']), JSON.stringify(Object.keys(asked.ask.header || {})));
+// Cancel in the box, and the page starts the same download again: it is not asked again (a retrying page used to bring the box back every time)
+await post({action: 'askDecline', url: asked.ask.url}); const a1 = await askedNow();
+await pa.click('#a'); await sleep(2500);
+check('a link cancelled in the box is not asked about again when the browser starts it again', (await askedNow()) === a1 && !(await post({action: 'takeAsk'})).ask, 'asked ' + ((await askedNow()) - a1) + ' more time(s)');
 await pa.close();
 await post({action: 'extConfig', extMinMB: 5, extOff: false, extNoAsk: true}); // the checks below look at the direct hand-over
 // a big download is taken over
