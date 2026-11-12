@@ -807,7 +807,7 @@ function showProbe(link, p){
   if ($('#dlQual')) $('#dlQual').onchange = async e => { const h = +e.target.value; try { const q2 = await api('downloads', {action:'probe', url: link, height: h, header: askHdr}); q2.height = h; showProbe(link, q2); } catch(err){ toast(err.message, true); } };
   $('#dlGo').onclick = () => confirmAdd(link, p, true);
   $('#dlLater').onclick = () => confirmAdd(link, p, false);
-  $('#dlCancel').onclick = dlClose;
+  $('#dlCancel').onclick = () => { if (askHdr) api('downloads', {action: 'askDecline', url: link}).catch(() => {}); dlClose(); };
   $('#dlName').onkeydown = $('#dlFolder').onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); $('#dlGo').click(); } };
   setTimeout(() => $('#dlGo') && $('#dlGo').focus(), 20);
 }

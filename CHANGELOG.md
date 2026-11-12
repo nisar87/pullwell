@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.9.3 (2026-11-12)
+
+- Fixed: a download that the browser kept starting again (a page that retries after the browser's download was taken
+  over) brought the "Download file info" box back every time you pressed Cancel. A link you cancel in that box is now
+  not offered again for three minutes when the browser starts it by itself. A link you choose by hand (right-click
+  menu, the button on a video) is never held back. Needs the extension from 0.9.3 (it tells the program which
+  downloads the browser started by itself).
+
 ## 0.9.2 (2026-11-12)
 
 - Test-only: the Windows check "a link on the command line reaches the running copy" no longer fails at random; it
