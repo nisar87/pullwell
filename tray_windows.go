@@ -343,6 +343,7 @@ func trayProc(hwnd, msg, wp, lp uintptr) uintptr {
 		return 0
 	case wmQuitTray, wmClose:
 		savePlacement()
+		shutdownProgressUI()
 		trayNotify(nimDelete)
 		trayWnd.Store(0)
 		pPostMessage.Call(0, 0x0012, 0, 0) // WM_QUIT

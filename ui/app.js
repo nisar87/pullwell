@@ -8,7 +8,16 @@ const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAl
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const bytes = b => !(b > 0) ? '0 KB' : b >= 1e12 ? (b/1e12).toFixed(2)+' TB' : b >= 1e9 ? (b/1e9).toFixed(2)+' GB' : b >= 1e6 ? (b/1e6).toFixed(1)+' MB' : Math.max(1, Math.round(b/1e3))+' KB';
 const dur = s => { if (!(s > 0) || !isFinite(s)) return ''; s = Math.ceil(s); const d = Math.floor(s/86400), h = Math.floor(s%86400/3600), m = Math.floor(s%3600/60); return d ? `${d}d ${h}h` : h ? `${h}h ${m}m` : m ? `${m}m ${s%60}s` : `${s}s`; };
-const setHTML = (el, html) => { if (el && el.dataset.h !== html) { el.dataset.h = html; el.innerHTML = html; } };
+const setHTML = (el, html) => {
+  if (!el || el.dataset.h === html) return;
+  const active = el.contains(document.activeElement) ? document.activeElement : null;
+  const focusId = active?.id, focusView = active?.dataset.view;
+  const scroll = el.scrollTop;
+  el.dataset.h = html; el.innerHTML = html; el.scrollTop = scroll;
+  const next = focusId ? el.querySelector('#' + CSS.escape(focusId)) : focusView
+    ? [...el.querySelectorAll('[data-view]')].find(b => b.dataset.view === focusView) : null;
+  if (next) next.focus({preventScroll:true});
+};
 const labelOf = name => name;
 let toastT;
 function toast(msg, bad){ const t = $('#toast'); t.textContent = msg; t.className = 'toast show' + (bad ? ' bad' : ''); clearTimeout(toastT); toastT = setTimeout(() => t.className = 'toast', 2800); }
@@ -65,16 +74,16 @@ async function loadDL(){
   if (loading) return;
   loading = true;
   try { const d = await api('downloads'); d.items = d.items || []; d.config = d.config || {}; d.config.queues = d.config.queues || []; d.config.window = d.config.window || {from:'22:00', to:'07:00'}; DL = d; loadErrors = 0; if ($('#banner').dataset.down) { delete $('#banner').dataset.down; setHTML($('#banner'), ''); } }
-  catch(e){ loadErrors++; if (UPD && UPD.status === 'installing' && loadErrors < 60) return; if (loadErrors === 3) { $('#banner').dataset.down = '1'; } if (loadErrors >= 3) setHTML($('#banner'), `<div class="bn bad">${esc(APP.name)} is not answering. If you closed it from the notification area, start it again.</div>`); return; }
+  catch(e){ loadErrors++; if (UPD && UPD.status === 'installing' && loadErrors < 60) return; if (loadErrors === 3) { $('#banner').dataset.down = '1'; } if (loadErrors >= 3) { setHTML($('#banner'), `<div class="bn bad">${esc(APP.name)} is not answering. If you closed it from the notification area, start it again.</div>`); ProgressWindow.connection(false); } return; }
   finally { loading = false; }
-  for (const v of DL.items) { if (prevState[v.id] && prevState[v.id] !== 'done' && v.state === 'done' && !document.hidden) toast('Finished: ' + v.name); prevState[v.id] = v.state; }
+  for (const v of DL.items) { if (!ProgressWindow.id && prevState[v.id] && prevState[v.id] !== 'done' && v.state === 'done' && !document.hidden) toast('Finished: ' + v.name); prevState[v.id] = v.state; }
   speedHist.push(DL.speed || 0); if (speedHist.length > 60) speedHist.shift();
   // the speed of each running download over the last two minutes, for its progress window; bounded per item and
   // dropped as soon as the download is no longer running
   for (const v of DL.items) if (v.state === 'downloading') { const h = itemHist.get(v.id) || []; h.push(v.speed || 0); if (h.length > 120) h.shift(); itemHist.set(v.id, h); }
   for (const id of itemHist.keys()) if (!DL.items.some(v => v.id === id && v.state === 'downloading')) itemHist.delete(id);
   render();
-  if (++addPolls % 2 === 0 || document.hasFocus()) checkPendingAdd();
+  if (!ProgressWindow.id && (++addPolls % 2 === 0 || document.hasFocus())) checkPendingAdd();
 }
 let addPolls = 0, addChecking = false;
 // The headers (cookies, the page it came from) of a download the browser handed over: the box probes and adds with them.
@@ -127,7 +136,7 @@ function infoOf(v){
   if (v.kind === 'torrent' && v.state === 'downloading') out.push(`${v.peers||0} peers${v.seeds ? `, ${v.seeds} seeds` : ''}`);
   if (v.note && v.state !== 'done') out.push(esc(v.note));
   if (v.err && v.state !== 'done') out.push(esc(v.err));
-  if (v.queue) out.push('Queue: ' + esc(dlQueueName(v.queue)));
+  if (v.queue) out.push(`${esc(I18N.t('Queue'))}: <span data-nt dir="auto">${esc(dlQueueName(v.queue))}</span>`);
   if (v.limit > 0 && v.state !== 'done') out.push('Limit ' + bytes(v.limit) + '/s');
   return out.join(' · ');
 }
@@ -153,16 +162,16 @@ function statusCell(v){
   const map = v.state === 'downloading' && Array.isArray(v.map) && v.map.length > 1 ? flowParts(v.map, 16) : null;
   const line = map ? `<div class="pb map">${map.map(m => `<b><i style="width:${Math.max(0, Math.min(100, m))}%"></i></b>`).join('')}</div>`
     : `<div class="pb ${cls}"><i style="width:${v.state === 'error' && !(p > 0) ? 100 : p}%"></i></div>`;
-  return `<div class="st">${line}<span class="pt ${tcls}">${txt}</span></div>`;
+  return `<div class="st"><div class="progress-track" role="progressbar" aria-label="${esc(dlStateText(v))}" aria-valuemin="0" aria-valuemax="100"${v.size > 0 || v.state === 'done' ? ` aria-valuenow="${Math.round(p)}"` : ''} aria-valuetext="${esc(txt)}">${line}</div><span class="pt ${tcls}">${txt}</span></div>`;
 }
 const when = t => { if (!t) return ''; const d = new Date(t*1000), now = new Date(); return d.toDateString() === now.toDateString() ? d.toLocaleTimeString(I18N.locale, {hour:'2-digit', minute:'2-digit'}) : d.toLocaleDateString(I18N.locale, {day:'numeric', month:'short'}) + ' ' + d.toLocaleTimeString(I18N.locale, {hour:'2-digit', minute:'2-digit'}); };
 
 /* ---------- columns ---------- */
 const COLS = [
-  {k:'name', t:'File name', w:0, sort: v => (v.name || v.url).toLowerCase(), cell: v => `<td class="nm" title="${esc((v.name || '') + '\n' + v.url)}"><span class="fi ${esc(v.category || 'Other')}">${esc(extOf(v))}</span><span class="tx">${esc(v.name || v.url)}</span></td>`},
-  {k:'size', t:'Size', w:86, r:1, sort: v => v.size || 0, cell: v => `<td class="r">${v.size > 0 ? bytes(v.size) : v.state === 'done' ? bytes(v.done) : '<span class="mute">?</span>'}</td>`},
+  {k:'name', t:'File name', w:0, sort: v => (v.name || v.url).toLowerCase(), cell: v => `<td class="nm" title="${esc((v.name || '') + '\n' + v.url)}">${UI.fileBadge(v)}<span class="file-copy"><span class="tx" data-nt dir="auto">${esc(v.name || v.url)}</span><small class="file-source" data-nt dir="auto">${esc(siteOf(v) || v.category || '')}</small></span></td>`},
+  {k:'size', t:'Size', w:102, r:1, sort: v => v.size || 0, cell: v => `<td class="r">${v.size > 0 ? bytes(v.size) : v.state === 'done' ? bytes(v.done) : '<span class="mute">?</span>'}</td>`},
   {k:'status', t:'Progress', w:190, sort: v => ({downloading:0, queued:1, paused:2, error:3, done:4})[v.state] * 1000 - pctOf(v), cell: v => `<td>${statusCell(v)}</td>`},
-  {k:'speed', t:'Speed', w:84, r:1, sort: v => v.state === 'downloading' ? v.speed || 0 : -1, cell: v => `<td class="r sp">${v.state === 'downloading' ? bytes(v.speed) + '/s' : ''}</td>`},
+  {k:'speed', t:'Speed', w:100, r:1, sort: v => v.state === 'downloading' ? v.speed || 0 : -1, cell: v => `<td class="r sp">${v.state === 'downloading' ? bytes(v.speed) + '/s' : ''}</td>`},
   {k:'left', t:'Time left', w:78, r:1, sort: v => leftOf(v) || 1e12, cell: v => `<td class="r">${dur(leftOf(v))}</td>`},
   {k:'added', t:'Added', w:120, sort: v => v.added || 0, cell: v => `<td class="n" title="${v.finished ? 'Finished ' + esc(new Date(v.finished*1000).toLocaleString(I18N.locale)) : ''}">${when(v.added)}</td>`},
   {k:'site', t:'Website', w:140, sort: v => siteOf(v), cell: v => `<td title="${esc(v.url)}">${esc(siteOf(v))}</td>`},
@@ -196,21 +205,22 @@ function shownItems(){
 /* ---------- drawing ---------- */
 function render(){
   if (!DL) return;
+  if (ProgressWindow.render()) return;
   for (const id of [...sel]) if (!DL.items.some(v => v.id === id)) sel.delete(id);
   if (cur && !DL.items.some(v => v.id === cur)) cur = null;
-  renderSide(); renderTable(); renderTools(); renderStatus(); renderBanner(); paintProgress();
+  renderSide(); renderTable(); renderTools(); renderStatus(); renderBanner(); paintProgress(); UI.workspace();
 }
 
 function renderSide(){
   const it = DL.items, n = f => it.filter(f).length;
-  const row = (vw, icon, label, count, sub) => { const on = view.k === vw.k && (view.v || '') === (vw.v || ''); return `<button class="it${sub ? ' sub' : ''}${on ? ' sel' : ''}" data-view='${esc(JSON.stringify(vw))}'>${svg(icon)}<span>${esc(label)}</span><small>${count || ''}</small></button>`; };
+  const row = (vw, icon, label, count, sub) => { const on = view.k === vw.k && (view.v || '') === (vw.v || ''); return `<button class="it${sub ? ' sub' : ''}${on ? ' sel' : ''}" aria-current="${on ? 'page' : 'false'}" data-view='${esc(JSON.stringify(vw))}'>${vw.k === 'cat' ? UI.icon(vw.v) : svg(icon)}<span${vw.k === 'queue' && vw.v ? ' data-nt dir="auto"' : ''}>${esc(label)}</span><small>${count || ''}</small></button>`; };
   const cats = DL_CATS.map(c => row({k:'cat', v:c}, 'folder', c, n(v => (v.category || 'Other') === c), true)).join('');
   const queues = [{id:'', name:'Main queue'}].concat(DL.config.queues || []).map(qq => row({k:'queue', v:qq.id}, 'queue', qq.name + (qq.paused ? ' (paused)' : ''), n(v => (v.queue || '') === qq.id && v.state !== 'done'), true)).join('');
   const active = n(v => v.state === 'downloading');
   setHTML($('#side'), `<div class="h">Library</div>${row({k:'all'}, 'all', 'All downloads', it.length)}${row({k:'active'}, 'flow', 'Downloading', active).replace('<small>', active ? '<i class="live" aria-hidden="true"></i><small>' : '<small>')}
     ${row({k:'unfinished'}, 'todo', 'Unfinished', n(v => v.state !== 'done'))}${row({k:'finished'}, 'done', 'Finished', n(v => v.state === 'done'))}${row({k:'errors'}, 'warn', 'Needs attention', n(v => v.state === 'error'))}
     <div class="h">File types</div>${cats}
-    <div class="h">Queues</div>${queues}`);
+    <div class="h">Queues</div>${queues}<div class="side-bottom"><button class="browser-connect" id="sideConnect">${UI.icon('browser')}<span>Connect a browser…</span></button></div>`);
 }
 
 let headKey = '';
@@ -222,9 +232,9 @@ function renderTable(){
   const hk = JSON.stringify([sortBy, widths, hideCols]);
   if (hk !== headKey) {
     headKey = hk;
-    $('#cg').innerHTML = SC.map(c => `<col style="width:${c.w ? (widths[c.k] || c.w) + 'px' : 'auto'}">`).join('');
+    $('#cg').innerHTML = SC.map(c => `<col data-col="${c.k}" style="width:${c.w ? (widths[c.k] || c.w) + 'px' : 'auto'}">`).join('');
     $('#tbl').style.minWidth = SC.reduce((a, c) => a + (c.w ? (widths[c.k] || c.w) : 170), 0) + 'px'; // the name keeps at least 170 px; narrower windows scroll sideways
-    $('#th').innerHTML = `<tr>${SC.map(c => `<th data-sort="${c.k}"${c.r ? ' class="r"' : ''}>${c.t}${sortBy.c === c.k ? `<span class="ar">${sortBy.d > 0 ? '▲' : '▼'}</span>` : ''}</th>`).join('')}</tr>`;
+    $('#th').innerHTML = `<tr>${SC.map(c => `<th scope="col" tabindex="0" data-col="${c.k}" data-sort="${c.k}" aria-sort="${sortBy.c === c.k ? (sortBy.d > 0 ? 'ascending' : 'descending') : 'none'}"${c.r ? ' class="r"' : ''}>${c.t}${sortBy.c === c.k ? `<span class="ar" aria-hidden="true">${sortBy.d > 0 ? '▲' : '▼'}</span>` : ''}</th>`).join('')}</tr>`;
   }
   const tb = $('#tb'), keep = new Set(visible);
   for (const [id, tr] of rowEls) if (!keep.has(id)) { tr.remove(); rowEls.delete(id); }
@@ -232,7 +242,7 @@ function renderTable(){
   for (const v of items) {
     let tr = rowEls.get(v.id);
     if (!tr) { tr = document.createElement('tr'); tr.dataset.id = v.id; rowEls.set(v.id, tr); }
-    const html = SC.map(c => c.cell(v)).join('');
+    const html = SC.map(c => c.cell(v).replace('<td', `<td data-col="${c.k}"`)).join('');
     if (tr.dataset.h !== html) { tr.dataset.h = html; tr.innerHTML = html; }
     const cls = (sel.has(v.id) ? 'sel' : '') + (cur === v.id ? ' cur' : '') + (v.state === 'downloading' ? ' run' : '');
     if (tr.className !== cls) tr.className = cls;
@@ -244,9 +254,7 @@ function renderTable(){
   if (items.length) empty.hidden = true;
   else {
     empty.hidden = false;
-    setHTML(empty, DL.items.length ? (q ? 'Nothing matches your search.' : 'Nothing here.')
-      : `<b>No downloads yet</b>Paste a link with <b>Ctrl+V</b>, drop a link or a .torrent file here, or choose <button class="btn pri" id="emptyAdd">New download</button>`
-        + (DL.ext && (DL.ext.browsers || []).length ? '' : `<br><br>To let big downloads from Chrome, Edge or Firefox come here by themselves: <button class="btn" id="emptyExt">Connect a browser…</button>`));
+    setHTML(empty, UI.emptyState());
   }
 }
 
@@ -413,6 +421,7 @@ function rowMenu(x, y){
     '-',
     {t:'Copy link', do: () => copyText(s.map(v => v.url).join('\n'), s.length > 1 ? 'Links copied' : 'Link copied')},
     {t:'Progress', off: !(one && one.state !== 'done'), do: () => progressBox(one.id)},
+    {t:'Open in separate window', off: !one, do: () => ProgressWindow.open(one.id)},
     {t:'Open when finished', chk: !!(one && one.openDone), off: !(one && one.state !== 'done' && one.kind !== 'torrent'), do: () => dlAct({action:'openWhenDone', id: one.id, openWhenDone: !one.openDone}, one.openDone ? 'Will not open by itself' : 'Opens when finished')},
     {t:'Rename…', k:'F2', off: !canRename(one), do: () => renameBox(one)},
     {t:'Move to another folder…', off: !(one && one.state === 'done' && one.path && one.kind !== 'torrent'), do: () => moveBox(one)},
@@ -475,33 +484,55 @@ function checksumBox(v){
 // Opened by double-click or Enter on an unfinished download. It is redrawn after every refresh of the list, so it
 // shows the speed, time left, connections and parts as they change; when the download finishes it offers Open.
 let progId = null;
+function progressMarkup(standalone = false){
+  return `<div class="card prog" role="${standalone ? 'region' : 'dialog'}"${standalone ? '' : ' aria-modal="true"'} aria-labelledby="pgTitle">
+    <div class="ph"><span class="fi" id="pgType"></span><div class="progress-file"><h3 id="pgTitle" role="heading" aria-level="2" data-nt dir="auto"></h3><div class="src selectable" id="pgUrl" data-nt dir="auto"></div></div>${standalone ? '' : '<button class="iconbtn progress-popout" id="pgPopOut" aria-label="Open in separate window" title="Open in separate window"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3h7v7M21 3l-9 9M10 4H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-5"/></svg></button>'}</div>
+    <div class="hero"><span class="big" id="pgBig"></span><span class="state" id="pgState"></span><span class="sp"></span><span class="rate" id="pgRate"></span></div>
+    <div class="flow"><div class="pgbar" role="progressbar" aria-label="Download progress" aria-valuemin="0" aria-valuemax="100" id="pgBar"><i id="pgFill"></i></div><div id="pgSeg"></div><div id="pgSpark"></div></div>
+    <div class="pggrid" id="pgGrid"></div>
+    <div id="pgLog" class="pglog" role="region" aria-label="Recent events"></div>
+    <div class="pfoot"><button class="btn" id="pgProps">Properties</button><span class="sp"></span><button class="btn" id="pgFolder">Open folder</button><button class="btn" id="pgMain"></button><button class="btn pri" id="pgClose">Close</button></div></div>`;
+}
 function progressBox(id){
   if (!DL.items.some(v => v.id === id)) return;
+  dlDialog(progressMarkup());
+  bindProgress(id, false);
+  paintProgress();
+  $('#pgClose').focus();
+}
+function bindProgress(id, standalone){
   progId = id;
-  dlDialog(`<div class="card prog" role="dialog" aria-modal="true" aria-labelledby="pgTitle">
-    <div class="ph"><span class="fi" id="pgType"></span><div style="min-width:0"><h3 id="pgTitle"></h3><div class="src selectable" id="pgUrl"></div></div></div>
-    <div class="hero"><span class="big" id="pgBig"></span><span class="state" id="pgState"></span><span class="sp"></span><span class="rate" id="pgRate"></span></div>
-    <div class="flow"><div class="pgbar"><i id="pgFill"></i></div><div id="pgSeg"></div><div id="pgSpark"></div></div>
-    <div class="pggrid" id="pgGrid"></div>
-    <div id="pgLog" class="pglog" aria-label="Recent events"></div>
-    <div class="pfoot"><button class="btn" id="pgProps">Properties</button><span class="sp"></span><button class="btn" id="pgFolder">Open folder</button><button class="btn" id="pgMain"></button><button class="btn pri" id="pgClose">Close</button></div></div>`);
-  $('#pgClose').onclick = dlClose;
-  $('#pgProps').onclick = () => { const i = progId; dlClose(); dlProps(i); };
+  $('#pgClose').onclick = standalone ? ProgressWindow.close : dlClose;
+  if ($('#pgPopOut')) $('#pgPopOut').onclick = () => { if (ProgressWindow.open(id)) dlClose(); };
+  $('#pgProps').onclick = () => { const i = progId; if (!standalone) dlClose(); dlProps(i); };
   $('#pgFolder').onclick = () => { const v = DL.items.find(x => x.id === progId); if (v) openItem(v, true); };
   $('#pgMain').onclick = async () => {
     const v = DL.items.find(x => x.id === progId); if (!v) return;
     if (Date.now() - (+$('#pgMain').dataset.changed || 0) < 900) return; // the button just changed under the pointer (e.g. Pause became Open)
-    if (v.state === 'done') { dlClose(); return openItem(v); }
+    if (v.state === 'done') { if (!standalone) dlClose(); return openItem(v); }
     if (v.state === 'downloading' || v.state === 'queued') { if (await confirmNoResume([v])) await dlAct({action:'pause', id: v.id}); if (!$('#pgGrid')) progressBox(v.id); }
     else await dlAct({action:'resume', id: v.id});
   };
-  paintProgress();
-  $('#pgClose').focus();
 }
 function paintProgress(){
   if (!progId || !$('#pgGrid')) { progId = $('#pgGrid') ? progId : null; return; }
   const v = DL.items.find(x => x.id === progId);
-  if (!v) { $('#pgTitle').textContent = 'This download was removed'; $('#pgMain').disabled = true; return; }
+  if (!v) {
+    // A standalone window's dialogs all belong to its one download. Close
+    // them with their normal cancel path when that download disappears.
+    const dialogWasOpen = ProgressWindow.id === progId && !!$('#dlDlg');
+    if (dialogWasOpen) dlClose();
+    $('#pgTitle').textContent = I18N.t('This download was removed');
+    const actions = ['pgMain','pgFolder','pgProps'].map(key => $('#' + key));
+    const hadFocus = dialogWasOpen || actions.includes(document.activeElement);
+    actions.forEach(button => { button.disabled = true; button.hidden = true; });
+    ['pgUrl','pgType','pgBig','pgState','pgRate','pgSeg','pgSpark','pgGrid','pgLog'].forEach(key => setHTML($('#' + key), ''));
+    $('#pgFill').style.width = '0%'; $('#pgBar').removeAttribute('aria-valuenow');
+    if (hadFocus) $('#pgClose').focus({preventScroll:true});
+    return;
+  }
+  ['pgMain','pgFolder','pgProps'].forEach(key => $('#' + key).hidden = false);
+  $('#pgMain').disabled = false; $('#pgProps').disabled = false;
   const pct = pctOf(v), conns = (v.lineStats || []).reduce((a, l) => a + (l.workers || 0), 0);
   const word = v.state === 'done' ? 'Complete' : v.state === 'error' ? 'Failed' : dlStateText(v);
   $('#pgTitle').textContent = v.name || 'Download';
@@ -516,6 +547,7 @@ function paintProgress(){
     const pts = h.map((x, i) => `${(i/(n-1)*w).toFixed(1)},${(ht-2-x/mx*(ht-6)).toFixed(1)}`).join(' ');
     return `<svg class="spark2" viewBox="0 0 ${w} ${ht}" preserveAspectRatio="none" role="img" aria-label="Speed over the last ${n} seconds, peak ${esc(bytes(mx))}/s"><polyline points="0,${ht} ${pts} ${w},${ht}" fill="var(--accent-soft)" stroke="none"/><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>`; })() : '');
   $('#pgFill').style.width = (v.size > 0 || v.state === 'done' ? pct : 0) + '%';
+  if (v.size > 0 || v.state === 'done') $('#pgBar').setAttribute('aria-valuenow', String(Math.round(pct))); else $('#pgBar').removeAttribute('aria-valuenow');
   $('#pgFill').className = v.state === 'error' ? 'bad' : v.state === 'done' ? 'ok' : v.state === 'paused' ? 'paused' : '';
   setHTML($('#pgSeg'), dlSegBar(v));
   const rows = [
@@ -550,12 +582,14 @@ function openBarMenu(b, focusFirst){
   b.classList.add('open');
   if (!focusFirst && menuEl) { const f = menuEl.querySelector('button:focus'); if (f) f.blur(); }
 }
-let uiPrefs = Object.assign({side: true, labels: true, status: true, dense: false}, store.get('ui', {}));
+let uiPrefs = Object.assign({side: true, labels: true, status: true, dense: false, fitColumns:true}, store.get('ui', {}));
 function applyUiPrefs(){
   document.body.classList.toggle('noside', !uiPrefs.side);
   document.body.classList.toggle('notb', !uiPrefs.labels);
   document.body.classList.toggle('nosb', !uiPrefs.status);
   document.body.classList.toggle('dense', !!uiPrefs.dense);
+  $('#tbl').classList.toggle('fit-columns', !!uiPrefs.fitColumns);
+  if ($('#densityToggle')) $('#densityToggle').setAttribute('aria-pressed', String(!!uiPrefs.dense));
 }
 function setUiPref(k){ uiPrefs[k] = !uiPrefs[k]; store.set('ui', uiPrefs); applyUiPrefs(); }
 const busy = () => DL.items.filter(v => v.state === 'downloading').length;
@@ -647,6 +681,7 @@ const BAR_MENUS = {
       {t:'Speed limit', off: !any(v => v.state !== 'done'), sub: LIMITS.map(l => ({t: limitLabel(l), chk: Math.abs(curLim - l * 1048576) < 1, do: () => eachSel('limit', {limitBytes: l * 1048576}, l ? 'Limit set' : 'Limit removed')}))},
       {t:'Copy link', off: !s.length, do: () => copyText(s.map(v => v.url).join('\n'), s.length > 1 ? 'Links copied' : 'Link copied')},
       {t:'Progress', off: !(one && one.state !== 'done'), do: () => progressBox(one.id)},
+      {t:'Open in separate window', off: !one, do: () => ProgressWindow.open(one.id)},
       {t:'Rename…', k:'F2', off: !canRename(one), do: () => renameBox(one)},
       {t:'Move to another folder…', off: !(one && one.state === 'done' && one.path && one.kind !== 'torrent'), do: () => moveBox(one)},
       {t:'Check the checksum…', off: !(one && one.state === 'done' && one.path), do: () => checksumBox(one)},
@@ -663,7 +698,8 @@ const BAR_MENUS = {
     {t:'Toolbar labels', chk: uiPrefs.labels, do: () => setUiPref('labels')},
     {t:'Status bar', chk: uiPrefs.status, do: () => setUiPref('status')},
     '-',
-    {t:'Columns', sub: COLS.filter(c => c.k !== 'name').map(c => ({t: c.t, chk: !hideCols.includes(c.k), do: () => { hideCols = hideCols.includes(c.k) ? hideCols.filter(x => x !== c.k) : hideCols.concat(c.k); store.set('hideCols', hideCols); render(); }}))
+    {t:'Fit columns to window', chk:uiPrefs.fitColumns, do:() => setUiPref('fitColumns')},
+    {t:'Columns', sub: COLS.filter(c => c.k !== 'name').map(c => ({t: c.t, chk: !hideCols.includes(c.k), do: () => { if (uiPrefs.fitColumns) setUiPref('fitColumns'); hideCols = hideCols.includes(c.k) ? hideCols.filter(x => x !== c.k) : hideCols.concat(c.k); store.set('hideCols', hideCols); render(); }}))
       .concat(['-', {t:'Reset widths', do: () => { widths = {}; store.set('widths', widths); headKey = ''; render(); }}])},
     {t:'Sort by', sub: [{k:'order', t:'Queue order'}].concat(COLS).map(c => ({t: c.t, chk: sortBy.c === c.k, do: () => { sortBy = {c: c.k, d: sortBy.c === c.k ? -sortBy.d : 1}; store.set('sort', sortBy); render(); }}))},
     {t:'Show', sub: [[{k:'all'},'All downloads'],[{k:'unfinished'},'Unfinished'],[{k:'finished'},'Finished'],[{k:'errors'},'Needs attention']].map(([vw, t]) => ({t, chk: view.k === vw.k, do: () => { view = vw; store.set('view', view); sel.clear(); cur = null; render(); }}))},
@@ -704,7 +740,11 @@ let dlOpener = null;
 function dlClose(){
   const d = $('#dlDlg'); if (d) d.remove();
   $$('[data-dlinert]').forEach(el => { el.inert = false; el.removeAttribute('data-dlinert'); });
-  if (dlOpener && document.contains(dlOpener)) { try { dlOpener.focus(); } catch(e){} }
+  // Live counts can replace the sidebar while a dialog is open. Resolve the
+  // same control in the current DOM before returning keyboard focus.
+  const opener = dlOpener?.isConnected ? dlOpener : dlOpener?.id ? document.getElementById(dlOpener.id)
+    : dlOpener?.dataset.view ? $$('[data-view]').find(el => el.dataset.view === dlOpener.dataset.view) : null;
+  try { (opener || $('#main')).focus({preventScroll:true}); } catch(e){}
   dlOpener = null; optTab = null;
   if (askResolve) { const r = askResolve; askResolve = null; r({ok:false}); }
 }
@@ -719,11 +759,26 @@ function dlDialog(html){
     d.addEventListener('mouseup', e => { if (e.target === d && d.dataset.down) dlClose(); delete d.dataset.down; });
   }
   setHTML(d, html);
-  const card = d.querySelector('.card'); if (card) { card.setAttribute('tabindex', '-1'); const f = card.querySelector('[autofocus]') || card.querySelector('textarea,input:not([type=hidden]):not([type=checkbox]),select,button.pri,button'); (f || card).focus(); }
+  const card = d.querySelector('.card');
+  if (card) {
+    card.setAttribute('tabindex', '-1');
+    if (!card.hasAttribute('role')) card.setAttribute('role', 'dialog');
+    card.setAttribute('aria-modal', 'true');
+    if (!card.hasAttribute('aria-label') && !card.hasAttribute('aria-labelledby')) card.setAttribute('aria-label', card.querySelector('h3')?.textContent || 'Downloads');
+    const close = card.querySelector('.dialog-close') || document.createElement('button'); close.className = 'iconbtn dialog-close'; close.setAttribute('aria-label', I18N.t('Close')); close.title = I18N.t('Close'); close.innerHTML = UI.icon('close'); close.onclick = () => {
+      // Use the dialog's own cancel path, including browser-download decline semantics.
+      const cancel = card.querySelector('#dlCancel,#askNo,#addNo,#rnNo,#ibNo');
+      if (cancel) cancel.click(); else dlClose();
+    };
+    card.appendChild(close);
+    card.querySelectorAll('h3').forEach(h => { h.setAttribute('role','heading'); h.setAttribute('aria-level','2'); });
+    UI.nameFields(card);
+    const f = card.querySelector('[autofocus]') || card.querySelector('textarea,input:not([type=hidden]):not([type=checkbox]),select,button.pri,button'); (f || card).focus();
+  }
 }
 document.addEventListener('keydown', e => {
   const d = $('#dlDlg'); if (!d) return;
-  if (e.key === 'Escape') { e.preventDefault(); dlClose(); return; }
+  if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); const close = d.querySelector('.dialog-close'); if (close) close.click(); else dlClose(); return; }
   if (e.key !== 'Tab') return;
   const f = [...d.querySelectorAll('input:not([type=hidden]):not([disabled]),select:not([disabled]),textarea:not([disabled]),button:not([disabled]),a[href]')].filter(x => x.offsetParent !== null);
   if (!f.length) return;
@@ -739,7 +794,7 @@ function askBox({title, text, ok = 'OK', danger = false, check = '', checked = f
     dlDialog(`<div class="card" role="alertdialog" aria-modal="true" aria-label="${esc(title)}" style="max-width:440px"><h3 style="word-break:break-word">${esc(title)}</h3>
       ${text ? `<div class="hint2" style="margin:6px 0 4px">${esc(text)}</div>` : ''}
       ${check ? `<label class="row" style="margin-top:10px;gap:6px"><input type="checkbox" id="askChk"${checked ? ' checked' : ''}> ${esc(check)}</label>` : ''}
-      <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" id="askNo">Cancel</button><button class="btn pri" id="askYes"${danger ? ' style="background:var(--bad);border-color:var(--bad);color:#fff"' : ''} autofocus>${esc(ok)}</button></div></div>`);
+      <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" id="askNo">Cancel</button><button class="btn pri" id="askYes"${danger ? ' style="background:var(--danger);border-color:var(--danger);color:var(--danger-ink)"' : ''} autofocus>${esc(ok)}</button></div></div>`);
     askResolve = res;
     $('#askNo').onclick = () => dlClose();
     $('#askYes').onclick = () => { const c = $('#askChk') ? $('#askChk').checked : false; askResolve = null; dlClose(); res({ok:true, checked:c}); };
@@ -925,10 +980,14 @@ function showOptions(tab){
   if (!APPCFG && !showOptions.asked) { showOptions.asked = true; loadAppCfg().then(() => { if (optTab && $('.opt')) showOptions(optTab); }); }
   optTab = tab || optTab || 'general';
   const keepFocus = document.activeElement && document.activeElement.id;
+  const keepTab = document.activeElement?.dataset.opt;
+  const sectionScroll = $('.opt section')?.scrollTop || 0;
   dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Options" style="max-width:720px;padding-bottom:12px"><div class="row"><h3 style="flex:1">Options</h3><button class="btn" id="optClose">Close</button></div>
-    <div class="opt"><nav>${OPT_TABS.map(t => `<button data-opt="${t[0]}" class="${optTab === t[0] ? 'sel' : ''}">${t[1]}</button>`).join('')}</nav><section>${optionsBody(optTab)}</section></div></div>`);
+    <div class="opt"><nav role="tablist" aria-label="Options" aria-orientation="vertical">${OPT_TABS.map(t => `<button id="opt-tab-${t[0]}" role="tab" aria-selected="${optTab === t[0]}" aria-controls="optPanel" tabindex="${optTab === t[0] ? 0 : -1}" data-opt="${t[0]}" class="${optTab === t[0] ? 'sel' : ''}">${t[1]}</button>`).join('')}</nav><section id="optPanel" role="tabpanel" aria-labelledby="opt-tab-${optTab}" tabindex="0">${optionsBody(optTab)}</section></div></div>`);
   $('#optClose').onclick = dlClose;
   if (keepFocus && $('#' + keepFocus) && $('#dlDlg').contains($('#' + keepFocus))) $('#' + keepFocus).focus();
+  else if (keepTab) $(`[data-opt="${optTab}"]`)?.focus();
+  $('.opt section').scrollTop = sectionScroll;
 }
 function afterChange(){ if (optTab && $('#dlDlg') && $('.opt')) showOptions(optTab); }
 
@@ -942,11 +1001,12 @@ async function extConnect(){
       <li><b>Chrome, Edge, Brave:</b> unzip it into a folder you keep. Open <code>chrome://extensions</code> (Edge: <code>edge://extensions</code>) <button class="btn" id="extCopy" style="padding:1px 8px;min-height:0">Copy</button>, switch on <b>Developer mode</b>, click <b>Load unpacked</b> and choose that folder.<br><b>Firefox:</b> open <code>about:debugging#/runtime/this-firefox</code>, click <b>Load Temporary Add-on</b> and choose the zip (Firefox forgets it when it closes).</li>
       <li><b>Pin the ${esc(APP.name)} icon</b> (the puzzle piece in the toolbar), click it and type this code:</li>
     </ol>
-    <div class="selectable" style="font:700 28px/1.2 var(--mono);letter-spacing:.12em;text-align:center;padding:12px;border-radius:8px;background:var(--inset)">${esc(r.code)}</div>
+    <div class="pair-code"><code data-nt dir="ltr">${esc(r.code)}</code><button class="btn" id="extCopyCode">Copy</button></div>
     <div class="hint2" style="margin-top:6px;text-align:center" id="extLeft"></div>
     <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn pri" id="extDone">Done</button></div></div>`);
   $('#extDone').onclick = () => showOptions('browser');
   $('#extCopy').onclick = () => copyText('chrome://extensions', 'Copied: paste it in a new browser tab');
+  $('#extCopyCode').onclick = () => copyText(r.code, 'Copied');
   $$('[data-saveext]').forEach(b => b.onclick = async () => { try { const r = await api('app', {saveExt: b.dataset.saveext}); toast('Saved: ' + r.path); } catch(e){ toast(e.message, true); } });
   const tick = () => { const el = $('#extLeft'); if (!el) return; const left = r.expires - Math.floor(Date.now()/1000); if (left <= 0) { el.textContent = 'The code has expired. Close this and connect again.'; return; } el.textContent = `Valid for ${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}, one use only.`; setTimeout(tick, 1000); };
   tick();
@@ -966,6 +1026,11 @@ function limitMenu(){
   if (menuEl) { const h = menuEl.getBoundingClientRect().height; menuEl.style.top = Math.max(4, r.top - h - 2) / zoomNow() + 'px'; }
 }
 document.addEventListener('click', async e => {
+  if (e.target.closest('#densityToggle')) { setUiPref('dense'); UI.workspace(); return; }
+  if (e.target.closest('#viewOptions')) return openBarMenu($('#menubar [data-mb="view"]'), e.detail === 0);
+  if (e.target.closest('#clearSearch')) { q = ''; $('#search').value = ''; render(); $('#search').focus(); return; }
+  if (e.target.closest('#showAll')) { view = {k:'all'}; store.set('view', view); render(); return; }
+  if (e.target.closest('#sideConnect')) return extConnect();
   if (e.target.closest('#stLimit')) return limitMenu();
   if (e.target.closest('#emptyExt')) return extConnect();
   if (e.target.closest('#emptyAdd')) return addDialog('');
@@ -1059,7 +1124,8 @@ document.addEventListener('pointerdown', e => {
   const th = e.target.closest('#tbl th'); if (!th) return;
   const r = th.getBoundingClientRect(); if (r.right - e.clientX > 5) return;
   const col = COLS.find(c => c.k === th.dataset.sort); if (!col || !col.w) return;
-  e.preventDefault(); resize = {col, x: e.clientX, w: r.width, th}; th.dataset.resizing = '1';
+  if (uiPrefs.fitColumns) setUiPref('fitColumns');
+  e.preventDefault(); resize = {col, x: e.clientX, w: r.width / zoomNow(), th}; th.dataset.resizing = '1';
 });
 document.addEventListener('pointermove', e => {
   const th = e.target.closest && e.target.closest('#tbl th');
@@ -1072,6 +1138,17 @@ document.addEventListener('pointerup', () => { if (!resize) return; store.set('w
 
 // keyboard
 document.addEventListener('keydown', e => {
+  if ($('#dlDlg')) {
+    const tab = e.target.closest('[data-opt]');
+    if (tab && ['ArrowDown','ArrowUp','Home','End'].includes(e.key)) {
+      e.preventDefault();
+      const tabs = $$('[data-opt]'), index = tabs.indexOf(tab);
+      const next = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : (index + (e.key === 'ArrowDown' ? 1 : -1) + tabs.length) % tabs.length;
+      showOptions(tabs[next].dataset.opt); $(`[data-opt="${optTab}"]`).focus();
+    }
+    return;
+  }
+  if (ProgressWindow.id) { if (e.key === 'Escape') { e.preventDefault(); ProgressWindow.close(); } return; }
   if (menuEl) {
     const subm = document.activeElement && document.activeElement.closest('.ctx.subm');
     const box = subm || menuEl;
@@ -1114,12 +1191,21 @@ document.addEventListener('keydown', e => {
   if ((ctrl && k.toLowerCase() === 'n') || k === 'Insert') { e.preventDefault(); return addDialog(''); }
   if (k === 'F5') { e.preventDefault(); return loadDL(); }
   if (typing) { if (k === 'Escape' && e.target.id === 'search') { e.target.value = ''; q = ''; e.target.blur(); render(); } return; }
+  if (e.target.matches('th[data-sort]') && (k === 'Enter' || k === ' ')) { e.preventDefault(); const c = e.target.dataset.sort; e.target.click(); $(`th[data-sort="${c}"]`)?.focus(); return; }
+  if (e.target.matches('[data-view]') && ['ArrowDown','ArrowUp','ArrowRight','ArrowLeft','Home','End'].includes(k)) {
+    e.preventDefault(); const buttons = $$('#side [data-view]'), i = buttons.indexOf(e.target);
+    const rtl = document.documentElement.dir === 'rtl';
+    const forward = k === 'ArrowDown' || k === (rtl ? 'ArrowLeft' : 'ArrowRight');
+    const next = k === 'Home' ? 0 : k === 'End' ? buttons.length - 1 : (i + (forward ? 1 : -1) + buttons.length) % buttons.length;
+    buttons[next].focus(); return;
+  }
   if (ctrl && k.toLowerCase() === 'a') { e.preventDefault(); visible.forEach(id => sel.add(id)); return render(); }
+  if (e.target.closest('button,a,[role=button]') && !e.target.closest('#tb')) return;
   if (k === 'ArrowDown') { e.preventDefault(); return moveCur(1, e.shiftKey); }
   if (k === 'ArrowUp') { e.preventDefault(); return moveCur(-1, e.shiftKey); }
   if (k === 'Home') { e.preventDefault(); return moveCur(-Infinity, e.shiftKey); }
   if (k === 'End') { e.preventDefault(); return moveCur(Infinity, e.shiftKey); }
-  if (k === 'PageDown' || k === 'PageUp') { e.preventDefault(); return moveCur((k === 'PageDown' ? 1 : -1) * Math.max(1, Math.floor(list().clientHeight / 26) - 1), e.shiftKey); }
+  if (k === 'PageDown' || k === 'PageUp') { e.preventDefault(); const rowHeight = $('#tb tr')?.getBoundingClientRect().height / zoomNow() || 32; return moveCur((k === 'PageDown' ? 1 : -1) * Math.max(1, Math.floor(list().clientHeight / rowHeight) - 1), e.shiftKey); }
   if (k === 'Escape') { sel.clear(); cur = null; return render(); }
   if (!sel.size) return;
   if (k === 'Delete') { e.preventDefault(); return doDelete(e.shiftKey); }
@@ -1132,8 +1218,9 @@ document.addEventListener('keydown', e => {
   }
 });
 let altAlone = false;
-document.addEventListener('keydown', e => { altAlone = e.key === 'Alt' && !e.repeat ? true : (e.key === 'Alt' ? altAlone : false); if (e.altKey) $('#menubar').classList.add('keys'); }, true);
+document.addEventListener('keydown', e => { if (ProgressWindow.id) return; altAlone = e.key === 'Alt' && !e.repeat ? true : (e.key === 'Alt' ? altAlone : false); if (e.altKey) $('#menubar').classList.add('keys'); }, true);
 document.addEventListener('keyup', e => {
+  if (ProgressWindow.id) return;
   if (e.key !== 'Alt') return;
   $('#menubar').classList.toggle('keys', false);
   if (!altAlone || $('#dlDlg')) return; altAlone = false; e.preventDefault();
@@ -1145,7 +1232,7 @@ document.addEventListener('keyup', e => {
 document.addEventListener('mousedown', () => { altAlone = false; }, true);
 // Ctrl+V anywhere outside a text box: add the link
 document.addEventListener('paste', e => {
-  if ($('#dlDlg')) return;
+  if (ProgressWindow.id || $('#dlDlg')) return;
   const tag = (e.target.tagName || '').toLowerCase(); if (tag === 'input' || tag === 'textarea') return;
   const txt = ((e.clipboardData && e.clipboardData.getData('text')) || '').trim();
   if (!txt) return;
@@ -1154,9 +1241,10 @@ document.addEventListener('paste', e => {
   addDialog(txt.slice(0, 100000));
 });
 // drop links or a .torrent file onto the window
-window.addEventListener('dragover', e => { if (e.dataTransfer && [...(e.dataTransfer.types || [])].some(t => t === 'text/uri-list' || t === 'text/plain' || t === 'Files')) { e.preventDefault(); list().classList.add('drop'); } });
+window.addEventListener('dragover', e => { if (ProgressWindow.id) return; if (e.dataTransfer && [...(e.dataTransfer.types || [])].some(t => t === 'text/uri-list' || t === 'text/plain' || t === 'Files')) { e.preventDefault(); list().classList.add('drop'); } });
 window.addEventListener('dragleave', e => { if (!e.relatedTarget) list().classList.remove('drop'); });
 window.addEventListener('drop', async e => {
+  if (ProgressWindow.id) { e.preventDefault(); return; }
   list().classList.remove('drop');
   const dt = e.dataTransfer; if (!dt) return; e.preventDefault();
   if (dt.files && dt.files[0] && /\.torrent$/i.test(dt.files[0].name)) return addTorrentFile(dt.files[0]);
@@ -1171,7 +1259,7 @@ window.addEventListener('resize', closeMenu);
 
 /* ---------- theme and start ---------- */
 // the tray menu and the notifications are drawn by the program: tell it the language shown here
-api('app', {lang: I18N.lang === 'xx' ? 'en' : I18N.lang}).catch(() => {});
+if (!ProgressWindow.id) api('app', {lang: I18N.lang === 'xx' ? 'en' : I18N.lang}).catch(() => {});
 const siteOf = v => { try { return v.kind === 'torrent' && /^magnet:/i.test(v.url) ? 'torrent' : new URL(v.url).hostname.replace(/^www\./, ''); } catch(e){ return ''; } };
 const ZOOMS = [[0.9, 'Small'], [1, 'Normal'], [1.15, 'Large'], [1.3, 'Larger']];
 function zoomNow(){ return +store.get('zoom', 1) || 1; }
@@ -1185,7 +1273,8 @@ try { const c = document.createElement('canvas').getContext('2d'), t = '01234567
   if (w('"Bahnschrift", monospace') !== w('monospace')) document.documentElement.classList.add('bahn'); } catch (e) {}
 applyUiPrefs();
 applyZoom();
-if (APP.host === 'browser') setTimeout(() => toast(`${APP.name} is shown in your browser. Closing this tab does not stop downloads.`), 800);
+if (!ProgressWindow.id && APP.host === 'browser') setTimeout(() => toast(`${APP.name} is shown in your browser. Closing this tab does not stop downloads.`), 800);
 $('#search').value = '';
+ProgressWindow.init();
 loadDL();
 setInterval(() => { if (!document.hidden || Date.now() % 5000 < 1000) loadDL(); }, 1000);

@@ -36,3 +36,6 @@
 36|Stream
 37|Sound
 38|Video
+39|Downloads, handled.
+40|Connecting…
+41|Pairing code

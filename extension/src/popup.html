@@ -1,34 +1,40 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><title>{{NAME}}</title><link rel="stylesheet" href="popup.css"></head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>{{NAME}}</title><link rel="stylesheet" href="popup.css"></head>
 <body>
-<h1><span class="logo"></span> {{NAME}} Downloads</h1>
+<header><h1><span class="logo" aria-hidden="true"></span> {{NAME}} Downloads</h1><span class="header-note">Downloads, handled.</span></header>
+<main>
+<div id="v-loading" class="v loading-view"><span class="spinner" aria-hidden="true"></span><p role="status">Connecting…</p></div>
 <div id="v-down" class="v" hidden>
+  <div class="state-icon offline" aria-hidden="true">↗</div>
   <p><b>{{NAME}} is not running.</b></p><p class="m">Open {{NAME}}, then try again. Until then your browser downloads files as usual.</p>
   <button id="retry">Try again</button>
 </div>
 <div id="v-off" class="v" hidden>
+  <div class="state-icon offline" aria-hidden="true">Ⅱ</div>
   <p><b>{{NAME}} is not taking downloads.</b></p><p class="m">Open {{NAME}} and try again. Until then your browser downloads files as usual.</p>
   <button id="retry2">Try again</button>
 </div>
 <div id="v-pair" class="v" hidden>
   <p><b>Connect to {{NAME}}</b></p>
-  <p class="m">In {{NAME}} open <b>Options → Browser → Connect a browser</b>, then type the code here.</p>
-  <input id="code" placeholder="xxxxx-xxxxx" autocomplete="off" spellcheck="false" maxlength="12">
-  <button id="pair">Connect</button><p id="perr" class="err"></p>
+  <p class="m" id="pairHelp">In {{NAME}} open <b>Options → Browser → Connect a browser</b>, then type the code here.</p>
+  <label class="field-label" for="code">Pairing code</label>
+  <input id="code" type="text" placeholder="xxxxx-xxxxx" autocomplete="off" spellcheck="false" maxlength="12" aria-describedby="pairHelp perr" dir="ltr">
+  <button id="pair">Connect</button><p id="perr" class="err" role="alert"></p>
 </div>
 <div id="v-on" class="v" hidden>
-  <p id="stat"></p>
+  <p id="stat" class="connection-status" role="status"></p>
   <label class="row"><input type="checkbox" id="on"> Send big downloads to {{NAME}}</label>
   <p class="m" id="min"></p>
   <label class="row"><input type="checkbox" id="vbtn"> Show a download button on videos</label>
   <p class="m">Needs “Allow for all sites” below. Reload a page after changing this.</p>
-  <label class="m">Keep these sites in the browser (one per line)</label>
+  <label class="m field-label" for="ign">Keep these sites in the browser (one per line)</label>
   <textarea id="ign" rows="3" spellcheck="false" placeholder="example.com"></textarea>
-  <label class="m">Always send these file types, whatever their size (for example pdf, epub)</label>
+  <label class="m field-label" for="typ">Always send these file types, whatever their size (for example pdf, epub)</label>
   <textarea id="typ" rows="2" spellcheck="false" placeholder="pdf, epub"></textarea>
   <div id="perm" hidden><p class="m">To download files from sites where you are signed in, {{NAME}} needs to pass your sign-in cookie for that link along.</p><button id="grant">Allow for all sites</button></div>
   <div id="media" hidden><label class="m">Videos on this page</label><div id="mlist"></div></div>
   <button id="unpair" class="link">Disconnect</button>
 </div>
+</main>
 <script src="i18n.js"></script><script src="core.js"></script><script src="popup.js"></script>
 </body></html>

@@ -656,3 +656,35 @@
 656|Download this with {0}?
 657|Click here to add it.
 658|Download…
+659|Skip to downloads
+660|View options
+661|Download status
+662|Your files, moving in the right direction.
+663|A little momentum. Everything moving, right here.
+664|Pick up where you left off.
+665|All wrapped up. Your files are ready.
+666|A little help to get things moving again.
+667|A place for every kind of file.
+668|Downloads on your schedule.
+669|Search results for
+670|Ready when you are
+671|All systems quiet
+672|No matches this time
+673|Nothing here. Yet.
+674|Good things are on the way
+675|Try a different name or clear your search to see your files.
+676|Downloads that belong here will appear automatically.
+677|Add your first link. We’ll take it from here.
+678|Clear search
+679|to paste a link, or drop a file here
+680|Getting your downloads ready…
+681|Link
+682|Fit columns to window
+683|Queue start time
+684|Queue end time
+685|Copied
+686|Download progress
+687|Open in separate window
+688|Close window
+689|Getting your download ready…
+690|The progress window was blocked. Allow pop-ups for this app, or use this progress view.

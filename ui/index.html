@@ -9,6 +9,7 @@
 <script src="i18n.js"></script>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to downloads</a>
 <div id="app">
   <header class="top">
     <div class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="var(--accent)"/><path d="M16 7.5v12.5m0 0l-5-5m5 5l5-5M9.5 24.5h13" stroke="var(--accent-ink)" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><span>{{NAME}}</span><em class="copy" title="This copy has its own data folder and leaves the installed copy alone">{{COPY}}</em></div>
@@ -20,7 +21,7 @@
       <button role="menuitem" aria-haspopup="menu" data-mb="help"><u>H</u>elp</button>
     </nav>
     <span class="sp"></span>
-    <input class="search" id="search" type="search" placeholder="Search downloads (Ctrl+F)" aria-label="Search downloads" spellcheck="false" autocomplete="off">
+    <div class="search-wrap"><input class="search" id="search" type="search" placeholder="Search downloads" aria-label="Search downloads" spellcheck="false" autocomplete="off"><kbd aria-hidden="true">Ctrl F</kbd></div>
   </header>
   <div class="tb" role="toolbar" aria-label="Commands">
     <button class="tbtn pri" data-tb="add" title="Add a download (Ctrl+N, or Ctrl+V with a link copied)"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>New download</span></button>
@@ -39,12 +40,19 @@
   <div id="banner"></div>
   <div class="body">
     <nav class="side" id="side" aria-label="Categories"></nav>
+    <main class="workspace" id="main" tabindex="-1" aria-busy="true">
+    <div class="workspace-head">
+      <div class="view-context"><div class="view-heading"><h1 id="viewTitle">All downloads</h1><span id="viewCount" class="count-badge">0</span></div><p id="viewHint">Your files, moving in the right direction.</p></div>
+      <div class="workspace-actions"><div id="transferSummary" class="transfer-summary"></div><button class="iconbtn" id="densityToggle" aria-label="Compact" aria-pressed="false" title="Compact"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="6" rx="1.5"/><rect x="4" y="14" width="16" height="6" rx="1.5"/></svg></button><button class="iconbtn" id="viewOptions" aria-label="View options" title="View options" aria-haspopup="menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg></button></div>
+    </div>
     <section class="list" id="list" aria-label="Downloads">
-      <table class="dl" id="tbl"><colgroup id="cg"></colgroup><thead id="th"></thead><tbody id="tb"></tbody></table>
+      <table class="dl" id="tbl" aria-label="Downloads"><colgroup id="cg"></colgroup><thead id="th"></thead><tbody id="tb"></tbody></table>
+      <div class="loading-state" id="loading" role="status"><span class="loading-mark" aria-hidden="true"></span><span>Getting your downloads ready…</span></div>
       <div class="empty" id="empty" hidden></div>
     </section>
+    </main>
   </div>
-  <footer class="sb" id="status" role="status"></footer>
+  <footer class="sb" id="status" aria-label="Download status"></footer>
 </div>
 <input type="file" id="torFile" accept=".torrent,application/x-bittorrent" hidden>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -53,6 +61,8 @@
 const APP = {name: '{{NAME}}', header: '{{HEADER}}', version: '{{VERSION}}', build: '{{BUILD}}', host: '{{HOST}}', repo: '{{REPO}}', copy: '{{COPY}}'};
 </script>
 <script src="downloads-more.js"></script>
+<script src="components.js"></script>
+<script src="progress-window.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

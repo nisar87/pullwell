@@ -50,6 +50,7 @@
     if (RTL[lang]) document.documentElement.dir = 'rtl';
     var seen = new WeakMap();
     function text(n) {
+      if (n.parentElement && n.parentElement.closest('[data-nt]')) return;
       var cur = n.data; if (seen.get(n) === cur || !cur.trim()) return;
       var tr = tx(cur); if (tr === null) return;
       var out = cur.match(/^\s*/)[0] + tr + cur.match(/\s*$/)[0];
@@ -58,8 +59,8 @@
     function attr(el, a) { var v = el.getAttribute(a); if (v === null) return; var tr = tx(v); if (tr !== null && tr !== v) el.setAttribute(a, tr); }
     function walk(el) {
       if (el.nodeType === 3) { text(el); return; }
-      if (el.nodeType !== 1 || el.nodeName === 'SCRIPT' || el.nodeName === 'STYLE') return;
-      attr(el, 'title'); attr(el, 'placeholder');
+      if (el.nodeType !== 1 || el.nodeName === 'SCRIPT' || el.nodeName === 'STYLE' || el.closest('[data-nt]')) return;
+      attr(el, 'title'); attr(el, 'placeholder'); attr(el, 'aria-label');
       for (var c = el.firstChild; c; c = c.nextSibling) walk(c);
     }
     walk(document.documentElement);

@@ -65,6 +65,7 @@
   }
 
   function doText(n) {
+    if (n.parentElement && n.parentElement.closest('[data-nt]')) return;
     const cur = n.data, was = seenText.get(n);
     if (was !== undefined && cur === was) return;
     const lead = cur.match(/^\s*/)[0], trail = cur.match(/\s*$/)[0];

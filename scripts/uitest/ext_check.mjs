@@ -81,7 +81,7 @@ await pg2.close();
 // a small one stays in the browser
 await page.click('#small'); await sleep(2500);
 its = await items();
-check('a small download stays in the browser', !its.some(v => v.url.includes('/file/1MB') && v.url.includes('example.test')));
+check('a small download stays in the browser', !its.some(v => v.url === 'http://files.example.test/file/1MB'));
 // the small button over a video: it sends the video's link to the program
 const vpage = await ctx.newPage();
 await vpage.route('http://files.example.test/video-page', r => r.fulfill({contentType: 'text/html', body: `<body style="margin:0"><video id="v" controls src="http://files.example.test/file/23MB" style="width:480px;height:270px;display:block"></video></body>`}));

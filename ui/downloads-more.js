@@ -5,7 +5,7 @@ const DL_TYPES = {'All files':[], 'Videos':['mp4','mkv','avi','mov','webm','m4v'
 const DL_DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 let dlSort = 'default', dlQf = '';
 const dlQueueName = id => { const q = ((DL && DL.config.queues) || []).find(x => x.id === id); return q ? q.name : 'Main queue'; };
-const dlQueueOpts = (cur, withMain = true) => (withMain ? [`<option value=""${!cur ? ' selected' : ''}>Main queue</option>`] : []).concat(((DL && DL.config.queues) || []).map(q => `<option value="${esc(q.id)}"${q.id === cur ? ' selected' : ''}>${esc(q.name)}</option>`)).join('');
+const dlQueueOpts = (cur, withMain = true) => (withMain ? [`<option value=""${!cur ? ' selected' : ''}>Main queue</option>`] : []).concat(((DL && DL.config.queues) || []).map(q => `<option data-nt value="${esc(q.id)}"${q.id === cur ? ' selected' : ''}>${esc(q.name)}</option>`)).join('');
 const dlRowsOf = text => text.split(/\s*\n\s*/).map(s => s.trim()).filter(Boolean);
 
 function dlMoreSettings(cfg){
@@ -121,8 +121,8 @@ async function dlProps(id){
   const cfg = DL.config, edit = v.state !== 'done';
   const when = t => t ? new Date(t*1000).toLocaleString(I18N.locale) : '-';
   const sh = dlLineShare(v);
-  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Properties" style="max-width:720px;max-height:calc(92vh / var(--zoom, 1));overflow:auto"><h3 style="margin:0;word-break:break-all">${esc(v.name || 'Download')}</h3>
-    <div class="hint2" style="margin:4px 0 10px;word-break:break-all">${esc(v.url)}</div>
+  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Properties" style="max-width:720px;max-height:calc(92vh / var(--zoom, 1));overflow:auto"><h3 data-nt dir="auto" style="margin:0;overflow-wrap:anywhere">${esc(v.name || 'Download')}</h3>
+    <div class="hint2" data-nt dir="auto" style="margin:4px 0 10px;overflow-wrap:anywhere">${esc(v.url)}</div>
     ${v.map && v.map.length && v.state !== 'done' ? `<div class="hint2">${v.kind === 'torrent' ? 'Pieces' : 'Parts of the file'}</div>${dlSegBar(v)}` : ''}
     <div style="display:grid;grid-template-columns:140px 1fr;gap:6px 12px;margin:12px 0;font-size:13.5px">
       <span class="hint2">State</span><span>${esc(dlStateText(v))}${v.err ? ' · ' + esc(v.err) : ''}</span>
@@ -173,7 +173,7 @@ function dlQueues(){
           <label class="hint2">At once <select class="sel qm" data-i="${i}" style="min-width:0">${[0,1,2,3,4,6,8,10].map(n => `<option value="${n}"${q.maxActive===n?' selected':''}>${n || 'no limit'}</option>`).join('')}</select></label>
           <button class="btn" data-q="del" data-i="${i}">Delete</button></div>
         <div class="row" style="gap:8px;flex-wrap:wrap;margin-top:8px"><label style="display:flex;gap:6px;align-items:center" class="hint2"><input type="checkbox" class="qw" data-i="${i}"${q.window.enabled?' checked':''}> Only between</label>
-          <input type="time" class="inp qf" data-i="${i}" value="${esc(q.window.from)}" style="min-width:0"> <span class="hint2">and</span> <input type="time" class="inp qt" data-i="${i}" value="${esc(q.window.to)}" style="min-width:0"></div>
+          <input type="time" class="inp qf" aria-label="Queue start time" data-i="${i}" value="${esc(q.window.from)}" style="min-width:0"> <span class="hint2">and</span> <input type="time" class="inp qt" aria-label="Queue end time" data-i="${i}" value="${esc(q.window.to)}" style="min-width:0"></div>
         <div class="row" style="gap:10px;flex-wrap:wrap;margin-top:8px"><span class="hint2">Days</span>${DL_DAYS.map((d,k) => `<label style="display:flex;gap:4px;align-items:center" class="hint2"><input type="checkbox" class="qd" data-i="${i}" data-k="${k}"${(q.days||[]).includes(k)?' checked':''}>${d}</label>`).join('')}<span class="hint2">(none ticked = every day)</span></div>
         <div class="row" style="gap:12px;margin-top:8px"><label style="display:flex;gap:6px;align-items:center" class="hint2"><input type="checkbox" class="qp" data-i="${i}"${q.paused?' checked':''}> Paused</label>
           <button class="btn" data-q="start" data-i="${i}" data-id="${esc(q.id)}">Resume all in this queue</button></div></div>`).join('') : '<div class="hint2">No queues yet.</div>'}

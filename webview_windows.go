@@ -165,6 +165,7 @@ func comInit() {
 	ctlDoneObj = newComObj(iidCtlCompleted, syscall.NewCallback(func(this, hr, ctl uintptr) uintptr { onCtlDone(hr, ctl); return 0 }))
 	newWindowObj = newComObj(iidNewWindowReq, syscall.NewCallback(func(this, sender, args uintptr) uintptr { onNewWindow(args); return 0 }))
 	procFailedObj = newComObj(iidProcessFailed, syscall.NewCallback(func(this, sender, args uintptr) uintptr { onProcessFailed(args); return 0 }))
+	progressCOMInit()
 }
 
 // coTaskString copies s into memory from CoTaskMemAlloc: WebView2 frees strings it receives with CoTaskMemFree.
@@ -291,6 +292,9 @@ func openWindow(url string) {
 
 // showMain runs on the UI thread.
 func showMain() {
+	if progressUIStopping {
+		return
+	}
 	if mw.hwnd == 0 && !createMain() {
 		go openAppModeWindow(trayURL)
 		return
@@ -384,6 +388,10 @@ func startWebView() bool {
 }
 
 func onEnvDone(hr, env uintptr) {
+	if progressUIStopping {
+		mw.starting = false
+		return
+	}
 	if failed(hr) || env == 0 {
 		webViewGaveUp(fmt.Sprintf("no environment (0x%08x)", uint32(hr)))
 		return
@@ -397,6 +405,12 @@ func onEnvDone(hr, env uintptr) {
 
 func onCtlDone(hr, ctl uintptr) {
 	mw.starting = false
+	if progressUIStopping {
+		if ctl != 0 {
+			comCall(ctl, ctlClose)
+		}
+		return
+	}
 	if failed(hr) || ctl == 0 {
 		webViewGaveUp(fmt.Sprintf("the controller failed (0x%08x)", uint32(hr)))
 		return
@@ -480,6 +494,10 @@ func onNewWindow(args uintptr) {
 	}
 	uri := utf16PtrToString(p)
 	pCoFree.Call(p)
+	if id, ok := progressWindowRoute(trayURL, uri); ok {
+		openProgressWindow(id, args)
+		return
+	}
 	if !safeExternalURL(uri) {
 		logf("window: refused to open %q", uri)
 		return
@@ -492,12 +510,20 @@ func onNewWindow(args uintptr) {
 // onProcessFailed: a WebView2 process crashed. A page crash is reloaded; if the browser itself ended, the web view
 // is made again (now if the window is open, else the next time it is opened).
 func onProcessFailed(args uintptr) {
+	if progressUIStopping {
+		return
+	}
 	var kind int32
 	comCall(args, pfGetKind, uintptr(unsafe.Pointer(&kind)))
 	logf("window: a WebView2 process ended (kind %d)", kind)
 	if kind != 0 && mw.wv != 0 { // the page's process: reload it
 		comCall(mw.wv, wvReload)
 		return
+	}
+	// Each popup owns its environment reference. Close on the message loop,
+	// outside the browser's failure callback, before allowing a fresh popup.
+	for _, w := range progressWindows {
+		w.requestClose()
 	}
 	releaseWebView()
 	if v, _, _ := pIsWindowVis.Call(mw.hwnd); v != 0 && !mw.failedOnce {
