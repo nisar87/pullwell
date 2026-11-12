@@ -219,7 +219,14 @@ func main() {
 	post("api/app", map[string]any{"autostart": true})
 	runMain := regQuery(runKey, *name)
 	cmdMain := regQuery(`HKCU\Software\Classes\`+scheme+`\shell\open\command`, "")
+	// the installed copy has just restarted and its Start menu upkeep may still be writing the shortcut: wait until it rests
 	lnkBefore, _ := os.Stat(lnk)
+	for settled, i := time.Now(), 0; i < 40 && time.Since(settled) < 4*time.Second; i++ {
+		time.Sleep(500 * time.Millisecond)
+		if st, _ := os.Stat(lnk); st != nil && (lnkBefore == nil || !st.ModTime().Equal(lnkBefore.ModTime())) {
+			lnkBefore, settled = st, time.Now()
+		}
+	}
 	sdir := filepath.Join(work, "separate")
 	os.MkdirAll(sdir, 0o755)
 	sexe := filepath.Join(sdir, *name+".exe")
