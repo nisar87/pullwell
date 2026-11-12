@@ -1,6 +1,7 @@
 // Real Windows HWND/WebView2 smoke test. No browser emulation or runtime dependencies.
 // Run through windows-window.sh against a fresh -root instance and local fixtures.
 import fs from 'node:fs';
+import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 const [port,url,fx,out]=process.argv.slice(2);
@@ -35,6 +36,7 @@ try{
  const main=await connect(target);
  check('native checks use the real WebView2 host',await main.js(`APP.host==='webview2'`));
  await main.js(`store.set('lang','en');store.set('zoom',1);applyZoom();`);
+ const initial=await data();await call({action:'config',config:{...initial.config,dir:path.resolve(out,'downloads')}});
  for(let i=0;i<2;i++){const r=await call({action:'add',url:`${fx}/slow/${70+i}MB?bps=250000`,name:`native-popout-${i+1}.zip`,start:false,force:true});ids.push(r.added[0].id);}
  check('main sees both native test downloads',await until(()=>main.js(`DL.items.some(v=>v.id===${JSON.stringify(ids[1])})`)));
  const open=async id=>{await main.js(`progressBox(${JSON.stringify(id)})`);await main.click('#pgPopOut');};

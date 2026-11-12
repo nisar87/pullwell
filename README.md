@@ -2,7 +2,7 @@
 
 A fast, reliable download manager for Windows 10 and 11, with a browser extension and no telemetry.
 
-![Pullwell's main window: menu bar, toolbar, categories and the list of downloads](docs/screenshots/main-light.png)
+![Pullwell's main window: navigation, live transfers and the list of downloads](docs/superpowers/evidence/2026-11-12/desktop-light.png)
 
 > **Status: first public versions, in daily use.** "Pullwell" is a working name and may change after a trademark
 > check.
@@ -46,7 +46,10 @@ downloads the file itself.
 - A compact window with a menu bar (Tasks, Downloads, View, Tools, Help), a toolbar, categories and queues, and a
   sortable list. It works with the keyboard too: Alt or F10 opens the menus. **Help → Keyboard shortcuts** lists
   the shortcuts.
-- A progress window for each download, with speed, time left, connections and the parts of the file.
+- Light and dark themes, comfortable or compact rows, responsive layouts, and reduced-motion support.
+- A progress view for each download, with speed, time left, connections and the parts of the file. Click its
+  pop-out arrow or choose **Open in separate window** to keep it in an independent window. Closing the window
+  leaves the download running.
 - Windows notifications with **Open** and **Open folder** when a download finishes.
 - Rename a download (F2), a speed limit at a click on the status bar, and a proxy (the same as Windows, none, or
   one you type, http or socks5).
@@ -56,10 +59,10 @@ downloads the file itself.
 
 | | |
 | --- | --- |
-| ![The Downloads menu](docs/screenshots/menu.png) | ![Progress of one download](docs/screenshots/progress.png) |
-| ![Options](docs/screenshots/options.png) | ![Dark mode](docs/screenshots/main-dark.png) |
+| ![Progress of one download](docs/superpowers/evidence/2026-11-12/progress-light.png) | ![Separate progress window](docs/superpowers/evidence/2026-11-12/popout-light.png) |
+| ![Options](docs/superpowers/evidence/2026-11-12/options-light.png) | ![Dark mode](docs/superpowers/evidence/2026-11-12/desktop-dark.png) |
 
-The screenshots were made with test files from `scripts/dmtest/fixtures.py`.
+The previews use sample downloads and local test files from `scripts/dmtest/fixtures.py`.
 
 ## Privacy
 

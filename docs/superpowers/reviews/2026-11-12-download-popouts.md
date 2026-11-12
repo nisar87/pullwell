@@ -30,6 +30,8 @@ This adds separate per-download progress windows to the [frontend modernization]
 | Linux and Windows Go vet | Pass |
 | Windows amd64 build | Pass, `/tmp/Pullwell-popouts.exe` |
 | Independent review | Pass after two rounds; all three findings resolved |
+| Real Windows/WebView2 pop-outs | 22/22 pass in GitHub Actions |
+| Complete Windows window suites | 225 passing assertions across eight suites; zero failures |
 
 The browser checks use actual transfers from an isolated local fixture server, including resumable, completed and non-resumable files. Network aborts verify disconnection/recovery; a blocked-window stub verifies the fallback without changing production behavior. Test downloads and application data stay under `/tmp`.
 
@@ -40,6 +42,8 @@ The final review reproduced two issues: cached native proxies bypassed Windows r
 - [Light progress window](../evidence/2026-11-12/popout-light.png)
 - [Dark progress window](../evidence/2026-11-12/popout-dark.png)
 - [Urdu, narrow window at 130% text size](../evidence/2026-11-12/popout-urdu.png)
+- [Real Windows paused progress](../evidence/2026-11-12/native-progress-one.png)
+- [Real Windows live progress](../evidence/2026-11-12/native-progress-two.png)
 
 ## Local development and repeatability
 
@@ -60,6 +64,8 @@ NODE_PATH=/tmp/pullwell-ui-tools/node_modules PLAYWRIGHT_BROWSERS_PATH=/tmp/pull
 
 Detailed evidence: `/tmp/pullwell-popouts-reviewed`, `/tmp/pullwell-popout-a11y`, `/tmp/pullwell-popout-legacy-reviewed`, and `/tmp/pullwell-popout-modern-final`.
 
-## Platform limit
+## Windows runtime verification
 
-Browser behavior was exercised in Linux Chromium. Windows compilation and static checks pass, but Windows/WebView2 runtime execution is unavailable here. Native focus, window chrome, DPI movement, asynchronous close and shutdown still require a Windows smoke test. On a native WebView process failure, affected progress windows close and can be reopened; transfers continue in the existing backend. Windows system fonts were unavailable for browser screenshots, which use the configured fallbacks.
+The release preparation subsequently verified the merged commit `2287399` on real Windows/WebView2 in [GitHub Actions run 43258859108](https://github.com/nisar87/pullwell/actions/runs/43258859108). All Windows jobs passed: engine/application tests, program integration, browser extension, and window checks. The dedicated 22-assertion pop-out suite verifies distinct HWNDs and WebViews, per-ID reuse, minimize/restore, independent controls, Properties removal, progress after the main UI closes, and native script-close without stopping transfers. The full window harness reports 225 passing assertions and zero failures.
+
+Screenshots and detailed results are retained in the `window-results` Actions artifact. Local browser screenshots use Linux font fallbacks; Windows captures use the actual system fonts. Process-crash recovery and close-during-controller-creation received code review and static validation; the smoke test does not inject those faults. On a native WebView process failure, affected progress windows close and can be reopened while transfers continue in the existing backend.

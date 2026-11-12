@@ -42,4 +42,4 @@ jobs:
           VER: ${{ steps.v.outputs.ver }}
         run: |
           awk -v v="## ${VER}" '$0 ~ "^## " { if (p) exit; if (index($0, v) == 1) { p = 1; next } } p' CHANGELOG.md > notes.md
-          gh release create "v${VER}" Pullwell.exe Pullwell.exe.sha256 --title "Pullwell ${VER}" --notes-file notes.md
+          gh release create "v${VER}" Pullwell.exe Pullwell.exe.sha256 --target "$GITHUB_SHA" --title "Pullwell ${VER}" --notes-file notes.md

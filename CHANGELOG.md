@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.10.0 (2026-11-12)
+
+- **A refreshed workspace.** Warm light and dark themes, clearer navigation and file icons, a live transfer summary,
+  useful empty states, tidier settings and dialogs, and responsive layouts that keep controls practical in smaller
+  windows. Comfortable and compact rows remain available, with restrained animations that respect reduced motion.
+- **A separate progress window for each download.** Click the arrow in a download's progress view, or choose
+  **Open in separate window** from its right-click or Downloads menu. Each window shows live progress, speed,
+  connections and recent events, with its own Pause, Resume, Open and Properties controls. Reopening the same
+  download restores its existing window. Closing a progress window or the main view leaves downloads running.
+- **Clearer recovery and keyboard behavior.** Progress windows recover after a lost connection and clear their
+  details and related dialogs if the download is removed. Dialogs contain and restore keyboard focus, settings tabs
+  support arrow keys, progress indicators expose their values, and controls have accessible names.
+- **A matching browser popup.** Clear loading, connected, pairing and unavailable states, with the same visual
+  language as the application. Existing browser download handoff and permissions are unchanged.
+- English and Urdu cover the new interface, including larger text and right-to-left layouts. File names, URLs and
+  queue names stay literal. The download engine, server and API behavior are unchanged.
+
 ## 0.9.3 (2026-11-12)
 
 - Fixed: a download that the browser kept starting again (a page that retries after the browser's download was taken
