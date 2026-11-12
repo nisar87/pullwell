@@ -163,7 +163,7 @@ func main() {
 	// either way the link has reached the Add dialog, and the log says when the window took it
 	var got map[string]any
 	linkOK := waitFor(15*time.Second, func() bool {
-		if !logHas(`second start: "link https://files.example.test/setup.zip"`) {
+		if !logHas(`second start: "add https://files.example.test/setup.zip"`) {
 			return false
 		}
 		got = post("api/app", map[string]any{"take": "add"})
