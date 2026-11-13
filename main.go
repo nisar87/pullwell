@@ -119,6 +119,7 @@ func main() {
 	url := fmt.Sprintf("http://127.0.0.1:%d/", port)
 	logf("listening on %s", url)
 	go updateLoop()
+	diagReportLoop()
 	go keepAwakeLoop()
 	if *updated != "" {
 		go func() {

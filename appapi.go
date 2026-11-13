@@ -55,12 +55,14 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 			SaveExt   string        `json:"saveExt"` // "chrome-edge" | "firefox": save the extension in the download folder and show it
 			SaveList  bool          `json:"saveList"`
 			KeepAwake *bool         `json:"keepAwake"`
+			Diag      *bool         `json:"diag"`     // diagnostics on or off (the person has seen the notice either way)
+			DiagNow   bool          `json:"diagNow"`  // send a report now (used by the tests)
 			ShowDone  *bool         `json:"showDone"` // write the download list to a file in the download folder and show it
 			Uninstall *struct {
 				Data bool `json:"data"` // also delete the data folder (list, settings, log); downloads are never deleted
 			} `json:"uninstall"`
 		}
-		if json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&in) != nil || (in.Autostart == nil && !in.Quit && in.Open == "" && in.Clipboard == nil && in.Take != "add" && in.StartMenu == nil && in.Uninstall == nil && in.SaveExt == "" && in.Proxy == nil && !in.ProxyTest && !in.SaveList && in.KeepAwake == nil && in.ShowDone == nil && in.Lang == "" && in.JSError == nil) {
+		if json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&in) != nil || (in.Autostart == nil && !in.Quit && in.Open == "" && in.Clipboard == nil && in.Take != "add" && in.StartMenu == nil && in.Uninstall == nil && in.SaveExt == "" && in.Proxy == nil && !in.ProxyTest && !in.SaveList && in.KeepAwake == nil && in.Diag == nil && !in.DiagNow && in.ShowDone == nil && in.Lang == "" && in.JSError == nil) {
 			w.WriteHeader(400)
 			_ = json.NewEncoder(w).Encode(map[string]string{"error": "bad request"})
 			return
@@ -143,6 +145,29 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			_ = json.NewEncoder(w).Encode(map[string]bool{"showDone": showCompleteOn()})
+			return
+		}
+		if in.Diag != nil {
+			if err := diagTurn(*in.Diag); err != nil {
+				w.WriteHeader(409)
+				_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+				return
+			}
+			_ = json.NewEncoder(w).Encode(diagState())
+			return
+		}
+		if in.DiagNow {
+			if !diagOn() {
+				w.WriteHeader(409)
+				_ = json.NewEncoder(w).Encode(map[string]string{"error": "diagnostics are off"})
+				return
+			}
+			if err := sendReport(); err != nil {
+				w.WriteHeader(409)
+				_ = json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+				return
+			}
+			_ = json.NewEncoder(w).Encode(diagState())
 			return
 		}
 		if in.KeepAwake != nil {
@@ -251,7 +276,7 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 	on, err := autoStartGet()
 	out := map[string]any{"autostart": on, "canAutostart": err == nil && !customRoot, "version": appVersion, "clipboard": clipboardOn(),
 		"startMenu": startMenuGet(), "canInstall": !customRoot && runtime.GOOS == "windows",
-		"proxy": proxyConfig(), "systemProxy": proxyText(), "keepAwake": keepAwakeOn(), "showDone": showCompleteOn()}
+		"proxy": proxyConfig(), "systemProxy": proxyText(), "keepAwake": keepAwakeOn(), "showDone": showCompleteOn(), "diag": diagState()}
 	_ = json.NewEncoder(w).Encode(out)
 }
 

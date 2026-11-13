@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func init() { diagSetCrashOutput, diagWatch = false, false }
+func init() { diagSetCrashOutput, diagWatch, diagSend = false, false, false }
 
 func logText(t *testing.T) string {
 	b, _ := os.ReadFile(logPath)
