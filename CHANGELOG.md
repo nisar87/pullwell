@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.12.0 (2026-11-13)
+
+Problem reports: the log can now reach the developer, so errors on other computers get found and fixed.
+
+- **On by default, and told first.** The first time the window opens after this update, a notice says what is sent
+  and where; nothing is sent before it has been shown. `Options → Advanced → Send problem reports` turns it off at
+  any time (an unsent crash report is then never sent).
+- About every 6 hours (and a few minutes after a start that follows a crash) the new lines of the log go out, with a
+  random install number (not linked to you), the Pullwell and Windows versions, the processor count, the language and a
+  few on/off settings. Repeated lines are folded and the per-minute counts added up. Links, sites, file names, folders
+  and your user and computer names are never in it (the log scrubber, see 0.11.0).
+- Reports go to a Firebase database whose rules only allow adding a report of this shape; nothing can be read back
+  with the key in the program. Only the developer reads them.
+- The README, the About box, the privacy policy and the store text no longer say "no telemetry"; they say what is sent.
+- Report a problem no longer claims the log lists the sites you downloaded from (it has not since 0.11.0).
+
 ## 0.11.0 (2026-11-13)
 
 A better log, so a problem can be understood afterwards from `Tools → Open log`. Nothing is sent anywhere.

@@ -305,6 +305,8 @@ function renderBanner(){
   if (UPD && UPD.status === 'installing') h += `<div class="bn warn"><b>Installing version ${esc(UPD.latest)}.</b> ${esc(APP.name)} restarts in a moment; downloads continue afterwards.</div>`;
   else if (UPD && UPD.available && UPD.status === 'idle' && !UPD.auto) h += `<div class="bn warn"><b>Version ${esc(UPD.latest)} is ready.</b><span style="flex:1"></span><button class="btn" data-act="updInstall">Install and restart</button></div>`;
   if (DL.powerAt && (Date.now()/1000 - DL.powerAt) < 70) h += `<div class="bn bad"><b>The PC shuts down in less than a minute</b> because your downloads finished.<span style="flex:1"></span><button class="btn" data-act="cancelPower">Cancel shutdown</button></div>`;
+  if (APPCFG && APPCFG.diag && !APPCFG.diag.noticed && !ProgressWindow.id) h += `<div class="bn warn" id="diagBn"><span><b>${esc('Problem reports are on.')}</b> ${esc("The program's log goes to the developer so errors can be fixed. It has no links, website names, file names, folders or your name. You can change this in Options, Advanced.")}</span><span style="flex:1"></span><button class="btn" data-act="diagOff">${esc('Turn off')}</button><button class="btn pri" data-act="diagOk">${esc('Keep on')}</button></div>`;
+  else if (!APPCFG && !renderBanner.cfg && !ProgressWindow.id) { renderBanner.cfg = true; loadAppCfg().then(renderBanner); }
   if (DL.hold) h += `<div class="bn warn"><b>Downloads are waiting:</b> ${esc(DL.hold.replace(/^Waiting: /, ''))}</div>`;
   setHTML($('#banner'), h);
 }
@@ -644,9 +646,9 @@ function shortcutsBox(){
   $('#kbOk').onclick = dlClose;
 }
 // Report a problem: the issue page on GitHub, with the version filled in; the log folder is opened too, so the log
-// can be attached if the person wants (nothing is sent by Pullwell itself).
+// can be attached if the person wants (nothing is sent from here; the automatic problem reports are a separate, optional thing).
 function reportProblem(){
-  const body = encodeURIComponent(`**What happened**\n\n\n**What you expected**\n\n\n**Version:** ${APP.version}${APP.build && APP.build !== 'dev' ? ' (' + APP.build.slice(0, 7) + ')' : ''}\n**Windows:** ${navigator.userAgent.match(/Windows NT [\d.]+/) || ''}\n\nThe log (${APP.name.toLowerCase()}.log in the data folder) helps; look through it first, it lists the addresses you downloaded from.`);
+  const body = encodeURIComponent(`**What happened**\n\n\n**What you expected**\n\n\n**Version:** ${APP.version}${APP.build && APP.build !== 'dev' ? ' (' + APP.build.slice(0, 7) + ')' : ''}\n**Windows:** ${navigator.userAgent.match(/Windows NT [\d.]+/) || ''}\n\nThe log (${APP.name.toLowerCase()}.log in the data folder) helps. It holds no links, file names or folders, but look through it before you attach it.`);
   window.open(`https://github.com/${APP.repo}/issues/new?body=${body}`, '_blank', 'noopener');
   openFolder('log');
 }
@@ -654,7 +656,7 @@ function aboutBox(){
   const u = UPD || {};
   dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="About" style="max-width:440px"><h3 class="row" style="gap:10px;align-items:center">${document.querySelector('.brand svg') ? document.querySelector('.brand svg').outerHTML.replace('<svg', '<svg style="width:28px;height:28px;flex:none"') : ''}${esc(APP.name)}</h3>
     <div class="hint2 selectable" style="margin-top:4px">Version ${esc(APP.version)}${APP.build && APP.build !== 'dev' ? ' (build ' + esc(APP.build.slice(0, 7)) + ')' : ''}${u.available ? ` · <b>${esc(u.latest)} is ready</b>` : ''}</div>
-    <p class="hint2" style="margin:10px 0 0">A download manager for Windows. No telemetry and no account: it contacts only the sites you download from, and GitHub to look for updates.</p>
+    <p class="hint2" style="margin:10px 0 0">A download manager for Windows. No account. It contacts only the sites you download from, GitHub to look for updates, and the developer's server to send problem reports (you can turn that off in Options).</p>
     ${APP.repo ? `<p class="hint2" style="margin:8px 0 0">Source code and releases: <a href="https://github.com/${esc(APP.repo)}" target="_blank" rel="noopener">github.com/${esc(APP.repo)}</a></p>` : ''}
     <p class="hint2" style="margin:8px 0 0">More free tools from the same developer: <a href="https://nisarworks.com/" target="_blank" rel="noopener">nisarworks.com</a></p>
     <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn pri" id="abOk" autofocus>Close</button></div></div>`);
@@ -983,7 +985,8 @@ function optionsBody(tab){
   return orow('Run a program after each download', 'For example a virus scanner. Use <code>%f</code> for the file: <code>"C:\\Tools\\scan.exe" "%f"</code>', `<div class="row" style="flex-wrap:nowrap"><input class="inp" id="dlAfterCmd" value="${esc(c.afterCmd || '')}" style="width:230px" spellcheck="false"><button class="btn" data-dm="afterSave">Save</button></div>`)
     + orow('ffmpeg', DL.ffmpeg ? 'Found: web videos with a separate sound track are joined into one file.' : `Not found: such videos are saved as two files. Put ffmpeg.exe next to ${esc(APP.name)} to join them.`, `<span class="hint2">${DL.ffmpeg ? '✓ ready' : 'not installed'}</span>`)
     + orow('Your list', 'Save the list of downloads to a file, or load one (also a text file with one link per line).', `<div class="row" style="flex-wrap:nowrap"><button class="btn" data-dm="export">Save list…</button><button class="btn" data-dm="import">Load list…</button></div>`)
-    + orow('About', `${esc(APP.name)} ${esc(APP.version)}. No telemetry: it contacts only the sites you download from.`, '')
+    + (APPCFG && APPCFG.diag ? orow('Send problem reports', `About every 6 hours, and after a crash, the program's log goes to the developer so errors can be found and fixed: what the program did and which errors it met, the version, the Windows version and a few on/off settings, with a random number that is not linked to you. It never has links, websites, file names, folders, your name or your computer's name.<br>${APPCFG.diag.last ? `Last report: ${esc(when(APPCFG.diag.last))}` : 'No report sent yet.'}`, tog('id="diagTog"', APPCFG.diag.on, 'Send problem reports')) : '')
+    + orow('About', `${esc(APP.name)} ${esc(APP.version)}. It contacts only the sites you download from, GitHub for updates, and the developer's server for problem reports (Options, Advanced).`, '')
     + (APPCFG && APPCFG.canInstall ? orow(`Uninstall ${esc(APP.name)}`, `Removes the Start menu entry, the startup entry and the program file. Your downloaded files stay where they are.`, `<button class="btn" id="uninst">Uninstall…</button>`) : '');
 }
 let APPCFG = null; // {autostart, canAutostart}
@@ -1054,6 +1057,7 @@ document.addEventListener('click', async e => {
   if (t.dataset.sort) { if (t.dataset.resizing) return; sortBy = sortBy.c === t.dataset.sort ? {c: t.dataset.sort, d: -sortBy.d} : {c: t.dataset.sort, d: 1}; store.set('sort', sortBy); return render(); }
   if (t.dataset.opt) return showOptions(t.dataset.opt);
   if (t.dataset.act === 'cancelPower') return dlAct({action:'cancelPower'}, 'Shutdown cancelled');
+  if (t.dataset.act === 'diagOk' || t.dataset.act === 'diagOff') { const on = t.dataset.act === 'diagOk'; try { await api('app', {diag: on}); await loadAppCfg(); toast(on ? 'Problem reports are on.' : 'Problem reports are off.'); } catch(err){ toast(err.message, true); } return renderBanner(); }
   if (t.dataset.act === 'updInstall' || t.id === 'updInstall') return updAction({action:'install'}, 'Installing the update…');
   if (t.id === 'updCheck') return updAction({action:'check'}, null);
   if (t.id === 'updAuto') return updAction({action:'settings', auto: !(UPD && UPD.auto)}, null);
@@ -1069,6 +1073,7 @@ document.addEventListener('click', async e => {
   if (t.id === 'pxSave') { try { await api('app', {proxy: {mode: 'manual', addr: $('#pxAddr').value}}); APPCFG = await api('app'); toast('Proxy saved'); } catch(err){ toast(err.message, true); } return; }
   if (t.id === 'pxTest') { t.disabled = true; try { await api('app', {proxyTest: true}); toast('Works: github.com answered' + (((APPCFG.proxy || {}).mode || 'system') === 'none' ? '' : ' through this setting')); } catch(err){ toast(err.message, true); } t.disabled = false; return; }
   if (t.id === 'doneTog') { try { await api('app', {showDone: !APPCFG.showDone}); APPCFG = await api('app'); } catch(err){ toast(err.message, true); } return showOptions('general'); }
+  if (t.id === 'diagTog') { try { await api('app', {diag: !APPCFG.diag.on}); await loadAppCfg(); toast(APPCFG.diag.on ? 'Problem reports are on.' : 'Problem reports are off.'); } catch(err){ toast(err.message, true); await loadAppCfg(); } return showOptions('advanced'); }
   if (t.id === 'awakeTog') { try { await api('app', {keepAwake: !APPCFG.keepAwake}); APPCFG = await api('app'); toast(APPCFG.keepAwake ? 'The PC stays awake while downloading' : 'The PC may sleep while downloading'); } catch(err){ toast(err.message, true); } return showOptions('schedule'); }
   if (t.id === 'smTog') { try { await api('app', {startMenu: !APPCFG.startMenu}); APPCFG = await api('app'); toast(APPCFG.startMenu ? 'Added to the Start menu' : 'Removed from the Start menu'); } catch(err){ toast(err.message, true); await loadAppCfg(); } return showOptions('general'); }
   if (t.id === 'uninst') {

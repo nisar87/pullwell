@@ -9,7 +9,9 @@ curl -s -o /dev/null 127.0.0.1:8765/file/1KB || (nohup python3 scripts/dmtest/fi
 curl -s -o /dev/null 127.0.0.1:9333/json/version || (nohup google-chrome --headless=new --no-sandbox --disable-gpu --remote-debugging-port=9333 --user-data-dir="$UIT/chrome" about:blank > /dev/null 2>&1 &)
 if [ "$1" = fresh ]; then
   pkill -f "$UIT/pw -root"; while pgrep -f "$UIT/pw -root" >/dev/null; do sleep 0.3; done
-  rm -rf "$UIT/root"; mkdir -p "$UIT/root"
+  rm -rf "$UIT/root"; mkdir -p "$UIT/root/data"
+  # the tests must neither show the problem-reports notice nor send anything (a test copy never sends anyway)
+  [ -n "$UIT_NOTICE" ] || echo '{"diagNoticed":true,"noDiag":true}' > "$UIT/root/data/app.json" # UIT_NOTICE=1 keeps the notice (diag_check.mjs)
   (nohup "$UIT/pw" -root "$UIT/root" -tray > "$UIT/pw.out" 2>&1 &)
 fi
 for i in $(seq 40); do curl -s -o /dev/null 127.0.0.1:9197/ && curl -s -o /dev/null 127.0.0.1:8765/file/1KB && curl -s -o /dev/null 127.0.0.1:9333/json/version && exit 0; sleep 0.5; done

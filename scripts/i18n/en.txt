@@ -16,7 +16,7 @@
 16|, {0} already in your list
 17|, {0} seeds
 18|, {0} waiting
-19|A download manager for Windows. No telemetry and no account: it contacts only the sites you download from, and GitHub to look for updates.
+19|A download manager for Windows. No account. It contacts only the sites you download from, GitHub to look for updates, and the developer's server to send problem reports (you can turn that off in Options).
 20|A folder you choose while adding a download always wins. Then a website's folder, then the folder for the type, then your main folder ({0}).
 21|A notification from {0}.
 22|A password is only used for this link and is not shown again.
@@ -593,7 +593,7 @@
 593|Quit Pullwell
 594|About Pullwell
 595|Pullwell is shown in your browser. Closing this tab does not stop downloads.
-596|Pullwell {0}. No telemetry: it contacts only the sites you download from.
+596|Pullwell {0}. It contacts only the sites you download from, GitHub for updates, and the developer's server for problem reports (Options, Advanced).
 597|Pullwell {0} · Not checked yet.
 598|Delete {0} downloads?
 599|The file was not found on the website. The link may be old.
@@ -689,3 +689,12 @@
 689|Getting your download ready…
 690|The progress window was blocked. Allow pop-ups for this app, or use this progress view.
 691|More free tools from the same developer:
+692|Problem reports are on.
+693|The program's log goes to the developer so errors can be fixed. It has no links, website names, file names, folders or your name. You can change this in Options, Advanced.
+694|Keep on
+695|Turn off
+696|Send problem reports
+697|About every 6 hours, and after a crash, the program's log goes to the developer so errors can be found and fixed: what the program did and which errors it met, the version, the Windows version and a few on/off settings, with a random number that is not linked to you. It never has links, websites, file names, folders, your name or your computer's name.
+698|Last report: {0}
+699|No report sent yet.
+700|Problem reports are off.

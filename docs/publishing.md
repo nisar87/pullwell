@@ -18,8 +18,8 @@ by itself.
 The zips are made by `python3 extension/build.py`. The stores ask for:
 
 - a short and a long description (take them from the README)
-- the privacy practice: no data collected. The extension talks only to Pullwell on 127.0.0.1 and to the site of a
-  download, which it passes on.
+- the privacy practice: no data collected by the extension. It talks only to Pullwell on 127.0.0.1 and to the site of a
+  download, which it passes on. (The Pullwell program's own problem reports are described in the privacy policy.)
 - why it needs its permissions: downloads, cookies for the download's site, context menu, storage, alarms (a check
   once a minute that Pullwell is running), and webRequest
   for "Videos on this page"

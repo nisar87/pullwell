@@ -232,10 +232,23 @@ func main() {
 	sexe := filepath.Join(sdir, *name+".exe")
 	must(copyFile(*exeSrc, sexe))
 	must(os.WriteFile(filepath.Join(sdir, "separate-copy"), nil, 0o644))
+	os.Setenv("PULLWELL_DIAG_INSTALL", "test-ci-"+time.Now().Format("20060102-150405")) // a test install: its report is ignored by the daily check
 	start(sexe, "-tray")
+	os.Unsetenv("PULLWELL_DIAG_INSTALL")
 	mainBase := base
 	base = "http://127.0.0.1:9297/"
 	check("a separate copy starts next to the installed one, on the next port", waitUp(30*time.Second))
+	// a problem report really reaches the real server (the key in the program, the real rules): 200 means it was added
+	dg := getJSON("api/app")["diag"]
+	dm, _ := dg.(map[string]any)
+	check("problem reports are on by default and the notice is still to be shown", dm != nil && dm["on"] == true && dm["noticed"] == false, dg)
+	rep := post("api/app", map[string]any{"diagNow": true})
+	check("nothing is sent before the notice was shown", rep["error"] != nil, rep)
+	post("api/app", map[string]any{"diag": true})
+	rep = post("api/app", map[string]any{"diagNow": true})
+	check("a problem report is accepted by the real server", rep["error"] == nil && rep["last"] != nil && rep["last"].(float64) > 0, rep)
+	slog, _ := os.ReadFile(filepath.Join(sdir, "data", scheme+".log"))
+	check("the log of that copy says it was sent, and holds no link", bytes.Contains(slog, []byte("diagnostics: report sent")) && !bytes.Contains(slog, []byte("googleapis")), string(slog[max(0, len(slog)-200):]))
 	sa := getJSON("api/app")
 	check("it knows it is a separate copy", sa["canInstall"] == false && sa["canAutostart"] == false, sa)
 	time.Sleep(3 * time.Second) // the Start menu upkeep runs just after the start

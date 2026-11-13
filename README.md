@@ -1,6 +1,6 @@
 # Pullwell
 
-A fast, reliable download manager for Windows 10 and 11, with a browser extension and no telemetry.
+A fast, reliable download manager for Windows 10 and 11, with a browser extension. It needs no account, and the only thing it sends are problem reports, which you can turn off.
 
 ![Pullwell's main window: navigation, live transfers and the list of downloads](docs/screenshots/main-light.png)
 
@@ -65,13 +65,20 @@ The previews use sample downloads and local test files from `scripts/dmtest/fixt
 
 ## Privacy
 
-Pullwell contacts only the sites you download from, and GitHub to check for updates. It sends no telemetry and
-needs no account. Its window and its local interface answer only on `127.0.0.1`:
+Pullwell contacts only the sites you download from, GitHub to check for updates, and the developer's server to send
+problem reports (below). It needs no account. Its window and its local interface answer only on `127.0.0.1`:
 
 - Other programs and web pages cannot change anything through that interface.
 - A browser can only send downloads after you pair it with a code.
 - Copied links are only looked at when you switch that on, and only links to files are offered.
-- The log (`Tools → Open log`, kept on your computer, about 2 MB) records what the program did and why it failed, never links, sites, file names, your Windows user name or your folders. It is not sent anywhere.
+- The log (`Tools → Open log`, kept on your computer, about 2 MB) records what the program did and why it failed, never links, sites, file names, your Windows user name or your folders.
+- **Problem reports** are on by default, shown once in the window before anything is sent, and can be turned off in
+  `Options → Advanced → Send problem reports`. About every 6 hours (and after a crash) the new lines of that log
+  are sent, so errors on other people's computers can be found and fixed, together with: a random number made on
+  your computer (not linked to you), the Pullwell and Windows versions, the processor count, the language, and a few
+  on/off settings. Never sent: links, sites, file names, folders, your user or computer name, your downloads list,
+  cookies or saved logins. The reports go to a Firebase database of the developer; its rules only let reports be
+  added, and only the developer can read them. The setup is in [`diagnostics/`](diagnostics/README.md).
 
 ## Building
 

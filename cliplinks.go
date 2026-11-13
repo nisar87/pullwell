@@ -26,6 +26,9 @@ type appSettings struct {
 	Proxy       proxySetting `json:"proxy"`
 	NoKeepAwake bool         `json:"noKeepAwake,omitempty"` // let the PC sleep even while downloading
 	ShowDone    bool         `json:"showDone,omitempty"`    // bring up the window when a download finishes
+	NoDiag      bool         `json:"noDiag,omitempty"`      // the person turned diagnostics off (see report.go)
+	DiagNoticed bool         `json:"diagNoticed,omitempty"` // the window has shown the diagnostics notice; nothing is sent before
+	InstallID   string       `json:"installId,omitempty"`   // random id of this installation, for reports
 }
 
 func showCompleteOn() bool {

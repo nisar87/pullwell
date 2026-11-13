@@ -17,7 +17,7 @@ Pullwell Downloads connects Chrome to the Pullwell download manager for Windows 
 • Small files stay in the browser. You choose the size limit, the sites to leave alone and file types to always send.
 • If Pullwell is not running, the browser downloads as usual.
 
-Set up once: install Pullwell, open Options → Browser → "Connect a browser", and type the code in the extension. Your downloads stay on your computer: nothing is sent to any server (see the privacy policy).
+Set up once: install Pullwell, open Options → Browser → "Connect a browser", and type the code in the extension. Your downloads stay on your computer: the extension sends nothing to any server (the Pullwell program can send anonymous problem reports, which you can turn off; see the privacy policy).
 
 **Privacy policy URL:** https://github.com/nisar87/pullwell/blob/main/docs/privacy.md
 **Support / homepage URL:** https://github.com/nisar87/pullwell

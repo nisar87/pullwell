@@ -25,7 +25,9 @@ for i in $(seq 40); do curl -s -o /dev/null $fx/file/1KB && break; sleep 0.5; do
 shot_desktop() { powershell -NoProfile -Command "Add-Type -AssemblyName System.Windows.Forms,System.Drawing; \$b=[System.Windows.Forms.Screen]::PrimaryScreen.Bounds; \$m=New-Object System.Drawing.Bitmap \$b.Width,\$b.Height; \$g=[System.Drawing.Graphics]::FromImage(\$m); \$g.CopyFromScreen(\$b.Location,[System.Drawing.Point]::Empty,\$b.Size); \$m.Save('$(cygpath -w "$out/$1.png")')" || echo "desktop screenshot failed"; }
 
 start_app() { # $1: name of the data folder
-  local root="$work/$1"; rm -rf "$root"; mkdir -p "$root"
+  local root="$work/$1"; rm -rf "$root"; mkdir -p "$root/data"
+  # the checks run with the problem-reports notice already seen and reports off (a test copy never sends anyway)
+  echo '{"diagNoticed":true,"noDiag":true}' > "$root/data/app.json"
   WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS="--remote-debugging-port=$dbg" "$exe" -root "$(cygpath -w "$root")" -debug &
   for i in $(seq 120); do
     if curl -s "http://127.0.0.1:$dbg/json/list" 2>/dev/null | grep -q '"url": *"http://127.0.0.1:9197/' && curl -s -o /dev/null $app; then

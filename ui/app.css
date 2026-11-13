@@ -118,7 +118,7 @@ code{font-family:var(--mono);font-size:.92em;background:var(--sunk);padding:0 4p
 #banner .bn.warn{background:color-mix(in srgb,var(--warn) 10%,var(--surface))}
 #banner .bn.bad{background:color-mix(in srgb,var(--bad) 10%,var(--surface))}
 #banner .bn.bad::before{background:var(--bad)}
-#banner .bn .btn{min-height:26px;padding:2px 12px}
+#banner .bn .btn{min-height:26px;padding:2px 12px;white-space:nowrap}
 
 /* ---------- sidebar ---------- */
 .body{display:grid;grid-template-columns:196px 1fr;min-height:0;min-width:0}

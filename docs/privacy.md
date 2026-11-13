@@ -1,6 +1,6 @@
 # Pullwell Downloads: privacy policy
 
-Last updated: 2026-11-11
+Last updated: 2026-11-13
 
 Pullwell Downloads is a browser extension that hands downloads to the Pullwell program running on **your own
 computer**. It has no server of its own and no account.
@@ -15,6 +15,15 @@ computer**. It has no server of its own and no account.
 Only to the Pullwell program on your own computer, over the local address `127.0.0.1`. Nothing is sent to the
 developer, to Anthropic, or to any other server. There is no analytics, no advertising and no tracking, and no data is
 sold or shared.
+
+**Problem reports from the Pullwell program (not the extension)**
+The Pullwell program can send problem reports to the developer. They are on by default, shown once in the program's
+window before anything is sent, and can be turned off in Options → Advanced → Send problem reports. A report holds
+the program's log since the last report (what the program did and which errors it met; the program removes links,
+websites, file names, folders and your user and computer names before writing it), a random number made on your
+computer that is not linked to you, the program and Windows versions, the processor count, the language, a few on/off
+settings and, after a crash, the crash text. It is sent about every 6 hours, to a database in the developer's Firebase
+project, which only the developer can read. The extension itself sends nothing anywhere.
 
 **What is stored**
 Inside your browser, the extension keeps its own settings (on/off, minimum size, sites to ignore, a pairing token for

@@ -35,7 +35,7 @@ Pullwell
 Quit Pullwell
 About Pullwell
 Pullwell is shown in your browser. Closing this tab does not stop downloads.
-Pullwell {0}. No telemetry: it contacts only the sites you download from.
+Pullwell {0}. It contacts only the sites you download from, GitHub for updates, and the developer's server for problem reports (Options, Advanced).
 Pullwell {0} · Not checked yet.
 Download "{0}" again?
 Download {0} files again?
