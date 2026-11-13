@@ -51,7 +51,9 @@ a pull request; only causes, versions and numbers are quoted when fixing somethi
 - Workload Identity Pool `github`, OIDC provider `github`, issuer `https://token.actions.githubusercontent.com`,
   mapping `google.subject = assertion.sub`, condition `assertion.repository=='nisar87/pullwell' && assertion.ref=='refs/heads/main'`.
 - Service account `diagnostics-reader@pullwell-app.iam.gserviceaccount.com`, role *Cloud Datastore Viewer*; the pool
-  identity `repo:nisar87/pullwell:ref:refs/heads/main` may impersonate it (*Workload Identity User*).
+  identity `repo:nisar87@42030325/pullwell@1452114117:ref:refs/heads/main` (GitHub puts the owner's and repository's
+  numeric ids in the subject) may impersonate it (*Workload Identity User*). If the repository is ever renamed or
+  moved, the subject changes and this grant must follow.
 - APIs enabled: IAM Service Account Credentials, Security Token Service (and Firestore).
 - To stop all reading: disable the pool provider or delete the service account. To stop all reports arriving: change
   the Firestore rule to `allow create: if false;`.
