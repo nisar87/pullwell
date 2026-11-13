@@ -645,6 +645,7 @@ function aboutBox(){
     <div class="hint2 selectable" style="margin-top:4px">Version ${esc(APP.version)}${APP.build && APP.build !== 'dev' ? ' (build ' + esc(APP.build.slice(0, 7)) + ')' : ''}${u.available ? ` · <b>${esc(u.latest)} is ready</b>` : ''}</div>
     <p class="hint2" style="margin:10px 0 0">A download manager for Windows. No telemetry and no account: it contacts only the sites you download from, and GitHub to look for updates.</p>
     ${APP.repo ? `<p class="hint2" style="margin:8px 0 0">Source code and releases: <a href="https://github.com/${esc(APP.repo)}" target="_blank" rel="noopener">github.com/${esc(APP.repo)}</a></p>` : ''}
+    <p class="hint2" style="margin:8px 0 0">More free tools from the same developer: <a href="https://nisarworks.com/" target="_blank" rel="noopener">nisarworks.com</a></p>
     <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn pri" id="abOk" autofocus>Close</button></div></div>`);
   $('#abOk').onclick = dlClose;
 }

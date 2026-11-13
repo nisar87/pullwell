@@ -102,6 +102,10 @@ Every push builds a test version (the `test-build` pre-release). Changing `VERSI
 - [Publishing: the steps only the owner can take](docs/publishing.md) (browser stores, winget, code signing)
 - [Window, tray and notifications design](docs/window-tray-notifications-design.md)
 
+## More from the developer
+
+Pullwell is one of several small free tools made by Nisar Ahmad. The others are listed at [nisarworks.com](https://nisarworks.com/), and the link is also in **Help → About**.
+
 ## Licence
 
 MIT. Pullwell is free and open source; voluntary donations are welcome.

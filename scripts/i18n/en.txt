@@ -688,3 +688,4 @@
 688|Close window
 689|Getting your download ready…
 690|The progress window was blocked. Allow pop-ups for this app, or use this progress view.
+691|More free tools from the same developer:

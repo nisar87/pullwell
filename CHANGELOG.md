@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.10.1 (2026-11-13)
+
+- Help → About now links to the developer's site, [nisarworks.com](https://nisarworks.com/), where the other free
+  tools are listed (with an Urdu translation of the line).
+
 ## 0.10.0 (2026-11-12)
 
 - **A refreshed workspace.** Warm light and dark themes, clearer navigation and file icons, a live transfer summary,
