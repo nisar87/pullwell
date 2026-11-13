@@ -1,0 +1,57 @@
+# Reads the problem reports (Firestore) for the last few days and leaves them, encrypted, on the branch
+# diagnostics-data. Started by diagnostics/read.sh (the daily check); it makes a one-time key pair, gives this
+# workflow the public half, and decrypts with the private half, which never leaves that machine.
+#
+# How it may read: Google trusts only this repository's main branch (Workload Identity Federation, no stored
+# secret) and lets it act as a service account that has the role "Cloud Datastore Viewer" and nothing else.
+name: Read problem reports
+on:
+  workflow_dispatch:
+    inputs:
+      days:
+        description: How many days back to read
+        default: "2"
+      pubkey:
+        description: One-time RSA public key (PEM, base64 on one line)
+        required: true
+concurrency: diagnostics
+permissions:
+  contents: write
+  id-token: write
+jobs:
+  read:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: projects/343925750365/locations/global/workloadIdentityPools/github/providers/github
+          service_account: diagnostics-reader@pullwell-app.iam.gserviceaccount.com
+          token_format: access_token
+      - name: Read, encrypt, publish
+        env:
+          TOKEN: ${{ steps.auth.outputs.access_token }}
+          DAYS: ${{ inputs.days }}
+          PUBKEY: ${{ inputs.pubkey }}
+        run: |
+          set -euo pipefail
+          echo "::add-mask::$TOKEN"
+          mkdir -p out
+          echo "$PUBKEY" | base64 -d > pub.pem
+          openssl pkey -pubin -in pub.pem -noout   # fails when it is not a public key
+          python3 diagnostics/fetch.py --days "$DAYS" --out out/reports.jsonl
+          gzip -9 out/reports.jsonl
+          head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n' > key.txt
+          openssl pkeyutl -encrypt -pubin -inkey pub.pem -pkeyopt rsa_padding_mode:oaep -pkeyopt rsa_oaep_md:sha256 -in key.txt -out out/key.enc
+          openssl enc -aes-256-cbc -pbkdf2 -iter 200000 -pass file:key.txt -in out/reports.jsonl.gz -out out/reports.enc
+          rm -f out/reports.jsonl.gz key.txt pub.pem
+          cd out
+          git init -q -b diagnostics-data
+          git config user.name "diagnostics"
+          git config user.email "diagnostics@users.noreply.github.com"
+          git add key.enc reports.enc
+          git commit -q -m "Encrypted problem reports ($(date -u +%FT%TZ))"
+          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+          git push -q --force origin diagnostics-data

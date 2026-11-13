@@ -30,4 +30,28 @@ refused too. Checked with real requests: a valid report 200, an unknown field 40
 
 ## Reading the reports
 
-Only the developer's Google account can read them. See the reading workflow (added next to this file).
+Nothing can read them with the key in the program. They are read by the GitHub workflow
+[`diagnostics.yml`](../.github/workflows/diagnostics.yml), started with `diagnostics/read.sh [days]`:
+
+1. `read.sh` makes a one-time RSA key pair in a temporary folder and starts the workflow with the public key.
+2. The workflow gets a short-lived Google token **without any stored secret** (Workload Identity Federation: Google
+   trusts only this repository's `main` branch) and acts as the service account `diagnostics-reader`, which has the
+   role *Cloud Datastore Viewer* and nothing else. It reads the reports of the last N days (`fetch.py`), encrypts them
+   (AES-256 with a random key, itself encrypted with the public key) and force-pushes the encrypted file to the branch
+   `diagnostics-data`. The workflow log shows counts only.
+3. `read.sh` fetches the branch, decrypts with the private key, deletes the key, and leaves `reports.jsonl`.
+4. `summary.py reports.jsonl` shows what stands out (crashes, runs that did not end, recovered crashes, problems per
+   cause and number of installs). Test installs (`test-…`) are ignored.
+
+The reports are private data of the people who sent them: `reports.jsonl` is never committed, pasted into an issue or
+a pull request; only causes, versions and numbers are quoted when fixing something.
+
+### Google Cloud setup (done once, in the console of project `pullwell-app`)
+
+- Workload Identity Pool `github`, OIDC provider `github`, issuer `https://token.actions.githubusercontent.com`,
+  mapping `google.subject = assertion.sub`, condition `assertion.repository=='nisar87/pullwell' && assertion.ref=='refs/heads/main'`.
+- Service account `diagnostics-reader@pullwell-app.iam.gserviceaccount.com`, role *Cloud Datastore Viewer*; the pool
+  identity `repo:nisar87/pullwell:ref:refs/heads/main` may impersonate it (*Workload Identity User*).
+- APIs enabled: IAM Service Account Credentials, Security Token Service (and Firestore).
+- To stop all reading: disable the pool provider or delete the service account. To stop all reports arriving: change
+  the Firestore rule to `allow create: if false;`.
