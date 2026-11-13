@@ -163,7 +163,7 @@ func main() {
 	// either way the link has reached the Add dialog, and the log says when the window took it
 	var got map[string]any
 	linkOK := waitFor(15*time.Second, func() bool {
-		if !logHas(`second start: "add https://files.example.test/setup.zip"`) {
+		if !logHas(`second start: "add <link>"`) {
 			return false
 		}
 		got = post("api/app", map[string]any{"take": "add"})
@@ -171,7 +171,7 @@ func main() {
 	})
 	check("a link on the command line reaches the running copy's Add dialog", linkOK, got)
 	run(exe, scheme+"://show")
-	check(scheme+"://show reaches the running copy", waitFor(5*time.Second, func() bool { return logHas(`second start: "link ` + scheme + `://show`) }))
+	check(scheme+"://show reaches the running copy", waitFor(5*time.Second, func() bool { return logHas(`second start: "link <link>"`) }))
 	run(exe, scheme+"://open?item=x&t="+strings.Repeat("0", 32))
 	check("a link with a wrong code does not open anything", waitFor(5*time.Second, func() bool { return logHas("link open: link without a valid token") }))
 
@@ -253,6 +253,8 @@ func main() {
 	// ---- nothing so far crashed a window or tray callback, and the tray icon never failed ----
 	check("no crash was recovered from", !logHas("recovered from a crash"))
 	check("the tray icon never failed", !logHas("tray: the icon could not be added"))
+	check("the log records the session and how the last run ended", logHas("session: ") && logHas("last run: "))
+	check("the log never holds a link", !logHas("://files.example.test"))
 
 	// ---- Uninstall ----
 	post("api/app", map[string]any{"autostart": true})

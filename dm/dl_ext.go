@@ -273,14 +273,18 @@ func registerExtRoutes(mux *http.ServeMux) {
 		if in.Auto && recentlyDeclined(in.URL) {
 			// The person just pressed Cancel in the "Download file info" box for this very link, and the page (or the
 			// browser) started it again: say ok so the extension drops the browser's copy, and do not ask again.
+			hCount("browser.declined-again")
 			writeJSON(w, map[string]any{"ok": true, "declined": true})
 			return
 		}
 		res, err := dlMgr.addFromBrowser(in.URL, in.Referrer, in.Cookie, in.UserAgent, in.Filename)
 		if err != nil {
+			hLog("browser download: not taken (%s)", dlErrClass(err))
+			hCount("browser.not-taken")
 			writeErr(w, 400, err.Error())
 			return
 		}
+		hCount("browser.taken")
 		writeJSON(w, res)
 	}))
 }
@@ -364,7 +368,8 @@ func (m *dlManager) refusedForUs(link string, h map[string]string) string {
 	var he dlHTTPErr
 	if errors.As(err, &he) && (he.Code == 401 || he.Code == 403) {
 		msg, _ := dlFriendly(err)
-		hLog("browser download %s refused by the site: %s", dlHostOf(link), msg)
+		hLog("browser download: the site refused it (%s)", msg)
+		hCount("browser.refused")
 		return msg
 	}
 	return ""

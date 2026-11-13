@@ -12,8 +12,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"runtime/debug"
-	"strings"
 	"time"
 )
 
@@ -39,6 +37,7 @@ type Host struct {
 	PresetDownloads  func() (name, mode string)              // the active preset and what it wants for downloads
 	Guard            func(http.HandlerFunc) http.HandlerFunc // protects the product's local API
 	Log              func(format string, a ...any)           // diagnostic log
+	Count            func(key string)                        // count a frequent event (written to the log once a minute)
 	Note             func(kind, format string, a ...any)     // line for the activity page
 	Notify           func(title, text string)                // desktop notification
 	ShowWindow       func()                                  // bring the product's window forward
@@ -185,7 +184,7 @@ func inWindow(now time.Time, from, to string) bool {
 func safe(what string, f func()) {
 	defer func() {
 		if r := recover(); r != nil {
-			hLog("download manager: recovered from a crash in %s: %v\n%s", what, r, strings.TrimSpace(string(debug.Stack())))
+			hPanic(what, r)
 		}
 	}()
 	f()
@@ -199,7 +198,7 @@ func safeHandler(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		defer func() {
 			if rec := recover(); rec != nil {
-				hLog("download manager: recovered from a crash in %s: %v", r.URL.Path, rec)
+				hPanic("request "+r.URL.Path, rec)
 				defer func() { _ = recover() }()
 				writeErr(w, 500, "something went wrong in the download manager")
 			}

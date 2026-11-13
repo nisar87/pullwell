@@ -4,12 +4,10 @@ import (
 	"context"
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -206,7 +204,7 @@ func (m *dlManager) addMetalink(link string, base dlAdd) ([]*dlItem, int, error)
 				skipped++
 				continue
 			}
-			hLog(fmt.Sprintf("metalink: %s could not be added: %v", strconv.Quote(e.Name), err))
+			hLog("metalink: an entry could not be added (%s)", dlErrClass(err))
 			continue
 		}
 		added = append(added, it)

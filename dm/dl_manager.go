@@ -698,6 +698,7 @@ func (m *dlManager) startLocked(e *dlEntry) {
 	var t dlRunner
 	if e.Kind == "torrent" {
 		m.elog(e, "Started")
+		evt(e, "started (resume from %d MB)", e.Done>>20)
 		t = m.newTorrentTask(e)
 		t.SetRate(e.Limit)
 	} else {
@@ -708,6 +709,7 @@ func (m *dlManager) startLocked(e *dlEntry) {
 		spec.MaxHeight = e.Height
 		spec.Overwrite = m.cfg.OnExists == "overwrite"
 		m.elog(e, "Started")
+		evt(e, "started (size %s, resume from %d MB, %d mirror(s), retry %d)", sizeWord(e.Size), e.Done>>20, len(e.Mirrors), e.Retries)
 		spec.Pick = func(info dlInfo) (string, error) { return m.pickPath(e, info) }
 		spec.OnInfo = func(info dlInfo, path string) {
 			m.mu.Lock()
@@ -731,7 +733,7 @@ func (m *dlManager) startLocked(e *dlEntry) {
 		func() {
 			defer func() {
 				if r := recover(); r != nil {
-					hLog("download manager: recovered from a crash while downloading: %v", r)
+					hPanic("downloading", r)
 					err = errors.New("the download stopped because of an internal error")
 				}
 			}()
@@ -779,6 +781,7 @@ func (m *dlManager) finishRun(e *dlEntry, t dlRunner, err error) {
 		e.Note = pr.Note
 		hNote("good", "Download finished: %s", e.Name)
 		m.elog(e, "Finished (%d MB)", e.Size>>20)
+		evt(e, "finished (%d MB, %d connection line(s), retries used %d)", e.Size>>20, len(pr.Lines), e.Retries)
 		if !m.cfg.NoNotify {
 			goSafe("notify", func() { hNotify("Download finished", e.Name) })
 		}
@@ -795,6 +798,7 @@ func (m *dlManager) finishRun(e *dlEntry, t dlRunner, err error) {
 	case e.wantPause:
 		e.State = "paused"
 		m.elog(e, "Paused at %d%%", pctOf(e.Done, e.Size))
+		evt(e, "paused at %d%%", pctOf(e.Done, e.Size))
 	case e.wantHold && !m.quit:
 		e.State, e.Note = "queued", m.holdTextForLocked(m.hold)
 	case m.quit || errors.Is(err, context.Canceled):
@@ -802,6 +806,9 @@ func (m *dlManager) finishRun(e *dlEntry, t dlRunner, err error) {
 	default:
 		msg, retry := dlFriendly(err)
 		e.Err, e.Detail, e.Note = msg, dlFmtErr(err), ""
+		class := dlErrClass(err)
+		evt(e, "problem at %d%%: %s (retry %d, will try again: %v)", pctOf(e.Done, e.Size), class, e.Retries, retry)
+		hCount("download.problem." + class)
 		m.elog(e, "Problem: %s", msg)
 		var he dlHTTPErr
 		sourceErr := errors.As(err, &he) || retry
@@ -1257,14 +1264,17 @@ func (m *dlManager) setConfig(c dlConfig) error {
 	c = dlFixConfig(c)
 	d, err := dlCleanDir(c.Dir)
 	if err != nil {
+		hLog("settings refused: the download folder is not usable (%s)", dlErrClass(err))
 		return err
 	}
 	c.Dir = d
 	if err := os.MkdirAll(c.Dir, 0o755); err != nil {
+		hLog("settings refused: cannot create the download folder (%s)", dlErrClass(err))
 		return fmt.Errorf("cannot create that folder: %v", err)
 	}
 	f, err := os.CreateTemp(c.Dir, ".nm-test-*")
 	if err != nil {
+		hLog("settings refused: cannot write into the download folder (%s)", dlErrClass(err))
 		return fmt.Errorf("%s cannot write into that folder: %v", hName(), err)
 	}
 	f.Close()
@@ -1284,9 +1294,13 @@ func (m *dlManager) setConfig(c dlConfig) error {
 		c.SiteRules[i].Dir = d
 	}
 	m.mu.Lock()
+	changed := cfgDiff(m.cfg, c)
 	m.cfg = c
 	m.dirty = true
 	m.mu.Unlock()
+	if changed != "" {
+		hLog("settings: %s", changed)
+	}
 	return nil
 }
 
@@ -1453,4 +1467,11 @@ func pctOf(done, size int64) int {
 		return 0
 	}
 	return int(done * 100 / size)
+}
+
+func sizeWord(n int64) string {
+	if n < 0 {
+		return "unknown"
+	}
+	return fmt.Sprintf("%d MB", n>>20)
 }

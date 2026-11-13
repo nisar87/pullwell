@@ -71,6 +71,7 @@ needs no account. Its window and its local interface answer only on `127.0.0.1`:
 - Other programs and web pages cannot change anything through that interface.
 - A browser can only send downloads after you pair it with a code.
 - Copied links are only looked at when you switch that on, and only links to files are offered.
+- The log (`Tools → Open log`, kept on your computer, about 2 MB) records what the program did and why it failed, never links, sites, file names, your Windows user name or your folders. It is not sent anywhere.
 
 ## Building
 

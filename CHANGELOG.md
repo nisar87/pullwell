@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.11.0 (2026-11-13)
+
+A better log, so a problem can be understood afterwards from `Tools → Open log`. Nothing is sent anywhere.
+
+- Every download now has its story in the log: started (resume point, mirrors, retry number), finished, paused, and
+  every problem with a short cause (`http-403`, `timeout`, `dns`, `disk-full`, `reset` ...). Links, sites and file
+  names never appear, only the download's number.
+- Settings changes are logged by name (and value for switches and numbers).
+- The log says how the last run ended (normally, or not by itself: a freeze, a crash, Windows shutting down), keeps
+  the crash report of a run that crashed (`data/crash.1.txt`, and its first lines in the log), and starts every run
+  with a session line (version, Windows build, processor count).
+- Sleep and freezes ("the program did not run for N s"), network changes, and memory (once an hour) are logged.
+- Frequent events are counted and written once a minute instead of line by line.
+- Errors in the window's own script are logged (message and place only); the one place that used to swallow
+  crashes in the torrent code now logs them too.
+- A scrubber on every line removes links, e-mail addresses, the Windows user name, the computer name and the home
+  folder, whatever wrote the line. The activity feed's file names no longer reach the log.
+
 ## 0.10.2 (2026-11-13)
 
 - The name Pullwell is final: the README no longer calls it a working name.

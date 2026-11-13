@@ -38,11 +38,16 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 	if r.Method == http.MethodPost {
 		var in struct {
-			Autostart *bool         `json:"autostart"`
-			Quit      bool          `json:"quit"`
-			Open      string        `json:"open"` // "downloads" | "log": only these fixed folders can be opened from here
-			Clipboard *bool         `json:"clipboard"`
-			Lang      string        `json:"lang"` // the language the window shows, for the tray menu and the notifications
+			Autostart *bool  `json:"autostart"`
+			Quit      bool   `json:"quit"`
+			Open      string `json:"open"` // "downloads" | "log": only these fixed folders can be opened from here
+			Clipboard *bool  `json:"clipboard"`
+			Lang      string `json:"lang"` // the language the window shows, for the tray menu and the notifications
+			JSError   *struct {
+				Msg  string `json:"msg"`
+				Src  string `json:"src"`
+				Line int    `json:"line"`
+			} `json:"jsError"` // a script error in the window, for the log
 			Take      string        `json:"take"` // "add": the link chosen from a notification, handed over once
 			StartMenu *bool         `json:"startMenu"`
 			Proxy     *proxySetting `json:"proxy"`
@@ -55,9 +60,14 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 				Data bool `json:"data"` // also delete the data folder (list, settings, log); downloads are never deleted
 			} `json:"uninstall"`
 		}
-		if json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&in) != nil || (in.Autostart == nil && !in.Quit && in.Open == "" && in.Clipboard == nil && in.Take != "add" && in.StartMenu == nil && in.Uninstall == nil && in.SaveExt == "" && in.Proxy == nil && !in.ProxyTest && !in.SaveList && in.KeepAwake == nil && in.ShowDone == nil && in.Lang == "") {
+		if json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&in) != nil || (in.Autostart == nil && !in.Quit && in.Open == "" && in.Clipboard == nil && in.Take != "add" && in.StartMenu == nil && in.Uninstall == nil && in.SaveExt == "" && in.Proxy == nil && !in.ProxyTest && !in.SaveList && in.KeepAwake == nil && in.ShowDone == nil && in.Lang == "" && in.JSError == nil) {
 			w.WriteHeader(400)
 			_ = json.NewEncoder(w).Encode(map[string]string{"error": "bad request"})
+			return
+		}
+		if in.JSError != nil {
+			logWindowError(in.JSError.Msg, in.JSError.Src, in.JSError.Line)
+			_ = json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 			return
 		}
 		if in.Lang != "" {

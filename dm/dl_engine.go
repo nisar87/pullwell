@@ -815,7 +815,7 @@ func (t *dlTask) supervise() {
 		defer t.wg.Done()
 		defer func() {
 			if r := recover(); r != nil {
-				hLog("download manager: recovered from a crash in supervisor: %v", r)
+				hPanic("supervisor", r)
 			}
 		}()
 		tick := time.NewTicker(time.Second)

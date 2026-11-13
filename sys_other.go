@@ -36,7 +36,7 @@ func runUI(url string, showWindow bool) {
 
 func showError(msg string) { fmt.Fprintln(os.Stderr, msg) }
 
-func showBalloon(title, text string) { logf("notification: %s: %s", title, text) }
+func showBalloon(title, text string) { logf("notification: %s", title) }
 
 func sysPower(kind string) { logf("power action %q is only done on Windows", kind) }
 

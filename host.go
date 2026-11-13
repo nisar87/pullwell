@@ -28,9 +28,9 @@ func setupEngine(root string, port int) {
 		Lines:   func() dm.Lines { return dm.Lines{Use: []dm.Line{normalLine}} },
 		Guard:   func(h http.HandlerFunc) http.HandlerFunc { return apiGuard(port)(h) },
 		Log:     logf,
-		Note: func(kind, format string, a ...any) {
-			logf("["+kind+"] "+format, a...)
-		},
+		Count:   logCount,
+		// the activity feed names files; the log must not, so only the kind is counted
+		Note:             func(kind, format string, a ...any) { logCount("note." + kind) },
 		Notify:           notify,
 		ShowWindow:       showMainWindow,
 		Power:            sysPower,
