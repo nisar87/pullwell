@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.2 (2026-11-13)
+
+- The name Pullwell is final: the README no longer calls it a working name.
+
 ## 0.10.1 (2026-11-13)
 
 - Help → About now links to the developer's site, [nisarworks.com](https://nisarworks.com/), where the other free

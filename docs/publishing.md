@@ -51,5 +51,7 @@ Signing would be one more step in `.github/workflows/release.yml`, with the cert
 
 ## 4. Name
 
-"Pullwell" is still a working name. Before any store listing, do a trademark check in the countries that matter.
-The name lives only in `appname.go`, so a rename is cheap until the stores and winget carry the name.
+"Pullwell" is the final name (decided by the owner on 2026-11-13). No formal trademark search has been made, only a
+quick web search that found no obvious conflict. That is not legal clearance: a search of the registers (USPTO,
+EUIPO, UK, Pakistan; classes 9 and 42) is still the owner's to do, ideally before a store listing. The name lives
+only in `appname.go`, so a rename stays cheap until the stores and winget carry it.

@@ -4,8 +4,7 @@ A fast, reliable download manager for Windows 10 and 11, with a browser extensio
 
 ![Pullwell's main window: navigation, live transfers and the list of downloads](docs/screenshots/main-light.png)
 
-> **Status: first public versions, in daily use.** "Pullwell" is a working name and may change after a trademark
-> check.
+> **Status: first public versions, in daily use.** The name Pullwell is final.
 
 ## Install
 
