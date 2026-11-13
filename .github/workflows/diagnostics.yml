@@ -20,13 +20,10 @@ permissions:
   id-token: write
 jobs:
   read:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: show the token claims
-        run: |
-          t=$(curl -s -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=x" | python3 -c "import sys,json;print(json.load(sys.stdin)['value'])")
-          echo "$t" | cut -d. -f2 | python3 -c "import sys,base64,json;d=sys.stdin.read().strip();d+='='*(-len(d)%4);c=json.loads(base64.urlsafe_b64decode(d));print({k:c[k] for k in ('sub','repository','ref','job_workflow_ref')})"
       - id: auth
         uses: google-github-actions/auth@v2
         with:
