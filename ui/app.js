@@ -305,8 +305,8 @@ function renderBanner(){
   if (UPD && UPD.status === 'installing') h += `<div class="bn warn"><b>Installing version ${esc(UPD.latest)}.</b> ${esc(APP.name)} restarts in a moment; downloads continue afterwards.</div>`;
   else if (UPD && UPD.available && UPD.status === 'idle' && !UPD.auto) h += `<div class="bn warn"><b>Version ${esc(UPD.latest)} is ready.</b><span style="flex:1"></span><button class="btn" data-act="updInstall">Install and restart</button></div>`;
   if (DL.powerAt && (Date.now()/1000 - DL.powerAt) < 70) h += `<div class="bn bad"><b>The PC shuts down in less than a minute</b> because your downloads finished.<span style="flex:1"></span><button class="btn" data-act="cancelPower">Cancel shutdown</button></div>`;
-  if (APPCFG && APPCFG.diag && !APPCFG.diag.noticed) h += `<div class="bn warn" id="diagBn"><span><b>${esc('Problem reports are on.')}</b> ${esc("The program's log goes to the developer so errors can be fixed. It has no links, website names, file names, folders or your name. You can change this in Options, Advanced.")}</span><span style="flex:1"></span><button class="btn" data-act="diagOff">${esc('Turn off')}</button><button class="btn pri" data-act="diagOk">${esc('Keep on')}</button></div>`;
-  else if (!APPCFG && !renderBanner.cfg) { renderBanner.cfg = true; loadAppCfg().then(renderBanner); }
+  if (APPCFG && APPCFG.diag && !APPCFG.diag.noticed && !ProgressWindow.id) h += `<div class="bn warn" id="diagBn"><span><b>${esc('Problem reports are on.')}</b> ${esc("The program's log goes to the developer so errors can be fixed. It has no links, website names, file names, folders or your name. You can change this in Options, Advanced.")}</span><span style="flex:1"></span><button class="btn" data-act="diagOff">${esc('Turn off')}</button><button class="btn pri" data-act="diagOk">${esc('Keep on')}</button></div>`;
+  else if (!APPCFG && !renderBanner.cfg && !ProgressWindow.id) { renderBanner.cfg = true; loadAppCfg().then(renderBanner); }
   if (DL.hold) h += `<div class="bn warn"><b>Downloads are waiting:</b> ${esc(DL.hold.replace(/^Waiting: /, ''))}</div>`;
   setHTML($('#banner'), h);
 }
