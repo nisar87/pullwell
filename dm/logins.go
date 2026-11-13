@@ -195,7 +195,8 @@ func (s *dlLogins) auth(link string) (header, site string) {
 	}
 	pass, err := dlUnseal(raw)
 	if err != nil {
-		hLog("a saved login for " + s.recs[best].Host + " could not be opened (saved by another Windows user?)")
+		hLog("a saved login could not be opened (saved by another Windows user?)")
+		hCount("logins.unreadable")
 		return "", ""
 	}
 	return dlBasicAuth(s.recs[best].User, string(pass)), s.recs[best].Host

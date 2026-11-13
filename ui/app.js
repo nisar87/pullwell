@@ -27,6 +27,17 @@ async function api(path, body){
   if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
   return j;
 }
+// script errors go to the program's log (a short message and where it was, never the page's content)
+(() => {
+  let sent = 0;
+  const rep = (msg, src, line) => {
+    if (sent >= 20) return;
+    sent++;
+    api('app', {jsError: {msg: String(msg || 'error').slice(0, 160), src: String(src || '').split('/').pop().slice(0, 40), line: line | 0}}).catch(() => {});
+  };
+  window.addEventListener('error', e => rep(e.message, e.filename, e.lineno));
+  window.addEventListener('unhandledrejection', e => rep(e.reason && e.reason.message || e.reason, '', 0));
+})();
 const store = {
   get(k, d){ try { const v = localStorage.getItem('pw.' + k); return v === null ? d : JSON.parse(v); } catch(e){ return d; } },
   set(k, v){ try { localStorage.setItem('pw.' + k, JSON.stringify(v)); } catch(e){} },

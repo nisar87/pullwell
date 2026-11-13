@@ -59,6 +59,7 @@ func main() {
 	dir, _ = filepath.Abs(dir)
 	appRoot = dir
 	logInit(dir)
+	initScrub()
 	loadUILang()
 	logf("%s %s starting; data folder %s", AppName, appVersion, filepath.Join(dir, "data"))
 
@@ -91,6 +92,8 @@ func main() {
 		return
 	}
 	defer release()
+	diagStart(dir)
+	defer diagStop()
 	if link != "" {
 		setPendingAdd(link)
 	}
@@ -145,6 +148,7 @@ func main() {
 func fail(format string, a ...any) {
 	msg := fmt.Sprintf(format, a...)
 	logf("%s", msg)
+	diagStop()
 	showError(msg)
 	os.Exit(1)
 }

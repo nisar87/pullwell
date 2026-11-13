@@ -27,7 +27,7 @@ func logInit(root string) {
 }
 
 func logf(format string, a ...any) {
-	line := time.Now().Format("2006-01-02 15:04:05 ") + strings.TrimRight(fmt.Sprintf(format, a...), "\n") + "\n"
+	line := time.Now().Format("2006-01-02 15:04:05 ") + scrub(strings.TrimRight(fmt.Sprintf(format, a...), "\n")) + "\n"
 	logMu.Lock()
 	defer logMu.Unlock()
 	if logPath == "" {

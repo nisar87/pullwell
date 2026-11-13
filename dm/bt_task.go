@@ -599,7 +599,7 @@ func (t *btTask) go_(name string, f func()) {
 		defer t.wg.Done()
 		defer func() {
 			if r := recover(); r != nil {
-				hLog("torrent: recovered from a crash in %s: %v", name, r)
+				hPanic("torrent "+name, r)
 			}
 		}()
 		f()
@@ -651,7 +651,11 @@ func (t *btTask) announceOnce(event string) {
 		wg.Add(1)
 		go func(tr string) {
 			defer wg.Done()
-			defer func() { recover() }()
+			defer func() {
+				if r := recover(); r != nil {
+					hPanic("torrent tracker", r)
+				}
+			}()
 			_, _ = btAnnounce(ctx, ls[0], tr, a)
 		}(tr)
 	}

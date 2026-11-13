@@ -343,7 +343,11 @@ func btDHTLookupBoot(ctx context.Context, lines func() []dlLine, ih [20]byte, du
 		go func(n *btNode, ln dlLine) {
 			defer wg.Done()
 			defer func() { <-sem }()
-			defer func() { recover() }()
+			defer func() {
+				if r := recover(); r != nil {
+					hPanic("torrent DHT", r)
+				}
+			}()
 			msg := bencode(map[string]any{"t": tx, "y": "q", "q": "get_peers", "a": map[string]any{"id": string(myID[:]), "info_hash": string(ih[:])}})
 			r, err := btDHTAsk(ctx, ln, n.addr, msg, tx)
 			if err != nil {
