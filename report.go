@@ -209,8 +209,7 @@ func diagSettings() string {
 	if pm == "" {
 		pm = "system"
 	}
-	updCh := updCfg.Channel
-	return fmt.Sprintf("clipboard=%s keepAwake=%s showDone=%s proxy=%s updates=%s autoUpdate=%s", onoff(a.Clipboard), onoff(!a.NoKeepAwake), onoff(a.ShowDone), pm, updCh, onoff(!updCfg.NoAuto))
+	return fmt.Sprintf("clipboard=%s keepAwake=%s showDone=%s proxy=%s autoUpdate=%s", onoff(a.Clipboard), onoff(!a.NoKeepAwake), onoff(a.ShowDone), pm, onoff(!updCfg.NoAuto))
 }
 
 func clip(s string, max int) string {
