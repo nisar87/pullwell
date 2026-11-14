@@ -190,9 +190,7 @@ const COLS = [
 ];
 let widths = store.get('widths', {});
 let hideCols = store.get('hideCols', ['site']);  // Website is off until switched on           // columns switched off in View → Columns (never the name)
-const narrowMQ = matchMedia('(max-width:1180px)');   // below this the Added column steps aside so file names keep their room
-const shownCols = () => COLS.filter(c => c.k === 'name' || (!hideCols.includes(c.k) && !(narrowMQ.matches && c.k === 'added')));
-narrowMQ.addEventListener('change', () => render());
+const shownCols = () => COLS.filter(c => c.k === 'name' || !hideCols.includes(c.k));
 
 /* ---------- which rows are shown ---------- */
 function inView(v, vw){
@@ -260,7 +258,7 @@ function renderTable(){
   const items = shownItems();
   visible = items.map(v => v.id);
   const SC = shownCols();
-  const hk = JSON.stringify([sortBy, widths, hideCols, narrowMQ.matches]);
+  const hk = JSON.stringify([sortBy, widths, hideCols]);
   if (hk !== headKey) {
     headKey = hk;
     $('#cg').innerHTML = SC.map(c => `<col data-col="${c.k}" style="width:${c.w ? (widths[c.k] || c.w) + 'px' : 'auto'}">`).join('');
