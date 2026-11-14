@@ -1,0 +1,4 @@
+PASS  progress window shows the live download
+PASS  the finished-download pulse ran during the recording
+PASS  video frames were recorded for every scene  (a-list:256 frames, 23.1 fps | b-progress:192 frames, 27 fps | c-light:140 frames, 22.9 fps)
+PASS  no script errors  ()

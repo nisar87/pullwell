@@ -1,0 +1,5 @@
+runner image: win25-vs2026 20261103.298.1
+Microsoft Windows [Version 10.0.26100.33674]
+fonts in C:\Windows\Fonts:
+CascadiaCode.ttf CascadiaMono.ttf SegUIVar.ttf bahnschrift.ttf consola.ttf consolab.ttf consolai.ttf consolaz.ttf segoeui.ttf segoeuib.ttf segoeuii.ttf segoeuil.ttf segoeuisl.ttf segoeuiz.ttf seguibl.ttf seguibli.ttf seguiemj.ttf seguihis.ttf seguili.ttf seguisb.ttf seguisbi.ttf seguisli.ttf seguisym.ttf 
+WebView2 runtime: pv    REG_SZ    156.0.4314.58
