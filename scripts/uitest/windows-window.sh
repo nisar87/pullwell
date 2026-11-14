@@ -59,7 +59,9 @@ for c in ${WINDOW_CHECKS:-ui_check menu_check prog_check feat_check flows_check 
   stop_app
 done
 
-if start_app shots; then
+if [ "${WINDOW_SHOTS:-1}" != 1 ]; then
+  echo "shots: skipped"
+elif start_app shots; then
   sleep 2; shot_desktop desktop-window
   node "$here/shots.mjs" $dbg $app $fx "$out/shots" 2>&1 | tee -a "$summary"
   shot_desktop desktop-after
@@ -69,7 +71,7 @@ else
 fi
 echo; cat "$summary"
 # the check outputs and small copies of the screenshots go into the log too, for a review that cannot fetch artifacts
-for c in "$out"/*_check.txt "$out"/final_visuals.txt; do echo "::group::$(basename "$c")"; cat "$c"; echo "::endgroup::"; done
+for c in "$out"/*_check.txt "$out"/final_visuals.txt "$out"/showcase.txt; do echo "::group::$(basename "$c")"; cat "$c"; echo "::endgroup::"; done
 if [ -d "$out/shots" ]; then
   echo "::group::screenshots (zip, base64)"
   powershell -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$here/small-shots.ps1")" -Results "$(cygpath -w "$out")" -Zip "$(cygpath -w "$work/small.zip")"

@@ -1,0 +1,52 @@
+name: Media
+# Makes the README screenshots and the demo video from the real program window (WebView2) on a Windows runner and
+# pushes them to the scratch branch "media-out", from where they are copied into docs/. It never touches main and
+# publishes nothing. Run it by hand (Actions, Media) or by pushing a branch named media/....
+on:
+  workflow_dispatch:
+  push:
+    branches: ['media/**']
+permissions:
+  contents: write
+concurrency:
+  group: media
+  cancel-in-progress: true
+jobs:
+  capture:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Build the program
+        shell: bash
+        run: |
+          go run ./scripts/mkres
+          go build -ldflags "-H=windowsgui -X main.appBuild=window" -o "$RUNNER_TEMP/window.exe" .
+      - name: Capture in the real window
+        shell: bash
+        run: WINDOW_CHECKS=showcase WINDOW_SHOTS=0 scripts/uitest/windows-window.sh "$RUNNER_TEMP/window.exe" window-results
+      - name: Encode the video
+        shell: bash
+        run: |
+          python -m pip install --quiet imageio-ffmpeg
+          mkdir -p media-out
+          python scripts/uitest/encode_demo.py window-results/showcase media-out/pullwell-flow-demo.mp4 media-out/pullwell-flow-demo.gif
+          cp window-results/showcase/shots/*.png media-out/
+          cp window-results/environment.txt window-results/showcase.txt media-out/ || true
+          ls -l media-out
+      - name: Push to media-out
+        shell: bash
+        run: |
+          git config user.name "github-actions"; git config user.email "actions@users.noreply.github.com"
+          git checkout --orphan media-out-tmp
+          git rm -rf --quiet . || true
+          cp media-out/* .
+          git add -A
+          git commit -q -m "Media from run ${{ github.run_id }} (${{ github.sha }})"
+          git push --force origin HEAD:refs/heads/media-out
