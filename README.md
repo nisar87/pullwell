@@ -4,6 +4,10 @@ A fast, reliable download manager for Windows 10 and 11, with a browser extensio
 
 ![Pullwell's main window: navigation, live transfers and the list of downloads](docs/screenshots/main-light.png)
 
+![A short demo: live downloads, the separate progress window, the light theme](docs/media/pullwell-flow-demo.gif)
+
+[Watch the demo as a video (MP4, 24 s)](docs/media/pullwell-flow-demo.mp4). Screenshots and video are captured from the real Windows window by the *Media* workflow.
+
 > **Status: first public versions, in daily use.** The name Pullwell is final.
 
 ## Install
@@ -60,6 +64,7 @@ downloads the file itself.
 | --- | --- |
 | ![Progress of one download](docs/screenshots/progress.png) | ![Separate progress window](docs/superpowers/evidence/2026-11-12/popout-light.png) |
 | ![Options](docs/screenshots/options.png) | ![Dark mode](docs/screenshots/main-dark.png) |
+| ![Add a download](docs/screenshots/new-download.png) | ![Scheduler and queues](docs/screenshots/scheduler.png) |
 
 The previews use sample downloads and local test files from `scripts/dmtest/fixtures.py`.
 
