@@ -182,9 +182,9 @@ const COLS = [
   {k:'name', t:'File name', w:0, sort: v => (v.name || v.url).toLowerCase(), cell: v => `<td class="nm" title="${esc((v.name || '') + '\n' + v.url)}">${UI.fileBadge(v)}<span class="file-copy"><span class="tx" data-nt dir="auto">${esc(v.name || v.url)}</span><small class="file-source" data-nt dir="auto">${esc(siteOf(v) || v.category || '')}</small></span></td>`},
   {k:'size', t:'Size', w:100, r:1, sort: v => v.size || 0, cell: v => `<td class="r">${v.size > 0 ? bytes(v.size) : v.state === 'done' ? bytes(v.done) : '<span class="mute">?</span>'}</td>`},
   {k:'status', t:'Progress', w:215, sort: v => ({downloading:0, queued:1, paused:2, error:3, done:4})[v.state] * 1000 - pctOf(v), cell: v => `<td>${statusCell(v)}</td>`},
-  {k:'speed', t:'Speed', w:88, r:1, sort: v => v.state === 'downloading' ? v.speed || 0 : -1, cell: v => `<td class="r sp">${v.state === 'downloading' ? bytes(v.speed) + '/s' : ''}</td>`},
+  {k:'speed', t:'Speed', w:100, r:1, sort: v => v.state === 'downloading' ? v.speed || 0 : -1, cell: v => `<td class="r sp">${v.state === 'downloading' ? bytes(v.speed) + '/s' : ''}</td>`},
   {k:'left', t:'Time left', w:78, r:1, sort: v => leftOf(v) || 1e12, cell: v => `<td class="r">${dur(leftOf(v))}</td>`},
-  {k:'added', t:'Added', w:84, sort: v => v.added || 0, cell: v => `<td class="n" title="${v.finished ? 'Finished ' + esc(new Date(v.finished*1000).toLocaleString(I18N.locale)) : ''}">${when(v.added)}</td>`},
+  {k:'added', t:'Added', w:100, sort: v => v.added || 0, cell: v => `<td class="n" title="${v.finished ? 'Finished ' + esc(new Date(v.finished*1000).toLocaleString(I18N.locale)) : ''}">${when(v.added)}</td>`},
   {k:'site', t:'Website', w:140, sort: v => siteOf(v), cell: v => `<td title="${esc(v.url)}">${esc(siteOf(v))}</td>`},
   {k:'info', t:'Description', w:120, sort: v => (v.err || v.note || ''), cell: v => `<td class="info" title="${esc(v.detail || '')}">${infoOf(v)}</td>`},
 ];
