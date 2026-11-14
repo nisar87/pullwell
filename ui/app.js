@@ -167,12 +167,12 @@ function statusCell(v){
   let txt, tcls = '';
   if (v.state === 'done') { txt = 'Done'; tcls = 'done'; }
   else if (v.state === 'error') { txt = 'Failed'; tcls = 'err'; }
-  else if (queued && !(v.done > 0)) { txt = v.retryAt > Date.now()/1000 ? 'Retry soon' : 'Waiting'; tcls = 'wait'; }
+  else if (queued && !(v.done > 0)) { txt = v.retryAt > Date.now()/1000 ? 'Retry soon' : 'Waiting'; tcls = v.retryAt > Date.now()/1000 ? 'retry' : 'wait'; }
   else if (v.state === 'paused') txt = 'Paused' + (v.size > 0 ? ' ' + Math.floor(p) + '%' : '');
   else { txt = v.size > 0 ? p.toFixed(p < 10 ? 1 : 0) + '%' : bytes(v.done); tcls = v.state === 'downloading' ? 'run' : 'wait'; }
   const map = v.state === 'downloading' && Array.isArray(v.map) && v.map.length > 1 ? flowParts(v.map, 16) : null;
-  const line = map ? `<div class="pb map">${map.map(m => `<b><i style="width:${Math.max(0, Math.min(100, m))}%"></i></b>`).join('')}</div>`
-    : `<div class="pb ${cls}"><i style="width:${v.state === 'error' && !(p > 0) ? 100 : p}%"></i></div>`;
+  const line = map ? `<div class="pb map">${map.map(m => `<b><i style="transform:scaleX(${Math.max(0, Math.min(100, m)) / 100})"></i></b>`).join('')}</div>`
+    : `<div class="pb ${cls}"><i style="transform:scaleX(${(v.state === 'error' && !(p > 0) ? 100 : p) / 100})"></i></div>`;
   return `<div class="st"><div class="progress-track" role="progressbar" aria-label="${esc(dlStateText(v))}" aria-valuemin="0" aria-valuemax="100"${v.size > 0 || v.state === 'done' ? ` aria-valuenow="${Math.round(p)}"` : ''} aria-valuetext="${esc(txt)}">${line}</div><span class="pt ${tcls}">${txt}</span></div>`;
 }
 const when = t => { if (!t) return ''; const d = new Date(t*1000), now = new Date(); return d.toDateString() === now.toDateString() ? d.toLocaleTimeString(I18N.locale, {hour:'2-digit', minute:'2-digit'}) : d.toLocaleDateString(I18N.locale, {day:'numeric', month:'short'}) + ' ' + d.toLocaleTimeString(I18N.locale, {hour:'2-digit', minute:'2-digit'}); };
@@ -180,13 +180,13 @@ const when = t => { if (!t) return ''; const d = new Date(t*1000), now = new Dat
 /* ---------- columns ---------- */
 const COLS = [
   {k:'name', t:'File name', w:0, sort: v => (v.name || v.url).toLowerCase(), cell: v => `<td class="nm" title="${esc((v.name || '') + '\n' + v.url)}">${UI.fileBadge(v)}<span class="file-copy"><span class="tx" data-nt dir="auto">${esc(v.name || v.url)}</span><small class="file-source" data-nt dir="auto">${esc(siteOf(v) || v.category || '')}</small></span></td>`},
-  {k:'size', t:'Size', w:102, r:1, sort: v => v.size || 0, cell: v => `<td class="r">${v.size > 0 ? bytes(v.size) : v.state === 'done' ? bytes(v.done) : '<span class="mute">?</span>'}</td>`},
-  {k:'status', t:'Progress', w:190, sort: v => ({downloading:0, queued:1, paused:2, error:3, done:4})[v.state] * 1000 - pctOf(v), cell: v => `<td>${statusCell(v)}</td>`},
-  {k:'speed', t:'Speed', w:100, r:1, sort: v => v.state === 'downloading' ? v.speed || 0 : -1, cell: v => `<td class="r sp">${v.state === 'downloading' ? bytes(v.speed) + '/s' : ''}</td>`},
+  {k:'size', t:'Size', w:100, r:1, sort: v => v.size || 0, cell: v => `<td class="r">${v.size > 0 ? bytes(v.size) : v.state === 'done' ? bytes(v.done) : '<span class="mute">?</span>'}</td>`},
+  {k:'status', t:'Progress', w:215, sort: v => ({downloading:0, queued:1, paused:2, error:3, done:4})[v.state] * 1000 - pctOf(v), cell: v => `<td>${statusCell(v)}</td>`},
+  {k:'speed', t:'Speed', w:88, r:1, sort: v => v.state === 'downloading' ? v.speed || 0 : -1, cell: v => `<td class="r sp">${v.state === 'downloading' ? bytes(v.speed) + '/s' : ''}</td>`},
   {k:'left', t:'Time left', w:78, r:1, sort: v => leftOf(v) || 1e12, cell: v => `<td class="r">${dur(leftOf(v))}</td>`},
-  {k:'added', t:'Added', w:120, sort: v => v.added || 0, cell: v => `<td class="n" title="${v.finished ? 'Finished ' + esc(new Date(v.finished*1000).toLocaleString(I18N.locale)) : ''}">${when(v.added)}</td>`},
+  {k:'added', t:'Added', w:84, sort: v => v.added || 0, cell: v => `<td class="n" title="${v.finished ? 'Finished ' + esc(new Date(v.finished*1000).toLocaleString(I18N.locale)) : ''}">${when(v.added)}</td>`},
   {k:'site', t:'Website', w:140, sort: v => siteOf(v), cell: v => `<td title="${esc(v.url)}">${esc(siteOf(v))}</td>`},
-  {k:'info', t:'Description', w:200, sort: v => (v.err || v.note || ''), cell: v => `<td class="info" title="${esc(v.detail || '')}">${infoOf(v)}</td>`},
+  {k:'info', t:'Description', w:120, sort: v => (v.err || v.note || ''), cell: v => `<td class="info" title="${esc(v.detail || '')}">${infoOf(v)}</td>`},
 ];
 let widths = store.get('widths', {});
 let hideCols = store.get('hideCols', ['site']);  // Website is off until switched on           // columns switched off in View → Columns (never the name)
@@ -214,6 +214,24 @@ function shownItems(){
 }
 
 /* ---------- drawing ---------- */
+
+/* rows are patched in place, so bars glide to their new width instead of being rebuilt */
+const lastState = new Map();
+function morph(a, b, kids){
+  if (!kids) for (const at of [...a.attributes]) if (!b.hasAttribute(at.name)) a.removeAttribute(at.name);
+  if (!kids) for (const at of b.attributes) if (a.getAttribute(at.name) !== at.value) a.setAttribute(at.name, at.value);
+  const an = a.childNodes, bn = b.childNodes;
+  for (let i = 0; i < bn.length; i++) {
+    const x = an[i], y = bn[i];
+    if (!x) a.appendChild(y.cloneNode(true));
+    else if (x.nodeType === 3 && y.nodeType === 3) { if (x.nodeValue !== y.nodeValue) x.nodeValue = y.nodeValue; }
+    else if (x.nodeType === 1 && y.nodeType === 1 && x.tagName === y.tagName) morph(x, y);
+    else a.replaceChild(y.cloneNode(true), x);
+  }
+  while (a.childNodes.length > bn.length) a.removeChild(a.lastChild);
+}
+const scratchRow = document.createElement('tr');
+function morphRow(tr, html){ scratchRow.innerHTML = html; morph(tr, scratchRow, true); }
 function render(){
   if (!DL) return;
   if (ProgressWindow.render()) return;
@@ -254,8 +272,11 @@ function renderTable(){
     let tr = rowEls.get(v.id);
     if (!tr) { tr = document.createElement('tr'); tr.dataset.id = v.id; rowEls.set(v.id, tr); }
     const html = SC.map(c => c.cell(v).replace('<td', `<td data-col="${c.k}"`)).join('');
-    if (tr.dataset.h !== html) { tr.dataset.h = html; tr.innerHTML = html; }
-    const cls = (sel.has(v.id) ? 'sel' : '') + (cur === v.id ? ' cur' : '') + (v.state === 'downloading' ? ' run' : '');
+    if (tr.dataset.h !== html) { const fresh = !tr.firstChild; tr.dataset.h = html; fresh ? tr.innerHTML = html : morphRow(tr, html); }
+    const was = lastState.get(v.id); lastState.set(v.id, v.state);
+    if (was === 'downloading' && v.state === 'done') { tr.classList.add('fin'); setTimeout(() => tr.classList.remove('fin'), 1200); }
+    const fin = tr.classList.contains('fin') ? ' fin' : '';
+    const cls = (sel.has(v.id) ? 'sel' : '') + (cur === v.id ? ' cur' : '') + (v.state === 'downloading' ? ' run' : '') + fin;
     if (tr.className !== cls) tr.className = cls;
     const want = prev ? prev.nextSibling : tb.firstChild;
     if (want !== tr) tb.insertBefore(tr, want);
@@ -1295,3 +1316,6 @@ $('#search').value = '';
 ProgressWindow.init();
 loadDL();
 setInterval(() => { if (!document.hidden || Date.now() % 5000 < 1000) loadDL(); }, 1000);
+
+/* animations rest while the window is hidden */
+document.addEventListener('visibilitychange', () => document.documentElement.classList.toggle('hidden-win', document.hidden));
