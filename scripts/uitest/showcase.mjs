@@ -85,6 +85,9 @@ async function record(name, w, h, target, seconds, script) {
   sc.end = sc.frames[sc.frames.length - 1].t + 0.12;
   sc.fps = +(sc.frames.length / ((sc.end - sc.frames[0].t) || 1)).toFixed(1);
 }
+// the video list should fit the frame, with the live downloads in view: take a few finished rows out of the list
+for (const v of await list()) if (/^(Invoice|Meeting|Podcast)/.test(v.name)) await call({action: 'remove', id: v.id});
+await sleep(1500);
 await main.theme('dark'); await main.mouse(5, 5);
 await record('a-list', 1280, 720, main, 11, async () => {
   await sleep(1200); await call({action: 'add', url: `${fx}/slow/14MB?bps=350000`, name: 'Product-Demo-Recording.mp4', force: true});
