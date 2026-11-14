@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.13.1 (2026-11-14)
+
+Releases only. There are no more test builds.
+
+- The "Which versions" choice (Releases / Test builds) is gone from Options, Updates, and a copy that had picked test
+  builds goes back to releases by itself. Updates now come only from the newest tested release.
+- The workflow that published a test build for every change is removed.
+- Final look refinements from the visual review: wider progress column when the table fits to the window, a
+  stronger finish pulse, a soft glow on hovered New download, and an ambient glow behind the percentage in the dark
+  progress window.
+
 ## 0.13.0 (2026-11-14)
 
 Pullwell Flow: a calmer graphite look with livelier, cheaper progress. Interface only; the download engine is unchanged.

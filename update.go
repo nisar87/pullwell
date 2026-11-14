@@ -6,7 +6,7 @@ package main
 //   - "local": a file <Name>-update.exe next to the program, with <Name>-update.exe.sha256 beside it ("<sha256>
 //     [version]"). Whoever can write that folder could already replace the program itself, so this adds no new way
 //     in; the fingerprint only proves the file arrived complete. Used while testing (the developer drops builds there).
-//   - GitHub: the newest release of appRepo ("release" channel), or the pre-release "test-build" ("test" channel).
+//   - GitHub: the newest release of appRepo. Only releases are offered; there are no test builds.
 //     The file is checked against the SHA-256 fingerprint published with it. A private repository cannot be read
 //     without signing in, so this works once the releases are public.
 //
@@ -40,8 +40,7 @@ var updateWeb = "https://github.com"     // the release pages; tests point it at
 type updateState struct {
 	Current   string `json:"current"`
 	Build     string `json:"build"`
-	Channel   string `json:"channel"` // "release" | "test"
-	Auto      bool   `json:"auto"`    // install by itself when nothing is downloading
+	Auto      bool   `json:"auto"` // install by itself when nothing is downloading
 	Available bool   `json:"available"`
 	Latest    string `json:"latest"` // version (or build) on offer
 	Source    string `json:"source"` // "local" | "github"
@@ -57,8 +56,7 @@ type updateState struct {
 }
 
 type updateConfig struct {
-	Channel string `json:"channel"`
-	NoAuto  bool   `json:"noAuto"`
+	NoAuto bool `json:"noAuto"`
 	// Skip is the fingerprint of a version the person went back from: it is never installed by itself again
 	// (it can still be installed by hand), so "Go back" sticks until a different version appears.
 	Skip string `json:"skip,omitempty"`
@@ -76,12 +74,9 @@ var (
 func updateCfgFile() string { return filepath.Join(appRoot, "data", "update.json") }
 
 func loadUpdateCfg() {
-	updCfg = updateConfig{Channel: "release"}
+	updCfg = updateConfig{}
 	if b, err := os.ReadFile(updateCfgFile()); err == nil {
 		_ = json.Unmarshal(b, &updCfg)
-	}
-	if updCfg.Channel != "test" {
-		updCfg.Channel = "release"
 	}
 }
 
@@ -121,7 +116,7 @@ func updateSnapshot() updateState {
 	updMu.Lock()
 	defer updMu.Unlock()
 	u := upd
-	u.Current, u.Build, u.Channel, u.Auto = appVersion, appBuild, updCfg.Channel, !updCfg.NoAuto
+	u.Current, u.Build, u.Auto = appVersion, appBuild, !updCfg.NoAuto
 	_, err := os.Stat(previousFile())
 	u.Previous = err == nil
 	return u
@@ -228,11 +223,11 @@ func httpGet(ctx context.Context, u string) (*http.Response, error) {
 
 // webRelease finds the newest release from github.com itself (the "latest" page redirects to the tag), not from the
 // limited API, and names the two files of a release by their fixed addresses.
-func webRelease(ctx context.Context, channel string) (ghRelease, error) {
+func webRelease(ctx context.Context) (ghRelease, error) {
 	var rel ghRelease
 	base := updateWeb + "/" + appRepo
-	tag := "test-build"
-	if channel != "test" {
+	var tag string
+	{
 		req, err := http.NewRequestWithContext(ctx, "GET", base+"/releases/latest", nil)
 		if err != nil {
 			return rel, err
@@ -267,11 +262,8 @@ func webRelease(ctx context.Context, channel string) (ghRelease, error) {
 // updClient goes through the same proxy as the downloads.
 var updClient = &http.Client{Transport: &http.Transport{Proxy: proxyFor, TLSHandshakeTimeout: 15 * time.Second, ResponseHeaderTimeout: 30 * time.Second}}
 
-// checkGitHub asks GitHub for the release of the chosen channel. It never changes anything on disk.
+// checkGitHub asks GitHub for the newest release. It never changes anything on disk.
 func checkGitHub(manual bool) {
-	updMu.Lock()
-	channel := updCfg.Channel
-	updMu.Unlock()
 	fail := func(msg string) {
 		updMu.Lock()
 		if manual {
@@ -281,9 +273,6 @@ func checkGitHub(manual bool) {
 		logf("update check: %s", msg)
 	}
 	path := "/repos/" + appRepo + "/releases/latest"
-	if channel == "test" {
-		path = "/repos/" + appRepo + "/releases/tags/test-build"
-	}
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 	defer cancel()
 	var rel ghRelease
@@ -308,7 +297,7 @@ func checkGitHub(manual bool) {
 			resp.Body.Close()
 		}
 		var werr error
-		if rel, werr = webRelease(ctx, channel); werr != nil {
+		if rel, werr = webRelease(ctx); werr != nil {
 			switch {
 			case code == 403 || code == 429:
 				fail(fmt.Sprintf("GitHub is limiting requests from your network (HTTP %d). Try again in a few minutes.", code))
@@ -350,12 +339,7 @@ func checkGitHub(manual bool) {
 	}
 	var newer bool
 	latest := strings.TrimPrefix(rel.Tag, "v")
-	if channel == "test" {
-		newer = sha != "" && sha != selfSHA // a test build is "new" whenever it is a different build
-		latest = rel.Name
-	} else {
-		newer = newerVersion(rel.Tag, appVersion) && !rel.Pre
-	}
+	newer = newerVersion(rel.Tag, appVersion) && !rel.Pre
 	updMu.Lock()
 	upd.Checked, upd.Error = time.Now().Unix(), ""
 	if upd.Source == "local" && upd.Available {
@@ -610,9 +594,8 @@ func updateHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Cache-Control", "no-store")
 	if r.Method == http.MethodPost {
 		var in struct {
-			Action  string `json:"action"`
-			Channel string `json:"channel"`
-			Auto    *bool  `json:"auto"`
+			Action string `json:"action"`
+			Auto   *bool  `json:"auto"`
 		}
 		if json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&in) != nil {
 			w.WriteHeader(400)
@@ -631,12 +614,6 @@ func updateHandler(w http.ResponseWriter, r *http.Request) {
 			err = rollBack()
 		case "settings":
 			updMu.Lock()
-			if in.Channel == "test" || in.Channel == "release" {
-				if in.Channel != updCfg.Channel {
-					upd.Available = upd.Source == "local" && upd.Available // a GitHub offer was for the other channel
-				}
-				updCfg.Channel = in.Channel
-			}
 			if in.Auto != nil {
 				updCfg.NoAuto = !*in.Auto
 			}

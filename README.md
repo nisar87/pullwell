@@ -99,8 +99,8 @@ started with `--remote-debugging-port=9333`. Then run `node menu_check.mjs 9333 
 http://127.0.0.1:8765 <out>` (the same for `ui_check`, `prog_check`). `ext_check.mjs` loads the extension into
 Playwright's Chromium.
 
-Every push builds a test version (the `test-build` pre-release). Changing `VERSION` (and `appVersion` in
-`appname.go`) publishes a release, which installed copies pick up by themselves.
+There are no test builds: only releases are published. Changing `VERSION` (and `appVersion` in `appname.go`)
+publishes a release, which installed copies pick up by themselves.
 
 ## Documents
 

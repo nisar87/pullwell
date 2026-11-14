@@ -77,7 +77,7 @@ func resetUpdate(t *testing.T) (swapped *string) {
 	appRoot = t.TempDir()
 	os.MkdirAll(filepath.Join(appRoot, "data"), 0o755)
 	upd = updateState{Status: "idle"}
-	updCfg = updateConfig{Channel: "release"}
+	updCfg = updateConfig{}
 	var got string
 	old := applySwap
 	applySwap = func(f string) error { got = f; return nil }
@@ -171,17 +171,6 @@ func TestGitHubUpdate(t *testing.T) {
 	if err := installUpdate(); err == nil || !strings.Contains(err.Error(), "fingerprint") || *swapped != "" {
 		t.Fatalf("err %v, swapped %q", err, *swapped)
 	}
-
-	// the test channel offers a different build even with the same version
-	upd = updateState{Status: "idle"}
-	updCfg.Channel = "test"
-	checkGitHub(true)
-	if u := updateSnapshot(); u.Available {
-		t.Fatal("test channel: no test-build release exists, nothing must be offered")
-	}
-	if !strings.Contains(updateSnapshot().Error, "No release found") {
-		t.Fatalf("error %q", updateSnapshot().Error)
-	}
 }
 
 func TestUpdateRefusesNonGitHubDownloads(t *testing.T) {
@@ -254,7 +243,7 @@ func TestUpdateCheckFallsBackToTheReleasePage(t *testing.T) {
 	updateAPI, updateWeb = api.URL, web.URL
 	defer func() { updateAPI, updateWeb = "https://api.github.com", "https://github.com" }()
 
-	rel, err := webRelease(context.Background(), "release")
+	rel, err := webRelease(context.Background())
 	if err != nil || rel.Tag != "v9.9.9" || len(rel.Assets) != 2 || !strings.HasSuffix(rel.Assets[0].URL, "/releases/download/v9.9.9/"+AppName+".exe") {
 		t.Fatalf("rel %+v err %v", rel, err)
 	}
