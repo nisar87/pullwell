@@ -190,7 +190,9 @@ const COLS = [
 ];
 let widths = store.get('widths', {});
 let hideCols = store.get('hideCols', ['site']);  // Website is off until switched on           // columns switched off in View → Columns (never the name)
-const shownCols = () => COLS.filter(c => c.k === 'name' || !hideCols.includes(c.k));
+const narrowMQ = matchMedia('(max-width:1180px)');   // below this the Added column steps aside so file names keep their room
+const shownCols = () => COLS.filter(c => c.k === 'name' || (!hideCols.includes(c.k) && !(narrowMQ.matches && c.k === 'added')));
+narrowMQ.addEventListener('change', () => render());
 
 /* ---------- which rows are shown ---------- */
 function inView(v, vw){
@@ -258,7 +260,7 @@ function renderTable(){
   const items = shownItems();
   visible = items.map(v => v.id);
   const SC = shownCols();
-  const hk = JSON.stringify([sortBy, widths, hideCols]);
+  const hk = JSON.stringify([sortBy, widths, hideCols, narrowMQ.matches]);
   if (hk !== headKey) {
     headKey = hk;
     $('#cg').innerHTML = SC.map(c => `<col data-col="${c.k}" style="width:${c.w ? (widths[c.k] || c.w) + 'px' : 'auto'}">`).join('');
@@ -274,7 +276,7 @@ function renderTable(){
     const html = SC.map(c => c.cell(v).replace('<td', `<td data-col="${c.k}"`)).join('');
     if (tr.dataset.h !== html) { const fresh = !tr.firstChild; tr.dataset.h = html; fresh ? tr.innerHTML = html : morphRow(tr, html); }
     const was = lastState.get(v.id); lastState.set(v.id, v.state);
-    if (was === 'downloading' && v.state === 'done') { tr.classList.add('fin'); setTimeout(() => tr.classList.remove('fin'), 1200); }
+    if (was === 'downloading' && v.state === 'done') { tr.classList.add('fin'); setTimeout(() => tr.classList.remove('fin'), 1700); }
     const fin = tr.classList.contains('fin') ? ' fin' : '';
     const cls = (sel.has(v.id) ? 'sel' : '') + (cur === v.id ? ' cur' : '') + (v.state === 'downloading' ? ' run' : '') + fin;
     if (tr.className !== cls) tr.className = cls;

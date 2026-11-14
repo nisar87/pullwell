@@ -48,7 +48,7 @@ stop_app() {
 
 failed=0
 summary="$out/summary.txt"; : > "$summary"
-for c in ui_check menu_check prog_check feat_check flows_check more_check lang_check native_popout_check; do
+for c in ${WINDOW_CHECKS:-ui_check menu_check prog_check feat_check flows_check more_check lang_check native_popout_check final_visuals}; do
   if ! start_app "$c"; then echo "$c: the window did not start" | tee -a "$summary"; failed=1; continue; fi
   mkdir -p "$out/$c"; node "$here/$c.mjs" $dbg $app $fx "$out/$c" > "$out/$c.txt" 2>&1
   rc=$?
@@ -69,7 +69,7 @@ else
 fi
 echo; cat "$summary"
 # the check outputs and small copies of the screenshots go into the log too, for a review that cannot fetch artifacts
-for c in "$out"/*_check.txt; do echo "::group::$(basename "$c")"; cat "$c"; echo "::endgroup::"; done
+for c in "$out"/*_check.txt "$out"/final_visuals.txt; do echo "::group::$(basename "$c")"; cat "$c"; echo "::endgroup::"; done
 if [ -d "$out/shots" ]; then
   echo "::group::screenshots (zip, base64)"
   powershell -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$here/small-shots.ps1")" -Results "$(cygpath -w "$out")" -Zip "$(cygpath -w "$work/small.zip")"
