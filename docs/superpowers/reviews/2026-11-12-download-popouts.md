@@ -69,3 +69,10 @@ Detailed evidence: `/tmp/pullwell-popouts-reviewed`, `/tmp/pullwell-popout-a11y`
 The release preparation subsequently verified the merged commit `2287399` on real Windows/WebView2 in [GitHub Actions run 43258859108](https://github.com/nisar87/pullwell/actions/runs/43258859108). All Windows jobs passed: engine/application tests, program integration, browser extension, and window checks. The dedicated 22-assertion pop-out suite verifies distinct HWNDs and WebViews, per-ID reuse, minimize/restore, independent controls, Properties removal, progress after the main UI closes, and native script-close without stopping transfers. The full window harness reports 225 passing assertions and zero failures.
 
 Screenshots and detailed results are retained in the `window-results` Actions artifact. Local browser screenshots use Linux font fallbacks; Windows captures use the actual system fonts. Process-crash recovery and close-during-controller-creation received code review and static validation; the smoke test does not inject those faults. On a native WebView process failure, affected progress windows close and can be reopened while transfers continue in the existing backend.
+
+## Refresh, 2026-11-14
+
+`popout-light.png` and `popout-dark.png` above are replaced with captures of the separate progress window of the
+0.13.0 interface, taken in the real Windows window (WebView2 156, Segoe UI Variable and Bahnschrift present) by
+`scripts/uitest/final_visuals.mjs` on a GitHub-hosted runner. The main-window and Options images in
+`docs/screenshots/` come from the same run.
