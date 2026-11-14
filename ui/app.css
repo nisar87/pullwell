@@ -5,19 +5,19 @@
 :root{
   color-scheme:light;
   /* surfaces */
-  --bg:#f3f5f3; --surface:#ffffff; --raised:#ffffff; --sunk:#f0f3f1;
-  --line:#e4e9e5; --line2:#d2dbd5; --line-strong:#abbab0;
+  --bg:#f2f4f7; --surface:#ffffff; --raised:#ffffff; --sunk:#eef1f5;
+  --line:#e3e7ee; --line2:#d0d7e1; --line-strong:#a6b0bf;
   /* text */
-  --text:#24352d; --mute:#5f7065; --dim:#6c7c71;
+  --text:#1f2937; --mute:#586577; --dim:#667385;
   /* accent: the flow */
   --accent:#16745f; --accent-ink:#ffffff; --accent-soft:#16745f12; --accent-line:#16745f40;
   /* states */
-  --good:#28744c; --warn:#85560c; --bad:#bf4343; --wait:#4672a3; --paused:#65746b;
+  --good:#28744c; --warn:#85560c; --bad:#bf4343; --wait:#946010; --queued:#6d4fd1; --info:#2f67b8; --paused:#65707f;
   --danger:#b53733; --danger-ink:#ffffff;
   --inset:var(--sunk);
-  --bar:var(--accent); --bar-done:#2f8a55; --bar-paused:#a7b0b8; --track:#e2e7eb;
+  --bar:linear-gradient(90deg,#0f7f72,#16a796); --bar-glow:#16a79655; --bar-done:#2f8a55; --bar-paused:#a7b0b8; --track:#e1e6ed;
   /* interaction */
-  --hover:#f4f7f4; --sel:#e9f3ed; --sel-line:#16745f66; --focus:#16745f;
+  --hover:#f4f6f9; --sel:#e6f3f1; --sel-line:#16745f66; --focus:#16745f;
   /* depth */
   --shadow-1:0 1px 2px #1720290f; --shadow:0 12px 32px #17202a26, 0 2px 6px #17202a14; --scrim:#17202a59;
   /* type */
@@ -34,26 +34,26 @@
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
     color-scheme:dark;
-    --bg:#171d1a; --surface:#1d2520; --raised:#263029; --sunk:#18201b;
-    --line:#303b33; --line2:#414e44; --line-strong:#627267;
-    --text:#e4eee7; --mute:#a9b9ad; --dim:#96a79b;
-    --accent:#3ec7b5; --accent-ink:#06211d; --accent-soft:#3ec7b51f; --accent-line:#3ec7b566;
-    --good:#7fcf9b; --warn:#e3b05e; --bad:#ef7470; --wait:#7ea6d8; --paused:#8b96a2;
-    --bar-done:#5fb382; --bar-paused:#5c6670; --track:#2a3138;
-    --hover:#20252b; --sel:#173a37; --sel-line:#3ec7b566; --focus:#3ec7b5;
+    --bg:#0e1013; --surface:#14171c; --raised:#1b1f26; --sunk:#101318;
+    --line:#232832; --line2:#303744; --line-strong:#4b5565;
+    --text:#e9edf3; --mute:#a4aebc; --dim:#8c97a6;
+    --accent:#2fd3c1; --accent-ink:#04201c; --accent-soft:#2fd3c11c; --accent-line:#2fd3c166;
+    --good:#62d490; --warn:#f0b84f; --bad:#f47c78; --wait:#f0b84f; --queued:#a58bfa; --info:#78a6f0; --paused:#8d98a6;
+    --bar:linear-gradient(90deg,#1fb5ae,#3be0cc); --bar-glow:#2fd3c180; --bar-done:#4fc384; --bar-paused:#566070; --track:#232932;
+    --hover:#191d24; --sel:#12302f; --sel-line:#2fd3c166; --focus:#2fd3c1;
     --shadow-1:0 1px 2px #0006; --shadow:0 16px 40px #000a, 0 2px 8px #0006; --scrim:#05070999;
   }
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
-  --bg:#171d1a; --surface:#1d2520; --raised:#263029; --sunk:#18201b;
-  --line:#303b33; --line2:#414e44; --line-strong:#627267;
-  --text:#e4eee7; --mute:#a9b9ad; --dim:#96a79b;
-  --accent:#3ec7b5; --accent-ink:#06211d; --accent-soft:#3ec7b51f; --accent-line:#3ec7b566;
-  --good:#7fcf9b; --warn:#e3b05e; --bad:#ef7470; --wait:#7ea6d8; --paused:#8b96a2;
-  --bar-done:#5fb382; --bar-paused:#5c6670; --track:#2a3138;
-  --hover:#20252b; --sel:#173a37; --sel-line:#3ec7b566; --focus:#3ec7b5;
-  --shadow-1:0 1px 2px #0006; --shadow:0 16px 40px #000a, 0 2px 8px #0006; --scrim:#05070999;
+  --bg:#0e1013; --surface:#14171c; --raised:#1b1f26; --sunk:#101318;
+    --line:#232832; --line2:#303744; --line-strong:#4b5565;
+    --text:#e9edf3; --mute:#a4aebc; --dim:#8c97a6;
+    --accent:#2fd3c1; --accent-ink:#04201c; --accent-soft:#2fd3c11c; --accent-line:#2fd3c166;
+    --good:#62d490; --warn:#f0b84f; --bad:#f47c78; --wait:#f0b84f; --queued:#a58bfa; --info:#78a6f0; --paused:#8d98a6;
+    --bar:linear-gradient(90deg,#1fb5ae,#3be0cc); --bar-glow:#2fd3c180; --bar-done:#4fc384; --bar-paused:#566070; --track:#232932;
+    --hover:#191d24; --sel:#12302f; --sel-line:#2fd3c166; --focus:#2fd3c1;
+    --shadow-1:0 1px 2px #0006; --shadow:0 16px 40px #000a, 0 2px 8px #0006; --scrim:#05070999;
 }
 .dense{--row:34px}
 
@@ -166,13 +166,13 @@ td.nm .tx{overflow:hidden;text-overflow:ellipsis}
 /* the flow line: progress of one download */
 .st{display:flex;align-items:center;gap:10px}
 .progress-track{flex:1;min-width:30px}
-.st .pb{position:relative;width:100%;height:5px;min-width:30px;border-radius:3px;background:var(--track);overflow:hidden}
-.st .pb i{display:block;height:100%;border-radius:3px;background:var(--bar);transition:width .5s var(--ease)}
+.st .pb{position:relative;width:100%;height:8px;min-width:30px;border-radius:4px;background:var(--track);box-shadow:inset 0 1px 2px #0005;overflow:hidden}
+.st .pb i{display:block;position:relative;height:100%;border-radius:4px;background:var(--bar);transition:width .9s linear,background-color .3s}
 .st .pb.paused i{background:var(--bar-paused)}
 .st .pb.done i{background:var(--bar-done)}
 .st .pb.err i{background:var(--bad)}
 .st .pb.wait{background:repeating-linear-gradient(90deg,var(--track) 0 6px,transparent 6px 9px)}
-.st .pb.wait i{background:var(--wait)}
+.st .pb.wait i{background:var(--queued)}
 .st .pb.map{display:flex;gap:2px;background:none}
 .st .pb.map b{flex:1;background:var(--track);border-radius:1px;overflow:hidden}
 .st .pb.map b i{border-radius:0}
@@ -180,7 +180,7 @@ td.nm .tx{overflow:hidden;text-overflow:ellipsis}
 .st .pt.run{color:var(--text)}
 .st .pt.done{color:var(--good)}
 .st .pt.err{color:var(--bad)}
-.st .pt.wait{color:var(--wait)}
+.st .pt.wait{color:var(--queued)} .st .pt.retry{color:var(--wait)}
 td .bad{color:var(--bad)} td .good{color:var(--good)} td .mute{color:var(--dim)}
 td.info{color:var(--mute)}
 .empty{position:absolute;inset:72px 24px auto;text-align:center;color:var(--mute);line-height:1.7}
@@ -281,7 +281,7 @@ input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;margin:0}
 .prog .big{font:300 var(--fs-xl)/1 var(--num);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 .prog .big small{font-size:var(--fs-m);color:var(--mute);margin-left:2px}
 .prog .state{padding-bottom:3px;font-weight:600}
-.prog .state.run{color:var(--accent)} .prog .state.done{color:var(--good)} .prog .state.err{color:var(--bad)} .prog .state.wait{color:var(--wait)} .prog .state.paused{color:var(--paused)}
+.prog .state.run{color:var(--accent)} .prog .state.done{color:var(--good)} .prog .state.err{color:var(--bad)} .prog .state.wait{color:var(--queued)} .prog .state.paused{color:var(--paused)}
 .prog .hero .sp{flex:1}
 .prog .rate{text-align:right;color:var(--mute);font-size:var(--fs-s);line-height:1.35}
 .prog .rate b{display:block;color:var(--text);font:500 var(--fs-m)/1.3 var(--num);font-variant-numeric:tabular-nums}
@@ -562,3 +562,23 @@ html[dir=rtl] table.dl :is(th,td){text-align:start}html[dir=rtl] table.dl :is(th
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
 }
+
+/* ---------- Pullwell Flow: live bars, completion, density ---------- */
+.st .pb.map b{height:8px}
+tr.run .st .pb i,tr.run .st .pb.map b i{box-shadow:0 0 8px var(--bar-glow)}
+/* the leading edge and the slow sheen exist only on downloading rows, and only while the window is visible */
+tr.run .st .pb:not(.map) i::after{content:"";position:absolute;right:0;top:0;bottom:0;width:10px;border-radius:4px;background:linear-gradient(90deg,transparent,#ffffffaa);opacity:.75}
+tr.run .st .pb:not(.map) i::before{content:"";position:absolute;inset:0;border-radius:4px;background:linear-gradient(100deg,transparent 30%,#ffffff40 50%,transparent 70%) 0 0/200% 100%;animation:sheen 2.4s linear infinite}
+@keyframes sheen{from{background-position:200% 0}to{background-position:-200% 0}}
+.hidden-win tr.run .st .pb i::before{animation:none}
+tr.run:nth-of-type(n+13) .st .pb i::before{animation:none}
+tr.run td{background:color-mix(in srgb,var(--accent) 5%,transparent)}
+tr.run td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+tr.fin td{animation:fin 1.1s var(--ease)}
+tr.fin .st .pb i{animation:finbar 1.1s var(--ease)}
+@keyframes fin{0%{background-color:color-mix(in srgb,var(--good) 28%,transparent)}100%{background-color:transparent}}
+@keyframes finbar{0%{box-shadow:0 0 14px var(--good)}100%{box-shadow:none}}
+.st .pb.paused i{box-shadow:none}
+.st .pb.err i{background:var(--bad)}
+.st .pb.done i{background:var(--bar-done)}
+.dense .st .pb{height:6px}
