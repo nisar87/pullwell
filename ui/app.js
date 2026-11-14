@@ -182,9 +182,9 @@ const COLS = [
   {k:'name', t:'File name', w:0, sort: v => (v.name || v.url).toLowerCase(), cell: v => `<td class="nm" title="${esc((v.name || '') + '\n' + v.url)}">${UI.fileBadge(v)}<span class="file-copy"><span class="tx" data-nt dir="auto">${esc(v.name || v.url)}</span><small class="file-source" data-nt dir="auto">${esc(siteOf(v) || v.category || '')}</small></span></td>`},
   {k:'size', t:'Size', w:100, r:1, sort: v => v.size || 0, cell: v => `<td class="r">${v.size > 0 ? bytes(v.size) : v.state === 'done' ? bytes(v.done) : '<span class="mute">?</span>'}</td>`},
   {k:'status', t:'Progress', w:215, sort: v => ({downloading:0, queued:1, paused:2, error:3, done:4})[v.state] * 1000 - pctOf(v), cell: v => `<td>${statusCell(v)}</td>`},
-  {k:'speed', t:'Speed', w:88, r:1, sort: v => v.state === 'downloading' ? v.speed || 0 : -1, cell: v => `<td class="r sp">${v.state === 'downloading' ? bytes(v.speed) + '/s' : ''}</td>`},
+  {k:'speed', t:'Speed', w:100, r:1, sort: v => v.state === 'downloading' ? v.speed || 0 : -1, cell: v => `<td class="r sp">${v.state === 'downloading' ? bytes(v.speed) + '/s' : ''}</td>`},
   {k:'left', t:'Time left', w:78, r:1, sort: v => leftOf(v) || 1e12, cell: v => `<td class="r">${dur(leftOf(v))}</td>`},
-  {k:'added', t:'Added', w:84, sort: v => v.added || 0, cell: v => `<td class="n" title="${v.finished ? 'Finished ' + esc(new Date(v.finished*1000).toLocaleString(I18N.locale)) : ''}">${when(v.added)}</td>`},
+  {k:'added', t:'Added', w:100, sort: v => v.added || 0, cell: v => `<td class="n" title="${v.finished ? 'Finished ' + esc(new Date(v.finished*1000).toLocaleString(I18N.locale)) : ''}">${when(v.added)}</td>`},
   {k:'site', t:'Website', w:140, sort: v => siteOf(v), cell: v => `<td title="${esc(v.url)}">${esc(siteOf(v))}</td>`},
   {k:'info', t:'Description', w:120, sort: v => (v.err || v.note || ''), cell: v => `<td class="info" title="${esc(v.detail || '')}">${infoOf(v)}</td>`},
 ];
@@ -997,7 +997,6 @@ function optionsBody(tab){
     return orow('Version', `${esc(APP.name)} ${esc(u.current || APP.version)}${u.build && u.build !== 'dev' ? ' (build ' + esc(u.build.slice(0, 7)) + ')' : ''} · ${state}${u.error ? `<br><span class="bad">${esc(u.error)}</span>` : ''}`,
         `<div class="row" style="flex-wrap:nowrap"><button class="btn" id="updCheck"${u.status && u.status !== 'idle' ? ' disabled' : ''}>Check now</button>${u.available ? `<button class="btn pri" id="updInstall"${u.status !== 'idle' ? ' disabled' : ''}>Install and restart</button>` : ''}</div>`)
       + orow('Install updates by themselves', `When an update is ready and nothing is downloading, ${esc(APP.name)} installs it and restarts. Unfinished downloads continue afterwards.`, tog('id="updAuto"', u.auto, 'Install updates by themselves'))
-      + orow('Which versions', 'Test builds are every change as soon as it is made; releases are the tested versions.', `<select class="sel" id="updChannel"><option value="release"${u.channel !== 'test' ? ' selected' : ''}>Releases</option><option value="test"${u.channel === 'test' ? ' selected' : ''}>Test builds</option></select>`)
       + (u.previous ? orow('Go back to the previous version', 'If the new version gives trouble. You can come back to this one the same way.', `<button class="btn" id="updBack">Go back</button>`) : '');
   }
   if (tab === 'torrents') return orow('Torrents and magnet links', 'Turn off to refuse magnet links and .torrent files.', tog('data-dm="torTog"', !c.noTorrents, 'Allow torrents'))
@@ -1120,7 +1119,6 @@ document.addEventListener('change', async e => {
     try { await api('app', {proxy: {mode: t.value}}); APPCFG = await api('app'); toast(t.value === 'none' ? 'No proxy' : 'Using the same proxy as Windows'); } catch(err){ toast(err.message, true); }
     return;
   }
-  if (t.id === 'updChannel') return updAction({action:'settings', channel: t.value}, null);
   if (t.id === 'extMin') return dlAct({action:'extConfig', extMinMB: +t.value, extOff: !DL.ext.enabled, extNoAsk: DL.ext.ask === false});
   if (t.id === 'extAsk') return dlAct({action:'extConfig', extMinMB: DL.ext.minMB, extOff: !DL.ext.enabled, extNoAsk: DL.ext.ask !== false});
   if (t.id === 'dlMax') return dlAct({action:'config', config: {...DL.config, maxActive: +t.value}});
