@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.13.0 (2026-11-14)
+
+Pullwell Flow: a calmer graphite look with livelier, cheaper progress. Interface only; the download engine is unchanged.
+
+- **New palette.** Neutral graphite dark theme and a cooler, separate light theme. Teal means downloading, green done,
+  violet queued, amber retry/waiting, red failed.
+- **Progress you can read.** Longer, thicker bars with a soft glow on live downloads only; paused, queued and finished
+  rows stay still. Bars glide to each new real value (never guessed ahead), and a finished download gets a short green
+  pulse. The download window's bar and part map are larger.
+- **File names first.** Column widths rebalanced so names are no longer cut short.
+- **Cheaper.** Rows are updated in place instead of rebuilt, and bars move by transform, so ten live downloads use
+  about 6% of one core in a software-rendered test browser; animations stop while the window is hidden and under
+  reduced-motion.
+
 ## 0.12.0 (2026-11-13)
 
 Problem reports: the log can now reach the developer, so errors on other computers get found and fixed.

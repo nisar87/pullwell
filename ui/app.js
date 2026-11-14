@@ -171,8 +171,8 @@ function statusCell(v){
   else if (v.state === 'paused') txt = 'Paused' + (v.size > 0 ? ' ' + Math.floor(p) + '%' : '');
   else { txt = v.size > 0 ? p.toFixed(p < 10 ? 1 : 0) + '%' : bytes(v.done); tcls = v.state === 'downloading' ? 'run' : 'wait'; }
   const map = v.state === 'downloading' && Array.isArray(v.map) && v.map.length > 1 ? flowParts(v.map, 16) : null;
-  const line = map ? `<div class="pb map">${map.map(m => `<b><i style="width:${Math.max(0, Math.min(100, m))}%"></i></b>`).join('')}</div>`
-    : `<div class="pb ${cls}"><i style="width:${v.state === 'error' && !(p > 0) ? 100 : p}%"></i></div>`;
+  const line = map ? `<div class="pb map">${map.map(m => `<b><i style="transform:scaleX(${Math.max(0, Math.min(100, m)) / 100})"></i></b>`).join('')}</div>`
+    : `<div class="pb ${cls}"><i style="transform:scaleX(${(v.state === 'error' && !(p > 0) ? 100 : p) / 100})"></i></div>`;
   return `<div class="st"><div class="progress-track" role="progressbar" aria-label="${esc(dlStateText(v))}" aria-valuemin="0" aria-valuemax="100"${v.size > 0 || v.state === 'done' ? ` aria-valuenow="${Math.round(p)}"` : ''} aria-valuetext="${esc(txt)}">${line}</div><span class="pt ${tcls}">${txt}</span></div>`;
 }
 const when = t => { if (!t) return ''; const d = new Date(t*1000), now = new Date(); return d.toDateString() === now.toDateString() ? d.toLocaleTimeString(I18N.locale, {hour:'2-digit', minute:'2-digit'}) : d.toLocaleDateString(I18N.locale, {day:'numeric', month:'short'}) + ' ' + d.toLocaleTimeString(I18N.locale, {hour:'2-digit', minute:'2-digit'}); };
