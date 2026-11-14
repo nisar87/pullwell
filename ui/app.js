@@ -274,7 +274,7 @@ function renderTable(){
     const html = SC.map(c => c.cell(v).replace('<td', `<td data-col="${c.k}"`)).join('');
     if (tr.dataset.h !== html) { const fresh = !tr.firstChild; tr.dataset.h = html; fresh ? tr.innerHTML = html : morphRow(tr, html); }
     const was = lastState.get(v.id); lastState.set(v.id, v.state);
-    if (was === 'downloading' && v.state === 'done') { tr.classList.add('fin'); setTimeout(() => tr.classList.remove('fin'), 1200); }
+    if (was === 'downloading' && v.state === 'done') { tr.classList.add('fin'); setTimeout(() => tr.classList.remove('fin'), 1700); }
     const fin = tr.classList.contains('fin') ? ' fin' : '';
     const cls = (sel.has(v.id) ? 'sel' : '') + (cur === v.id ? ' cur' : '') + (v.state === 'downloading' ? ' run' : '') + fin;
     if (tr.className !== cls) tr.className = cls;
