@@ -71,19 +71,19 @@ check('progress window shows the live download', /ubuntu/.test(await pop.js(`doc
 // ---- the video: dark list -> progress window -> light list
 const scenes = []; // {name, w, h, frames: [{file, t}]}
 async function record(name, w, h, target, seconds, script) {
+  // screenshots as fast as the window can give them (the screencast of a real window is too slow), each with its time
   await target.send('Page.bringToFront'); await target.size(w, h, 1); await sleep(600);
   const sc = {name, w, h, frames: []}; scenes.push(sc);
-  target.on.set('Page.screencastFrame', p => {
+  const run = script ? script() : Promise.resolve();
+  const t0 = Date.now();
+  while (Date.now() - t0 < seconds * 1000) {
+    const r = await target.send('Page.captureScreenshot', {format: 'jpeg', quality: 88, optimizeForSpeed: true});
     const f = `frames/${name}-${String(sc.frames.length).padStart(4, '0')}.jpg`;
-    fs.writeFileSync(`${out}/${f}`, Buffer.from(p.data, 'base64')); sc.frames.push({file: f, t: p.metadata.timestamp});
-    target.send('Page.screencastFrameAck', {sessionId: p.sessionId});
-  });
-  await target.send('Page.startScreencast', {format: 'jpeg', quality: 88, everyNthFrame: 1, maxWidth: w, maxHeight: h});
-  const t0 = Date.now(); const run = script ? script() : Promise.resolve();
-  await sleep(seconds * 1000); await run;
-  await target.send('Page.stopScreencast'); target.on.delete('Page.screencastFrame');
-  sc.end = sc.frames.length ? sc.frames[sc.frames.length - 1].t + 0.4 : 0;
-  return Date.now() - t0;
+    fs.writeFileSync(`${out}/${f}`, Buffer.from(r.result.data, 'base64')); sc.frames.push({file: f, t: Date.now() / 1000});
+  }
+  await run;
+  sc.end = sc.frames[sc.frames.length - 1].t + 0.12;
+  sc.fps = +(sc.frames.length / ((sc.end - sc.frames[0].t) || 1)).toFixed(1);
 }
 await main.theme('dark'); await main.mouse(5, 5);
 await record('a-list', 1280, 720, main, 11, async () => {
@@ -106,7 +106,7 @@ for (const sc of scenes) {
   fs.writeFileSync(`${out}/timeline-${sc.name}.txt`, tl);
 }
 fs.writeFileSync(out + '/scenes.json', JSON.stringify(scenes.map(s => ({name: s.name, w: s.w, h: s.h, frames: s.frames.length, seconds: +(s.end - s.frames[0].t).toFixed(1)}))));
-check('video frames were recorded for every scene', scenes.every(s => s.frames.length > 5), scenes.map(s => `${s.name}:${s.frames.length}`).join(' '));
+check('video frames were recorded for every scene', scenes.every(s => s.frames.length > 5), scenes.map(s => `${s.name}:${s.frames.length} frames, ${s.fps} fps`).join(' | '));
 check('no script errors', main.errors.length === 0 && pop.errors.length === 0, [...main.errors, ...pop.errors].join(' | ').slice(0, 200));
 fs.writeFileSync(out + '/showcase.txt', results.join('\n') + '\n'); console.log(results.join('\n'));
 main.ws.close(); pop.ws.close();
