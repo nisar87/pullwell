@@ -30,6 +30,10 @@ func main() {
 	waitPid := flag.Int("wait-pid", 0, "after an update: wait until this process (the old version) has ended")
 	updated := flag.String("updated", "", "after an update: the version that was replaced")
 	flag.Parse()
+	if isNativeHostCall(flag.Args()) { // the browser started this program as the extension's starter
+		serveHost(os.Stdin, os.Stdout, hostDeps{ports: appPorts, start: startProgram, wait: 15 * time.Second})
+		return
+	}
 	uiMode, debugMode = *ui, *debug
 	if *version {
 		fmt.Println(AppName, appVersion)
@@ -72,6 +76,8 @@ func main() {
 	loadUpdateCfg()
 	loadAppSettings()
 	go keepStartMenu()
+	dm.OnExtOrigin = onNewOrigin
+	go registerNativeHost()
 
 	// One copy per data folder: a second start shows the first one's window and ends.
 	// A link on the command line (the program followed by https://...) opens the Add dialog with it, here or in the running copy.

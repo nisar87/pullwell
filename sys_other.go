@@ -104,3 +104,20 @@ func toastsUsable() bool          { return false }
 func showToastXML(x string) error { return errors.New("only on Windows") }
 func registerLinkScheme() error   { return nil }
 func unregisterLinkScheme()       {}
+
+func registerNativeHost()  {}
+func onNewOrigin(o string) { learnOrigin(o) }
+
+// startProgram starts this program apart from the one that asks (used by the test of the browser starter).
+func startProgram() error {
+	exe, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	c := exec.Command(exe, "-tray")
+	c.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
+	if err := c.Start(); err != nil {
+		return err
+	}
+	return c.Process.Release()
+}

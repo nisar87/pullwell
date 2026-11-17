@@ -23,12 +23,38 @@ async function base(force) {
   return null;
 }
 
+// The extension cannot start a program, but the browser can start the program's registered "starter" (native
+// messaging). It checks whether {{NAME}} runs, starts it in the notification area when it does not, and answers when it
+// is up. {{NAME}} registers the starter every time it runs, so it has to have been opened once on this computer.
+const HOST = '{{SCHEME}}.launcher';
+let launching = null; // the attempt in progress: every caller waits for the same one
+let noLaunchUntil = 0; // after a failure the browser is not asked again for a while
+let helperMissing = false; // the browser has no starter for us (the program was never opened on this computer)
+function launchApp() {
+  if (launching) return launching;
+  if (Date.now() < noLaunchUntil || !api.runtime.sendNativeMessage) return Promise.resolve(false);
+  launching = (async () => {
+    try {
+      const r = await api.runtime.sendNativeMessage(HOST, { cmd: 'start' });
+      helperMissing = false;
+      if (r && r.ok) { noLaunchUntil = 0; return true; }
+      noLaunchUntil = Date.now() + 20000; // it could not be started: leave it alone for 20 seconds
+    } catch (e) {
+      helperMissing = true;
+      noLaunchUntil = Date.now() + 120000; // no starter registered yet: look again in two minutes
+    }
+    return false;
+  })().finally(() => { launching = null; });
+  return launching;
+}
+
 async function store() { return api.storage.local.get(['token', 'enabled', 'minMB', 'localOn', 'ignore', 'types', 'seen']); }
 
 async function nm(path, opt, retried) {
   const s = await store();
-  const b = await base(retried);
-  if (!b) return { ok: false, status: 0, data: { error: '{{NAME}} is not running' } };
+  let b = await base(retried);
+  if (!b && !(opt && opt.noLaunch) && await launchApp()) b = await base(true);
+  if (!b) return { ok: false, status: 0, data: { error: '{{NAME}} is not running', helperMissing } };
   const ctl = new AbortController();
   const t = setTimeout(() => ctl.abort(), (opt && opt.timeout) || 4000);
   try {
@@ -48,8 +74,10 @@ async function nm(path, opt, retried) {
   } finally { clearTimeout(t); }
 }
 
-async function refresh() {
-  const r = await nm('/ext/status', { timeout: 1500 });
+// quiet: a check in the background (timer, browser start) never starts the program, so quitting it from the tray stays
+// quit. Only a download or the person opening the popup does.
+async function refresh(quiet) {
+  const r = await nm('/ext/status', { timeout: 1500, noLaunch: !!quiet });
   if (r.ok) await api.storage.local.set({ enabled: r.data.enabled !== false, minMB: r.data.minMB, seen: Date.now() });
   return r;
 }
@@ -107,7 +135,7 @@ function menus() {
   } catch (e) { }
 }
 api.runtime.onInstalled.addListener(() => { menus(); videoScript(); });
-if (api.runtime.onStartup) api.runtime.onStartup.addListener(() => { menus(); refresh(); videoScript(); });
+if (api.runtime.onStartup) api.runtime.onStartup.addListener(() => { menus(); refresh(true); videoScript(); });
 
 // The button over videos is a content script, added only while the person allowed all sites and has not switched the
 // button off (popup). New and reloaded pages get it; pages that were already open need a reload.
@@ -155,11 +183,12 @@ try {
 } catch (e) { }
 
 api.alarms.create('nm-refresh', { periodInMinutes: 1 });
-api.alarms.onAlarm.addListener((a) => { if (a.name === 'nm-refresh') refresh(); });
+api.alarms.onAlarm.addListener((a) => { if (a.name === 'nm-refresh') refresh(true); });
 
 api.runtime.onMessage.addListener((msg, sender, reply) => {
   (async () => {
     if (msg.type === 'ping') return reply(await nm('/ext/ping', { timeout: 1500 }));
+    if (msg.type === 'wake') { noLaunchUntil = 0; return reply(await nm('/ext/ping', { timeout: 1500 })); } // "Try again": ask the browser to start the program again
     if (msg.type === 'refresh') return reply(await refresh());
     if (msg.type === 'media') return reply({ list: (media.get(msg.tab) || []).slice().reverse() });
     if (msg.type === 'grab') { // the button over a video was clicked

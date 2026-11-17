@@ -177,6 +177,9 @@ func extOrigin(o string) bool {
 	return strings.HasPrefix(o, "chrome-extension://") || strings.HasPrefix(o, "moz-extension://") || strings.HasPrefix(o, "safari-web-extension://")
 }
 
+// OnExtOrigin is told the address of every extension that talks to the program (set by the main package).
+var OnExtOrigin func(origin string)
+
 func extHandler(auth bool, h http.HandlerFunc) http.HandlerFunc {
 	return safeHandler(func(w http.ResponseWriter, r *http.Request) {
 		if !Enabled() { // the manager is off: the browser extension sees a plain "not found"
@@ -189,6 +192,9 @@ func extHandler(auth bool, h http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 		if o != "" {
+			if OnExtOrigin != nil {
+				OnExtOrigin(o)
+			}
 			w.Header().Set("Access-Control-Allow-Origin", o)
 			w.Header().Set("Vary", "Origin")
 			w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")

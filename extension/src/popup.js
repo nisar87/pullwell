@@ -7,7 +7,7 @@ function fmt(b) { return b > 1048576 ? (b / 1048576).toFixed(1) + ' MB/s' : Math
 async function paint() {
   const ping = await ask({ type: 'ping' });
   if (ping.status === 404) return show('v-off'); // the program runs, but its download manager is switched off
-  if (!ping.ok) return show('v-down');
+  if (!ping.ok) { $('hint').hidden = !(ping.data && ping.data.helperMissing); return show('v-down'); }
   const s = await api.storage.local.get(['token', 'localOn', 'ignore', 'types', 'videoBtn']);
   if (!s.token) return show('v-pair');
   const st = await ask({ type: 'refresh' });
@@ -45,7 +45,7 @@ async function paintMedia() {
     $('media').hidden = !(r.list || []).length;
   } catch (e) { $('media').hidden = true; }
 }
-$('retry').onclick = paint;
+$('retry').onclick = async () => { show('v-loading'); await ask({ type: 'wake' }); paint(); };
 $('retry2').onclick = paint;
 $('pair').onclick = async () => {
   if ($('pair').disabled) return;

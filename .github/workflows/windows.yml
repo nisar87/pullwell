@@ -93,6 +93,10 @@ jobs:
       - name: Drive the extension
         shell: bash
         run: scripts/uitest/ext-windows.sh "$RUNNER_TEMP/ext.exe" ext-results
+      - name: The browser starts the program
+        # the program is opened once (it registers its starter), closed, and the browser then starts it by itself
+        shell: bash
+        run: scripts/uitest/launch-windows.sh "$RUNNER_TEMP/ext.exe" ext-results
       - name: Keep the results
         if: always()
         uses: actions/upload-artifact@v4
