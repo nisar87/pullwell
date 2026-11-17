@@ -1,10 +1,11 @@
 {
   "manifest_version": 3,
   "name": "{{NAME}} Downloads",
-  "version": "1.0.2",
+  "version": "1.1.0",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAuMGwUjjQ5mH4ZkAo+DNPUmoTaMiLmeN3q5PvX53f0Pfs29dTQL2X4S5jYfgogvpaBv4JvY04g6PJ5qwE7p92ItZRjSPlPD7PEokGmgtLn2D62lee7RTaZiarEu5GxPS3BTOaw8+XUmCs2VXxG9sEVjwvzC36J6m4wN77kfFtYJUbO+gxtzeFPD6v2mLrDx8Bc8pkq/OMFXGtf3OdqeuIKfLY1AFx3oHyhP86L1FtASjxNkGZuPupazw4Zj05AVP7XUiIX6nGZpQViZuMAfKKekcNf3Cid4d7wyu8LIwSLZss7m23NMXCF7Zq7XdbHpB9PBb3AeunnikAQSThUGMs6QIDAQAB",
   "description": "Sends big downloads to {{NAME}}, which downloads them with several connections at once and never loses a file.",
   "minimum_chrome_version": "110",
-  "permissions": ["downloads", "storage", "contextMenus", "alarms", "cookies", "webRequest", "scripting"],
+  "permissions": ["nativeMessaging", "downloads", "storage", "contextMenus", "alarms", "cookies", "webRequest", "scripting"],
   "host_permissions": {{HOSTS}},
   "optional_host_permissions": ["<all_urls>"],
   "background": { "service_worker": "background.js" },

@@ -39,3 +39,4 @@
 39|Downloads, handled.
 40|Connecting…
 41|Pairing code
+42|Open {{NAME}} once on this computer. After that, your browser starts it by itself when it is needed.

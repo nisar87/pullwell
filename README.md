@@ -37,8 +37,17 @@ Pullwell carries its own browser extension, so the extension always matches the 
 3. Click the extension's icon and type the pairing code.
 
 From then on, big downloads go to Pullwell (5 MB and up; you can change the size), and links get a
-**Download with Pullwell** entry in the right-click menu. When Pullwell is not running, the browser simply
-downloads the file itself.
+**Download with Pullwell** entry in the right-click menu.
+
+**Pullwell does not have to be open.** Each time it runs it registers a small starter for your browsers (for your
+Windows user only, no administrator rights; Chrome, Edge, Brave, Chromium and Firefox). When you click a big
+download, or open the extension's popup, and Pullwell is closed, the browser starts it in the notification area
+and the download is taken over a moment later. Quitting Pullwell from the tray keeps it quit until the next
+download. This works for any copy you have opened once, installed or not, and follows the program if you move it.
+If the starter is not there yet (Pullwell was never opened on this computer), the browser downloads the file itself
+and the popup says to open Pullwell once.
+
+If you loaded the extension before 0.14.0, load the new zip once (it asks for the extra permission to start Pullwell).
 
 ## What it does
 

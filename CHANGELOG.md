@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.14.0 (2026-11-18)
+
+The browser starts Pullwell by itself, like IDM. You no longer have to keep it open.
+
+- Every time Pullwell runs it registers a small starter for Chrome, Edge, Brave, Chromium and Firefox (current user
+  only, no administrator rights, works for a copy that was never installed, and follows the program when moved).
+  When a big download is clicked, or the extension's popup is opened, and Pullwell is closed, the browser starts it in
+  the notification area and it takes the download over. Several browsers or downloads at once never start two copies.
+- Closing Pullwell from the tray menu keeps it closed: the extension's background checks never start it, only a
+  download or the popup does.
+- Extension 1.1.0: a fixed address for Chrome and Edge (so the starter can trust it), the permission to talk to the
+  starter, and a popup that tells you to open Pullwell once when no starter is registered yet. **Load the new
+  extension zip once** (Options → Browser); the old one keeps working as before but cannot start Pullwell.
+- Tested in a real Chromium on Linux and on a Windows runner: closed program, click, started, file taken over; no
+  starter, the browser downloads as usual; "Try again" in the popup starts it.
+
 ## 0.13.1 (2026-11-14)
 
 Releases only. There are no more test builds.
