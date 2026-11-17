@@ -5,6 +5,8 @@
 // The program is copied into <work-dir>/app and started only by the browser. Needs the fixtures server (scripts/dmtest/fixtures.py).
 import {createRequire} from 'node:module';
 import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import http from 'node:http';
 import {execSync, spawn} from 'node:child_process';
 const WIN = process.platform === 'win32';
@@ -13,8 +15,10 @@ let playwright;
 for (const base of [import.meta.url, '/opt/']) { try { playwright = createRequire(base)('playwright'); break; } catch {} }
 if (!playwright) { console.error('playwright is not installed'); process.exit(2); }
 const {chromium} = playwright;
-const [program, work0, fixtures = 'http://127.0.0.1:8765'] = process.argv.slice(2);
-const work = work0.startsWith('/') ? work0 : process.cwd() + '/' + work0;
+const [program0, work0, fixtures = 'http://127.0.0.1:8765'] = process.argv.slice(2);
+const program = path.resolve(program0);
+const work = path.resolve(work0).replace(/\\/g, '/');
+const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const URL0 = 'http://127.0.0.1:9197/', H = {'Content-Type': 'application/json', 'X-Pullwell': '1'};
 const EXT_ID = 'lkhdafbofbljmkmcpgmbeopfifpgedff';
 const results = []; const check = (n, ok, x) => results.push(`${ok ? 'PASS' : 'FAIL'}  ${n}${x !== undefined ? '  (' + x + ')' : ''}`);
@@ -41,9 +45,9 @@ fs.rmSync(work, {recursive: true, force: true}); fs.mkdirSync(work + '/app/data'
 fs.copyFileSync(program, work + '/app/' + EXE); if (!WIN) fs.chmodSync(work + '/app/' + EXE, 0o755);
 fs.writeFileSync(work + '/app/data/app.json', '{"diagNoticed":true,"noDiag":true}');
 // the extension, built from the repository (its manifest carries the fixed key)
-execSync(`python3 extension/build.py`, {cwd: new URL('../..', import.meta.url).pathname});
+execSync(`${WIN ? 'python' : 'python3'} extension/build.py`, {cwd: repo});
 fs.mkdirSync(work + '/ext', {recursive: true});
-execSync(`python3 -c "import zipfile;zipfile.ZipFile('${new URL('../../extension/dist/Pullwell-extension-chrome-edge.zip', import.meta.url).pathname}').extractall('${work}/ext')"`);
+execSync(`${WIN ? 'python' : 'python3'} -c "import zipfile;zipfile.ZipFile('${repo.replace(/\\/g, '/')}/extension/dist/Pullwell-extension-chrome-edge.zip').extractall('${work}/ext')"`);
 // the test proxy: the program and the browser both reach the fixtures server through the made-up host name
 const fixtureHost = '192.0.2.123';
 const proxy = http.createServer((rq, rs) => {
