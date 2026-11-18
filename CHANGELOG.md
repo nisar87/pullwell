@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.14.1 (2026-11-18)
+
+- Fixed the extension's popup opening as a narrow sliver (about 170 px) in Chrome, with the title and the options
+  squeezed into a few words per line. It is 350 px wide again. The cause was a width rule that depends on the
+  popup's own window, which only shows in a real popup and not in a browser tab, so the earlier tests missed it.
+  A new test (`scripts/uitest/popup_window_check.mjs`) now opens the real popup in every state and both colour
+  schemes and checks its size, and it runs on the Windows runner for every change.
+- Extension 1.1.1: only this fix. **Update the extension** (the store version updates by itself after review).
+
 ## 0.14.0 (2026-11-18)
 
 The browser starts Pullwell by itself, like IDM. You no longer have to keep it open.

@@ -97,6 +97,12 @@ jobs:
         # the program is opened once (it registers its starter), closed, and the browser then starts it by itself
         shell: bash
         run: scripts/uitest/launch-windows.sh "$RUNNER_TEMP/ext.exe" ext-results
+      - name: The popup in a real popup window
+        # opened the way the toolbar button does, in every state and both colour schemes: its width, its title, its pictures
+        shell: bash
+        run: |
+          taskkill //F //IM pw.exe > /dev/null 2>&1 || true
+          node scripts/uitest/popup_window_check.mjs "$(cygpath -m "$RUNNER_TEMP/ext.exe")" "$(cygpath -m "$RUNNER_TEMP")/popwin" ext-results/popup-shots
       - name: Keep the results
         if: always()
         uses: actions/upload-artifact@v4
