@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.15.0 (2026-11-18)
+
+Pullwell now tells you when the browser extension is out of date.
+
+- The extension reports its version to Pullwell. When a connected browser runs an older extension than the one that
+  comes with Pullwell (or an extension from before 0.15.0, which reports nothing), the main window shows a banner
+  "A newer browser extension is available" with **Get the new extension** and **Later**, and Options → Browser
+  names the extension version of each connected browser with the same button.
+- The button opens the steps: save the zip, unzip it over the old folder, reload it in `chrome://extensions` (it
+  stays connected). A browser that got the extension from a store updates it by itself after the store approves it.
+- "Later" hides the banner until the next newer extension. Urdu is translated.
+- New test suite `extupdate` (banner, button, steps, "Later" that survives a restart, Options, Urdu).
+
 ## 0.14.1 (2026-11-18)
 
 - Fixed the extension's popup opening as a narrow sliver (about 170 px) in Chrome, with the title and the options

@@ -303,3 +303,42 @@ func TestCancelledLinkIsNotAskedAboutAgain(t *testing.T) {
 		t.Fatal("after a few minutes the link is asked about again")
 	}
 }
+
+func TestVerLess(t *testing.T) {
+	for _, c := range []struct {
+		a, b string
+		less bool
+	}{{"", "0.15.0", true}, {"0.14.9", "0.15.0", true}, {"0.15.0", "0.15.0", false}, {"0.15.1", "0.15.0", false},
+		{"0.9.9", "0.15.0", true}, {"1.0.2", "0.15.0", false}, {"v0.14.0", "0.15.0", true}, {"junk", "0.15.0", true}} {
+		if verLess(c.a, c.b) != c.less {
+			t.Errorf("verLess(%q,%q) should be %v", c.a, c.b, c.less)
+		}
+	}
+}
+
+// The program learns the extension's version from its status calls and offers the newer one.
+func TestExtReportsItsVersionAndOutdatedIsFlagged(t *testing.T) {
+	e := newExtEnv(t)
+	tok := e.pairNow()
+	// an extension from before 0.15.0 reports nothing: it counts as old
+	if st, _ := e.call("GET", "/ext/status", extO, tok, nil); st != 200 {
+		t.Fatal(st)
+	}
+	if v := ext.view(); v["extOutdated"] != true || v["extCurrent"] != ExtCurrentVersion {
+		t.Fatalf("no version should count as outdated: %v", v)
+	}
+	e.call("GET", "/ext/status?ev=0.14.1", extO, tok, nil)
+	if v := ext.view(); v["extOutdated"] != true || v["browsers"].([]map[string]any)[0]["ver"] != "0.14.1" {
+		t.Fatalf("0.14.1 is older than %s: %v", ExtCurrentVersion, v)
+	}
+	e.call("GET", "/ext/status?ev="+ExtCurrentVersion, extO, tok, nil)
+	if v := ext.view(); v["extOutdated"] != false {
+		t.Fatalf("the current version must not be flagged: %v", v)
+	}
+	// nonsense is ignored and a wrong token cannot set it
+	e.call("GET", "/ext/status?ev=%3Cscript%3E", extO, tok, nil)
+	e.call("GET", "/ext/status?ev=0.1.0", extO, tok+"x", nil)
+	if v := ext.view(); v["browsers"].([]map[string]any)[0]["ver"] != ExtCurrentVersion {
+		t.Fatalf("the version changed from bad input: %v", v)
+	}
+}

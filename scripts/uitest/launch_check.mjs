@@ -100,6 +100,11 @@ check('the popup then asks for the pairing code', await pop.locator('#v-pair').i
 const code = (await post('api/downloads', {action: 'extCode'})).code;
 await pop.fill('#code', String(code)); await pop.click('#pair'); await sleep(1500);
 check('pairing works', await sw.evaluate(async () => !!(await chrome.storage.local.get('token')).token));
+// the extension tells the program its version (the program offers a newer one when it is older)
+const myVer = JSON.parse(fs.readFileSync(work + '/ext/manifest.json', 'utf8')).version;
+let seen = '';
+for (let i = 0; i < 25 && seen !== myVer; i++) { await sw.evaluate(() => refresh(false)); seen = ((await (await fetch(URL0 + 'api/downloads', {headers: H})).json()).ext?.browsers || [])[0]?.ver || ''; if (seen !== myVer) await sleep(200); }
+check('the program learns the extension\'s version', seen === myVer && myVer !== '', `${seen} / ${myVer}`);
 const cfg = (await (await fetch(URL0 + 'api/downloads', {headers: H})).json()).config; cfg.dir = work + '/dl';
 await post('api/downloads', {action: 'config', config: cfg});
 await fetch(URL0 + 'api/app', {method: 'POST', headers: H, body: JSON.stringify({proxy: {mode: 'manual', addr: proxyURL}})});

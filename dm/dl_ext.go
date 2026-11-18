@@ -28,6 +28,63 @@ type extBrowser struct {
 	Hash     string `json:"hash"`
 	Created  int64  `json:"created"`
 	LastSeen int64  `json:"lastSeen"`
+	Ver      string `json:"ver,omitempty"` // the extension's own version, as it last reported it
+}
+
+// ExtCurrentVersion is the newest extension that ships with this program. Raise it in a release that changes anything
+// under extension/ (the extension's version is the program's version at the time its zip was made). A paired browser
+// that reports an older version, or none (an extension from before 0.15.0), is told to update.
+const ExtCurrentVersion = "0.15.0"
+
+// VersionLess is verLess for the main package's tests.
+func VersionLess(a, b string) bool { return verLess(a, b) }
+
+// verLess reports whether version a is older than b. Empty or unreadable counts as oldest.
+func verLess(a, b string) bool {
+	pa, pb := verParts(a), verParts(b)
+	for i := 0; i < 3; i++ {
+		if pa[i] != pb[i] {
+			return pa[i] < pb[i]
+		}
+	}
+	return false
+}
+
+func verParts(v string) [3]int {
+	var out [3]int
+	for i, s := range strings.SplitN(strings.TrimPrefix(v, "v"), ".", 3) {
+		n := 0
+		for _, c := range s {
+			if c < '0' || c > '9' {
+				break
+			}
+			n = n*10 + int(c-'0')
+			if n > 1e6 {
+				break
+			}
+		}
+		out[i] = n
+	}
+	if v == "" {
+		return [3]int{-1, 0, 0}
+	}
+	return out
+}
+
+// setVer remembers the version a paired browser's extension reported.
+func (s *extStore) setVer(tok, ver string) {
+	if len(ver) > 20 || strings.Trim(ver, "0123456789.") != "" {
+		return
+	}
+	h := extHash(tok)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for i := range s.Browsers {
+		if subtle.ConstantTimeCompare([]byte(h), []byte(s.Browsers[i].Hash)) == 1 && s.Browsers[i].Ver != ver {
+			s.Browsers[i].Ver = ver
+			s.saveLocked()
+		}
+	}
 }
 
 type extStore struct {
@@ -167,10 +224,13 @@ func (s *extStore) view() map[string]any {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	bs := []map[string]any{}
+	outdated := false
 	for _, b := range s.Browsers {
-		bs = append(bs, map[string]any{"id": b.ID, "name": b.Name, "created": b.Created, "lastSeen": b.LastSeen})
+		old := verLess(b.Ver, ExtCurrentVersion)
+		outdated = outdated || old
+		bs = append(bs, map[string]any{"id": b.ID, "name": b.Name, "created": b.Created, "lastSeen": b.LastSeen, "ver": b.Ver, "outdated": old})
 	}
-	return map[string]any{"browsers": bs, "minMB": s.MinMB, "enabled": !s.Off, "ask": !s.NoAsk, "asked": askedTotal.Load()}
+	return map[string]any{"extCurrent": ExtCurrentVersion, "extOutdated": outdated, "browsers": bs, "minMB": s.MinMB, "enabled": !s.Off, "ask": !s.NoAsk, "asked": askedTotal.Load()}
 }
 
 func extOrigin(o string) bool {
@@ -240,6 +300,9 @@ func registerExtRoutes(mux *http.ServeMux) {
 	}))
 	mux.HandleFunc("/ext/status", extHandler(true, func(w http.ResponseWriter, r *http.Request) {
 		act, sp := dlMgr.summary()
+		if ev := r.URL.Query().Get("ev"); ev != "" { // the extension tells its version, so the program can offer a newer one
+			ext.setVer(strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer "), ev)
+		}
 		v := ext.view()
 		writeJSON(w, map[string]any{"version": H.Version, "enabled": v["enabled"], "minMB": v["minMB"], "active": act, "speed": sp, "lines": len(dlMgr.lines())})
 	}))
