@@ -26,7 +26,7 @@ const pop = await ctx.newPage(); await pop.goto(`chrome-extension://${extId}/pop
 await pop.fill('#code', code); await pop.click('#pair'); await sleep(1500);
 await sw.evaluate(() => refresh());
 // 1. the popup, on a plain backdrop
-await pop.setViewportSize({width: 340, height: 520}); await pop.reload(); await sleep(1200);
+await pop.setViewportSize({width: 350, height: 560}); await pop.reload(); await sleep(1200);
 const popPng = await pop.screenshot({fullPage: true});
 const card = await ctx.newPage(); await card.setViewportSize({width: 1280, height: 800});
 const back = (title, sub, img) => `<body style="margin:0;width:1280px;height:800px;display:flex;align-items:center;justify-content:center;gap:70px;background:linear-gradient(135deg,#0e2a2c,#16474a);font-family:'Segoe UI',system-ui,sans-serif;color:#fff">${img}<div style="max-width:520px"><div style="font-size:46px;font-weight:700;line-height:1.15;letter-spacing:-.01em">${title}</div><div style="margin-top:18px;font-size:22px;line-height:1.45;color:#cfe9e6">${sub}</div></div></body>`;
