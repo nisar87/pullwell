@@ -236,6 +236,7 @@ func appHandler(w http.ResponseWriter, r *http.Request) {
 			uninstalling = true
 			_ = startMenuSet(false)
 			unregisterLinkScheme()
+			unregisterNativeHost()
 			startMenuMu.Unlock()
 			if err := uninstallLater(in.Uninstall.Data); err != nil {
 				w.WriteHeader(409)

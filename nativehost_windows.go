@@ -7,7 +7,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"syscall"
+	"unsafe"
 )
 
 const (
@@ -32,7 +34,13 @@ var browserHostKeys = []struct {
 // start, so a program that was moved or replaced always registers its own current path.
 func registerNativeHost() {
 	exe, err := os.Executable()
-	if err != nil || customRoot {
+	if err != nil || customRoot || runtime.GOOS != "windows" {
+		return
+	}
+	// like the Start menu entry: not while Uninstall removes things (it would write the data folder back)
+	startMenuMu.Lock()
+	defer startMenuMu.Unlock()
+	if uninstalling {
 		return
 	}
 	dir := filepath.Join(appRoot, "data")
@@ -59,6 +67,17 @@ func registerNativeHost() {
 		}
 	}
 	logf("browser starter registered (%s)", exe)
+}
+
+// unregisterNativeHost removes the starter's registry entries and manifests (Uninstall).
+func unregisterNativeHost() {
+	for _, b := range browserHostKeys {
+		p, _ := syscall.UTF16PtrFromString(b.key + nativeHostName())
+		pRegDeleteTree.Call(uintptr(syscall.HKEY_CURRENT_USER), uintptr(unsafe.Pointer(p)))
+	}
+	for _, n := range []string{"browser-host-chrome.json", "browser-host-firefox.json"} {
+		_ = os.Remove(filepath.Join(appRoot, "data", n))
+	}
 }
 
 func readOrigins(path string) []string {

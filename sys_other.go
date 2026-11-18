@@ -105,8 +105,9 @@ func showToastXML(x string) error { return errors.New("only on Windows") }
 func registerLinkScheme() error   { return nil }
 func unregisterLinkScheme()       {}
 
-func registerNativeHost()  {}
-func onNewOrigin(o string) { learnOrigin(o) }
+func registerNativeHost()   {}
+func unregisterNativeHost() {}
+func onNewOrigin(o string)  { learnOrigin(o) }
 
 // startProgram starts this program apart from the one that asks (used by the test of the browser starter).
 func startProgram() error {
