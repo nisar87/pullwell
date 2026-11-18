@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.15.1 (2026-11-18)
+
+- Uninstall now also removes the browser starter that 0.14.0 added (its registry entries for Chrome, Edge, Brave,
+  Chromium and Firefox, and its two manifest files), and the starter is no longer written while Uninstall runs
+  (it could put a file back into the data folder that was just removed). The Windows test checks both.
+
 ## 0.15.0 (2026-11-18)
 
 Pullwell now tells you when the browser extension is out of date.

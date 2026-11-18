@@ -271,6 +271,8 @@ func main() {
 
 	// ---- Uninstall ----
 	post("api/app", map[string]any{"autostart": true})
+	starterKey := `HKCU\Software\Google\Chrome\NativeMessagingHosts\` + scheme + `.launcher`
+	check("the installed copy registered its browser starter", strings.HasSuffix(regQuery(starterKey, ""), "browser-host-chrome.json"), regQuery(starterKey, ""))
 	post("api/app", map[string]any{"uninstall": map[string]any{"data": true}})
 	ok = waitFor(30*time.Second, func() bool { return !exists(exe) })
 	check("Uninstall removes the program file", ok)
@@ -279,6 +281,7 @@ func main() {
 	check("and the Start menu entry", !exists(lnk))
 	check("and the startup entry", regQuery(`HKCU\Software\Microsoft\Windows\CurrentVersion\Run`, *name) == "")
 	check("and the link registration", regQuery(`HKCU\Software\Classes\`+scheme+`\shell\open\command`, "") == "")
+	check("and the browser starter", regQuery(starterKey, "") == "" && regQuery(`HKCU\Software\Mozilla\NativeMessagingHosts\`+scheme+`.launcher`, "") == "")
 	check("and the program has quit", waitFor(10*time.Second, func() bool { return !up() }))
 
 	// ---- a protected program folder: the data goes to the user's own app data folder ----
