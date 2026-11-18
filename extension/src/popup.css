@@ -3,7 +3,7 @@
 @media(prefers-color-scheme:dark){:root{color-scheme:dark;--bg:#171d1a;--surface:#1d2520;--fg:#e4eee7;--m:#a9b9ad;--ac:#3ec7b5;--on:#06211d;--soft:#173a37;--bd:#414e44;--bad:#ef7470;--ring:#3ec7b540}}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-body{width:350px;max-width:100vw;margin:0;background:var(--bg);color:var(--fg);font:13px/1.55 "Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{width:350px;min-width:350px;margin:0;background:var(--bg);color:var(--fg);font:13px/1.55 "Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 header{padding:19px 20px 16px;border-bottom:1px solid var(--bd);background:var(--surface)}
 h1{font-size:17px;font-weight:650;margin:0;display:flex;gap:10px;align-items:center;line-height:1.3}
 .logo{width:29px;height:29px;flex:none;border-radius:9px;background:var(--ac);position:relative;display:inline-block}
