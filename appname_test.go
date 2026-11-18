@@ -4,6 +4,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"pullwell/dm"
 	"strings"
 	"testing"
 )
@@ -55,5 +56,12 @@ func TestDerivedNames(t *testing.T) {
 	}
 	if len(appID) > 129 {
 		t.Errorf("appID is %d characters; Windows allows at most 129", len(appID))
+	}
+}
+
+// The newest extension that ships with the program cannot be newer than the program.
+func TestExtCurrentVersionIsNotNewerThanTheProgram(t *testing.T) {
+	if dm.VersionLess(appVersion, dm.ExtCurrentVersion) {
+		t.Fatalf("ExtCurrentVersion %s is newer than appVersion %s", dm.ExtCurrentVersion, appVersion)
 	}
 }

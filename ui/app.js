@@ -328,6 +328,7 @@ function renderBanner(){
   if (DL.powerAt && (Date.now()/1000 - DL.powerAt) < 70) h += `<div class="bn bad"><b>The PC shuts down in less than a minute</b> because your downloads finished.<span style="flex:1"></span><button class="btn" data-act="cancelPower">Cancel shutdown</button></div>`;
   if (APPCFG && APPCFG.diag && !APPCFG.diag.noticed && !ProgressWindow.id) h += `<div class="bn warn" id="diagBn"><span><b>${esc('Problem reports are on.')}</b> ${esc("The program's log goes to the developer so errors can be fixed. It has no links, website names, file names, folders or your name. You can change this in Options, Advanced.")}</span><span style="flex:1"></span><button class="btn" data-act="diagOff">${esc('Turn off')}</button><button class="btn pri" data-act="diagOk">${esc('Keep on')}</button></div>`;
   else if (!APPCFG && !renderBanner.cfg && !ProgressWindow.id) { renderBanner.cfg = true; loadAppCfg().then(renderBanner); }
+  if (DL.ext && DL.ext.extOutdated && store.get('extBn', '') !== DL.ext.extCurrent) h += `<div class="bn warn" id="extBn"><span><b>A newer browser extension is available.</b> Browsers that got it from a store update it by themselves; for the others, save it and load it again.</span><span style="flex:1"></span><button class="btn" data-act="extUpdate">Get the new extension</button><button class="btn" data-act="extLater">Later</button></div>`;
   if (DL.hold) h += `<div class="bn warn"><b>Downloads are waiting:</b> ${esc(DL.hold.replace(/^Waiting: /, ''))}</div>`;
   setHTML($('#banner'), h);
 }
@@ -988,7 +989,7 @@ function optionsBody(tab){
       + orow('Only files bigger than', 'Smaller files are quicker to leave with the browser.', `<select class="sel" id="extMin">${[0,1,5,10,25,50,100].map(n => `<option value="${n}"${x.minMB === n ? ' selected' : ''}>${n ? n + ' MB' : 'Everything'}</option>`).join('')}</select>`)
       + orow('Ask before a browser download starts', `Shows the “Download file info” box first, so a wrong click does not start a download. You can change the name and folder there.`, tog('id="extAsk"', x.ask !== false, 'Ask before a browser download starts'))
       + orow('Connected browsers', bs.length ? '' : 'None yet.', `<button class="btn pri" id="extCode">Connect a browser…</button>`)
-      + bs.map(b => orow(esc(b.name || 'Browser'), `Connected ${when(b.created)}${b.lastSeen ? ' · last used ' + when(b.lastSeen) : ''}`, `<button class="btn" data-extrm="${esc(b.id)}">Disconnect</button>`)).join('');
+      + bs.map(b => orow(esc(b.name || 'Browser'), `Connected ${when(b.created)}${b.lastSeen ? ' · last used ' + when(b.lastSeen) : ''}<br>${b.outdated ? '<b>A newer extension is available.</b>' : `Extension ${esc(b.ver)}`}`, `${b.outdated ? '<button class="btn pri" data-act="extUpdate">Get the new extension</button> ' : ''}<button class="btn" data-extrm="${esc(b.id)}">Disconnect</button>`)).join('');
   }
   if (tab === 'updates') {
     const u = UPD || {};
@@ -1027,6 +1028,20 @@ function showOptions(tab){
 function afterChange(){ if (optTab && $('#dlDlg') && $('.opt')) showOptions(optTab); }
 
 /* ---------- connecting a browser ---------- */
+// A newer extension ships with this program: save it, put it over the old one, reload it. A browser store updates by itself.
+function extUpdate(){
+  dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Update the browser extension" style="max-width:600px"><h3>Update the browser extension</h3>
+    <div class="hint2" style="margin-bottom:10px">Version ${esc(DL.ext.extCurrent)} is ready. If you installed the extension from a browser store, the browser updates it by itself after the store has approved it, and you need do nothing.</div>
+    <ol class="hint2" style="margin:0 0 12px;padding-left:18px;display:grid;gap:8px">
+      <li><b>Save the extension</b> (it goes into your download folder, which then opens): <button class="btn" data-saveext="chrome-edge">Chrome / Edge / Brave</button> <button class="btn" data-saveext="firefox">Firefox</button></li>
+      <li><b>Chrome, Edge, Brave:</b> Unzip it over the old folder (replace the files), open chrome://extensions (in Edge: edge://extensions) and click the reload arrow on the ${esc(APP.name)} extension. It stays connected. If it asks for a new permission, allow it.</li>
+      <li><b>Firefox:</b> Load it again with about:debugging → Load Temporary Add-on, or install it from the add-ons site once it is listed.</li>
+    </ol>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" id="extLater2">Later</button><button class="btn pri" id="extDone">Done</button></div></div>`);
+  $('#extDone').onclick = () => showOptions('browser');
+  $('#extLater2').onclick = () => { store.set('extBn', DL.ext.extCurrent); dlClose(); renderBanner(); };
+  $$('[data-saveext]').forEach(b => b.onclick = async () => { try { const r = await api('app', {saveExt: b.dataset.saveext}); toast('Saved: ' + r.path); } catch(e){ toast(e.message, true); } });
+}
 async function extConnect(){
   let r; try { r = await api('downloads', {action:'extCode'}); } catch(e){ return toast(e.message, true); }
   dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Connect a browser" style="max-width:600px"><h3>Connect a browser</h3>
@@ -1076,6 +1091,8 @@ document.addEventListener('click', async e => {
   if (t.dataset.view) { view = JSON.parse(t.dataset.view); store.set('view', view); sel.clear(); cur = null; return render(); }
   if (t.dataset.sort) { if (t.dataset.resizing) return; sortBy = sortBy.c === t.dataset.sort ? {c: t.dataset.sort, d: -sortBy.d} : {c: t.dataset.sort, d: 1}; store.set('sort', sortBy); return render(); }
   if (t.dataset.opt) return showOptions(t.dataset.opt);
+  if (t.dataset.act === 'extUpdate') return extUpdate();
+  if (t.dataset.act === 'extLater') { store.set('extBn', DL.ext.extCurrent); return renderBanner(); }
   if (t.dataset.act === 'cancelPower') return dlAct({action:'cancelPower'}, 'Shutdown cancelled');
   if (t.dataset.act === 'diagOk' || t.dataset.act === 'diagOff') { const on = t.dataset.act === 'diagOk'; try { await api('app', {diag: on}); await loadAppCfg(); toast(on ? 'Problem reports are on.' : 'Problem reports are off.'); } catch(err){ toast(err.message, true); } return renderBanner(); }
   if (t.dataset.act === 'updInstall' || t.id === 'updInstall') return updAction({action:'install'}, 'Installing the update…');

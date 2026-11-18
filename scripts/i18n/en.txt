@@ -698,3 +698,15 @@
 698|Last report: {0}
 699|No report sent yet.
 700|Problem reports are off.
+701|A newer browser extension is available.
+702|Browsers that got it from a store update it by themselves; for the others, save it and load it again.
+703|Get the new extension
+704|Later
+705|A newer extension is available.
+706|Extension {0}
+707|Update the browser extension
+708|Version {0} is ready. If you installed the extension from a browser store, the browser updates it by itself after the store has approved it, and you need do nothing.
+709|Unzip it over the old folder (replace the files), open chrome://extensions (in Edge: edge://extensions) and click the reload arrow on the {0} extension. It stays connected. If it asks for a new permission, allow it.
+710|Load it again with about:debugging → Load Temporary Add-on, or install it from the add-ons site once it is listed.
+711|Chrome, Edge, Brave:
+712|Firefox:

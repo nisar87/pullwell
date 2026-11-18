@@ -77,7 +77,7 @@ async function nm(path, opt, retried) {
 // quiet: a check in the background (timer, browser start) never starts the program, so quitting it from the tray stays
 // quit. Only a download or the person opening the popup does.
 async function refresh(quiet) {
-  const r = await nm('/ext/status', { timeout: 1500, noLaunch: !!quiet });
+  const r = await nm('/ext/status?ev=' + encodeURIComponent(api.runtime.getManifest().version), { timeout: 1500, noLaunch: !!quiet });
   if (r.ok) await api.storage.local.set({ enabled: r.data.enabled !== false, minMB: r.data.minMB, seen: Date.now() });
   return r;
 }
