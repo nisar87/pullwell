@@ -368,7 +368,7 @@ func TestExtLeftoversAreReplacedAndNotFlagged(t *testing.T) {
 	// a leftover nobody has used for over a week is not an old extension
 	ext.mu.Lock()
 	ext.Browsers = ext.Browsers[:1]
-	ext.Browsers = append(ext.Browsers, extBrowser{ID: "old1", Name: "Chrome", Hash: "x", Created: 1, LastSeen: time.Now().Unix() - 8*24*3600})
+	ext.Browsers = append(ext.Browsers, extBrowser{ID: "old1", Name: "Chrome", Hash: "x", Created: time.Now().Unix() - 9*24*3600, LastSeen: time.Now().Unix() - 8*24*3600})
 	ext.Browsers[0].Ver = ExtCurrentVersion
 	ext.mu.Unlock()
 	v := ext.view()
@@ -380,5 +380,12 @@ func TestExtLeftoversAreReplacedAndNotFlagged(t *testing.T) {
 	ext.mu.Unlock()
 	if ext.view()["extOutdated"] != true {
 		t.Fatal("a recently used extension that reports nothing is still old")
+	}
+	// paired a moment ago and not heard from yet: also still counts
+	ext.mu.Lock()
+	ext.Browsers[1].LastSeen, ext.Browsers[1].Created = 0, time.Now().Unix()
+	ext.mu.Unlock()
+	if ext.view()["extOutdated"] != true {
+		t.Fatal("a browser paired just now must count")
 	}
 }

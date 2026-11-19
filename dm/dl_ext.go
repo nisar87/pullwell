@@ -245,7 +245,7 @@ func (s *extStore) view() map[string]any {
 	outdated := false
 	for _, b := range s.Browsers {
 		// a browser that says nothing about its version and has not been used for a week is a leftover, not an old extension
-		stale := b.Ver == "" && time.Now().Unix()-b.LastSeen > extStaleAfter
+		stale := b.Ver == "" && time.Now().Unix()-max(b.LastSeen, b.Created) > extStaleAfter
 		old := !stale && verLess(b.Ver, ExtCurrentVersion)
 		outdated = outdated || old
 		bs = append(bs, map[string]any{"id": b.ID, "name": b.Name, "created": b.Created, "lastSeen": b.LastSeen, "ver": b.Ver, "outdated": old, "stale": stale})
