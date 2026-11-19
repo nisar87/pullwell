@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.16.1 (2026-11-20)
+
+- Options → Browser no longer fills up with "A newer extension is available" rows. Every reinstall and new pairing used
+  to add another entry, and the old ones (which never report a version) were always counted as out of date. Pairing a
+  browser now replaces its old leftovers, and a browser that says nothing about its version and has not been used for
+  a week shows "Not used for a while." and no longer triggers the banner. Remove such rows with Disconnect.
+
 ## 0.16.0 (2026-11-20)
 
 The browser extension is now in the Chrome Web Store, and Pullwell points to it.

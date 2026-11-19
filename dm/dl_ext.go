@@ -40,6 +40,9 @@ const (
 // ExtCurrentVersion is the newest extension that ships with this program. Raise it in a release that changes anything
 // under extension/ (the extension's version is the program's version at the time its zip was made). A paired browser
 // that reports an older version, or none (an extension from before 0.15.0), is told to update.
+// extStaleAfter: seconds without any call after which a browser with an unknown extension version no longer counts.
+const extStaleAfter = 7 * 24 * 3600
+
 const ExtCurrentVersion = "0.15.0"
 
 // VersionLess is verLess for the main package's tests.
@@ -164,6 +167,15 @@ func (s *extStore) pair(code, name string) (string, error) {
 	if name == "" || len(name) > 40 {
 		name = "Browser"
 	}
+	// A fresh pairing from the same browser name replaces its leftovers: entries from before 0.15.0 never report a
+	// version, so they are old installs that were reinstalled and paired again (the list grew with each one).
+	kept := s.Browsers[:0]
+	for _, b := range s.Browsers {
+		if b.Name != name || b.Ver != "" {
+			kept = append(kept, b)
+		}
+	}
+	s.Browsers = kept
 	if len(s.Browsers) >= 8 {
 		return "", errors.New("too many browsers are paired; remove one first")
 	}
@@ -232,9 +244,11 @@ func (s *extStore) view() map[string]any {
 	bs := []map[string]any{}
 	outdated := false
 	for _, b := range s.Browsers {
-		old := verLess(b.Ver, ExtCurrentVersion)
+		// a browser that says nothing about its version and has not been used for a week is a leftover, not an old extension
+		stale := b.Ver == "" && time.Now().Unix()-max(b.LastSeen, b.Created) > extStaleAfter
+		old := !stale && verLess(b.Ver, ExtCurrentVersion)
 		outdated = outdated || old
-		bs = append(bs, map[string]any{"id": b.ID, "name": b.Name, "created": b.Created, "lastSeen": b.LastSeen, "ver": b.Ver, "outdated": old})
+		bs = append(bs, map[string]any{"id": b.ID, "name": b.Name, "created": b.Created, "lastSeen": b.LastSeen, "ver": b.Ver, "outdated": old, "stale": stale})
 	}
 	return map[string]any{"extCurrent": ExtCurrentVersion, "extStore": ExtStoreURL, "extOutdated": outdated, "browsers": bs, "minMB": s.MinMB, "enabled": !s.Off, "ask": !s.NoAsk, "asked": askedTotal.Load()}
 }

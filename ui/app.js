@@ -989,7 +989,7 @@ function optionsBody(tab){
       + orow('Only files bigger than', 'Smaller files are quicker to leave with the browser.', `<select class="sel" id="extMin">${[0,1,5,10,25,50,100].map(n => `<option value="${n}"${x.minMB === n ? ' selected' : ''}>${n ? n + ' MB' : 'Everything'}</option>`).join('')}</select>`)
       + orow('Ask before a browser download starts', `Shows the “Download file info” box first, so a wrong click does not start a download. You can change the name and folder there.`, tog('id="extAsk"', x.ask !== false, 'Ask before a browser download starts'))
       + orow('Connected browsers', bs.length ? '' : 'None yet.', `<button class="btn pri" id="extCode">Connect a browser…</button>`)
-      + bs.map(b => orow(esc(b.name || 'Browser'), `Connected ${when(b.created)}${b.lastSeen ? ' · last used ' + when(b.lastSeen) : ''}<br>${b.outdated ? '<b>A newer extension is available.</b>' : `Extension ${esc(b.ver)}`}`, `${b.outdated ? '<button class="btn pri" data-act="extUpdate">Get the new extension</button> ' : ''}<button class="btn" data-extrm="${esc(b.id)}">Disconnect</button>`)).join('');
+      + bs.map(b => orow(esc(b.name || 'Browser'), `Connected ${when(b.created)}${b.lastSeen ? ' · last used ' + when(b.lastSeen) : ''}<br>${b.outdated ? '<b>A newer extension is available.</b>' : b.stale ? 'Not used for a while.' : `Extension ${esc(b.ver)}`}`, `${b.outdated ? '<button class="btn pri" data-act="extUpdate">Get the new extension</button> ' : ''}<button class="btn" data-extrm="${esc(b.id)}">Disconnect</button>`)).join('');
   }
   if (tab === 'updates') {
     const u = UPD || {};
