@@ -31,6 +31,12 @@ type extBrowser struct {
 	Ver      string `json:"ver,omitempty"` // the extension's own version, as it last reported it
 }
 
+// ExtStoreID is the extension's address in the Chrome Web Store; ExtStoreURL its page there.
+const (
+	ExtStoreID  = "afmpagjigeklekbjmenipkphlcfijagi"
+	ExtStoreURL = "https://chromewebstore.google.com/detail/pullwell-downloads/" + ExtStoreID
+)
+
 // ExtCurrentVersion is the newest extension that ships with this program. Raise it in a release that changes anything
 // under extension/ (the extension's version is the program's version at the time its zip was made). A paired browser
 // that reports an older version, or none (an extension from before 0.15.0), is told to update.
@@ -230,7 +236,7 @@ func (s *extStore) view() map[string]any {
 		outdated = outdated || old
 		bs = append(bs, map[string]any{"id": b.ID, "name": b.Name, "created": b.Created, "lastSeen": b.LastSeen, "ver": b.Ver, "outdated": old})
 	}
-	return map[string]any{"extCurrent": ExtCurrentVersion, "extOutdated": outdated, "browsers": bs, "minMB": s.MinMB, "enabled": !s.Off, "ask": !s.NoAsk, "asked": askedTotal.Load()}
+	return map[string]any{"extCurrent": ExtCurrentVersion, "extStore": ExtStoreURL, "extOutdated": outdated, "browsers": bs, "minMB": s.MinMB, "enabled": !s.Off, "ask": !s.NoAsk, "asked": askedTotal.Load()}
 }
 
 func extOrigin(o string) bool {

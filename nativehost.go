@@ -18,11 +18,17 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"pullwell/dm"
 )
 
 // extChromeID is the address of the Chrome and Edge extension. Its manifest carries a fixed public key, so the
 // address is the same on every computer.
 const extChromeID = "lkhdafbofbljmkmcpgmbeopfifpgedff"
+
+// extStoreID is the same extension as the Chrome Web Store hands it out: the store signs it with its own key, so
+// its address differs from extChromeID. Both are trusted to start the program.
+const extStoreID = dm.ExtStoreID
 
 func extFirefoxID() string { return "downloads@" + appScheme + ".app" }
 
@@ -46,7 +52,7 @@ func chromeOrigin(id string) string { return "chrome-extension://" + id + "/" }
 // hostManifests makes the two manifest files the browsers read. origins are extension addresses allowed to start the
 // program besides the built-in one.
 func hostManifests(exe string, origins []string) (chrome, firefox []byte) {
-	set := map[string]bool{chromeOrigin(extChromeID): true}
+	set := map[string]bool{chromeOrigin(extChromeID): true, chromeOrigin(extStoreID): true}
 	for _, o := range origins {
 		if strings.HasPrefix(o, "chrome-extension://") && len(o) < 100 && !strings.ContainsAny(o[len("chrome-extension://"):len(o)-1], "/\\\"") {
 			set[strings.TrimRight(o, "/")+"/"] = true
@@ -175,7 +181,7 @@ func learnOrigin(o string) bool {
 		return false
 	}
 	o = strings.TrimRight(o, "/") + "/"
-	if o == chromeOrigin(extChromeID) {
+	if o == chromeOrigin(extChromeID) || o == chromeOrigin(extStoreID) {
 		return false
 	}
 	originMu.Lock()

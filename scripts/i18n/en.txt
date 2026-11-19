@@ -710,3 +710,11 @@
 710|Load it again with about:debugging → Load Temporary Add-on, or install it from the add-ons site once it is listed.
 711|Chrome, Edge, Brave:
 712|Firefox:
+713|Add the extension
+714| from the Chrome Web Store (Chrome, Edge and Brave can all use it): 
+715|Add to Chrome
+716|In the store page, click the button to add it and confirm. Come back here after that.
+717|Another browser, such as Firefox, or adding it by hand
+718|From the Chrome Web Store:
+719| nothing to do, the browser updates it by itself (to check now, open chrome://extensions and use Update). 
+720|Open the store page

@@ -1033,28 +1033,34 @@ function extUpdate(){
   dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Update the browser extension" style="max-width:600px"><h3>Update the browser extension</h3>
     <div class="hint2" style="margin-bottom:10px">Version ${esc(DL.ext.extCurrent)} is ready. If you installed the extension from a browser store, the browser updates it by itself after the store has approved it, and you need do nothing.</div>
     <ol class="hint2" style="margin:0 0 12px;padding-left:18px;display:grid;gap:8px">
+      <li><b>From the Chrome Web Store:</b> nothing to do, the browser updates it by itself (to check now, open chrome://extensions and use Update). <button class="btn" id="extStore2">Open the store page</button></li>
       <li><b>Save the extension</b> (it goes into your download folder, which then opens): <button class="btn" data-saveext="chrome-edge">Chrome / Edge / Brave</button> <button class="btn" data-saveext="firefox">Firefox</button></li>
       <li><b>Chrome, Edge, Brave:</b> Unzip it over the old folder (replace the files), open chrome://extensions (in Edge: edge://extensions) and click the reload arrow on the ${esc(APP.name)} extension. It stays connected. If it asks for a new permission, allow it.</li>
       <li><b>Firefox:</b> Load it again with about:debugging → Load Temporary Add-on, or install it from the add-ons site once it is listed.</li>
     </ol>
     <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn" id="extLater2">Later</button><button class="btn pri" id="extDone">Done</button></div></div>`);
   $('#extDone').onclick = () => showOptions('browser');
+  $('#extStore2').onclick = () => window.open(DL.ext.extStore, '_blank', 'noopener');
   $('#extLater2').onclick = () => { store.set('extBn', DL.ext.extCurrent); dlClose(); renderBanner(); };
   $$('[data-saveext]').forEach(b => b.onclick = async () => { try { const r = await api('app', {saveExt: b.dataset.saveext}); toast('Saved: ' + r.path); } catch(e){ toast(e.message, true); } });
 }
 async function extConnect(){
   let r; try { r = await api('downloads', {action:'extCode'}); } catch(e){ return toast(e.message, true); }
   dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Connect a browser" style="max-width:600px"><h3>Connect a browser</h3>
-    <div class="hint2" style="margin-bottom:10px">The extension is not in the browser stores yet, so it is added by hand once (about a minute).</div>
     <ol class="hint2" style="margin:0 0 12px;padding-left:18px;display:grid;gap:8px">
-      <li><b>Save the extension</b> (it goes into your download folder, which then opens): <button class="btn" data-saveext="chrome-edge">Chrome / Edge / Brave</button> <button class="btn" data-saveext="firefox">Firefox</button></li>
-      <li><b>Chrome, Edge, Brave:</b> unzip it into a folder you keep. Open <code>chrome://extensions</code> (Edge: <code>edge://extensions</code>) <button class="btn" id="extCopy" style="padding:1px 8px;min-height:0">Copy</button>, switch on <b>Developer mode</b>, click <b>Load unpacked</b> and choose that folder.<br><b>Firefox:</b> open <code>about:debugging#/runtime/this-firefox</code>, click <b>Load Temporary Add-on</b> and choose the zip (Firefox forgets it when it closes).</li>
+      <li><b>Add the extension</b> from the Chrome Web Store (Chrome, Edge and Brave can all use it): <button class="btn pri" id="extStore">Add to Chrome</button><div style="margin-top:4px">In the store page, click the button to add it and confirm. Come back here after that.</div></li>
       <li><b>Pin the ${esc(APP.name)} icon</b> (the puzzle piece in the toolbar), click it and type this code:</li>
     </ol>
     <div class="pair-code"><code data-nt dir="ltr">${esc(r.code)}</code><button class="btn" id="extCopyCode">Copy</button></div>
     <div class="hint2" style="margin-top:6px;text-align:center" id="extLeft"></div>
+    <details class="hint2" style="margin-top:12px"><summary>Another browser, such as Firefox, or adding it by hand</summary>
+      <ol style="margin:8px 0 0;padding-left:18px;display:grid;gap:8px">
+        <li><b>Save the extension</b> (it goes into your download folder, which then opens): <button class="btn" data-saveext="chrome-edge">Chrome / Edge / Brave</button> <button class="btn" data-saveext="firefox">Firefox</button></li>
+        <li><b>Chrome, Edge, Brave:</b> unzip it into a folder you keep. Open <code>chrome://extensions</code> (Edge: <code>edge://extensions</code>) <button class="btn" id="extCopy" style="padding:1px 8px;min-height:0">Copy</button>, switch on <b>Developer mode</b>, click <b>Load unpacked</b> and choose that folder.<br><b>Firefox:</b> open <code>about:debugging#/runtime/this-firefox</code>, click <b>Load Temporary Add-on</b> and choose the zip (Firefox forgets it when it closes).</li>
+      </ol></details>
     <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn pri" id="extDone">Done</button></div></div>`);
   $('#extDone').onclick = () => showOptions('browser');
+  $('#extStore').onclick = () => window.open(DL.ext.extStore, '_blank', 'noopener');
   $('#extCopy').onclick = () => copyText('chrome://extensions', 'Copied: paste it in a new browser tab');
   $('#extCopyCode').onclick = () => copyText(r.code, 'Copied');
   $$('[data-saveext]').forEach(b => b.onclick = async () => { try { const r = await api('app', {saveExt: b.dataset.saveext}); toast('Saved: ' + r.path); } catch(e){ toast(e.message, true); } });

@@ -342,3 +342,9 @@ func TestExtReportsItsVersionAndOutdatedIsFlagged(t *testing.T) {
 		t.Fatalf("the version changed from bad input: %v", v)
 	}
 }
+
+func TestExtStoreURL(t *testing.T) {
+	if len(ExtStoreID) != 32 || !strings.HasSuffix(ExtStoreURL, "/"+ExtStoreID) || !strings.HasPrefix(ExtStoreURL, "https://chromewebstore.google.com/detail/") {
+		t.Fatalf("store address: %s %s", ExtStoreID, ExtStoreURL)
+	}
+}

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.16.0 (2026-11-20)
+
+The browser extension is now in the Chrome Web Store, and Pullwell points to it.
+
+- **Connect a browser** has an **Add to Chrome** button that opens the store page (it also works for Edge and Brave),
+  then the same pairing code as before. Saving the zip and loading it by hand moved under "Another browser, such as
+  Firefox, or adding it by hand".
+- The browser starter (0.14.0) trusts the store's copy of the extension from the first click, so a store install can
+  start Pullwell at once.
+- The "newer extension" dialog says that store copies update by themselves and has a button for the store page.
+- The extension files are unchanged, so nobody gets a "newer extension" notice from this release.
+
 ## 0.15.1 (2026-11-18)
 
 - Uninstall now also removes the browser starter that 0.14.0 added (its registry entries for Chrome, Edge, Brave,
