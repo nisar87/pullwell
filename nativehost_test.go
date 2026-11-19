@@ -173,7 +173,7 @@ func TestHostManifests(t *testing.T) {
 	for _, o := range cm["allowed_origins"].([]any) {
 		got[o.(string)] = true
 	}
-	if !got[chromeOrigin(extChromeID)] || !got["chrome-extension://zzzz/"] || len(got) != 2 {
+	if !got[chromeOrigin(extChromeID)] || !got[chromeOrigin(extStoreID)] || !got["chrome-extension://zzzz/"] || len(got) != 3 {
 		t.Fatalf("origins: %v", got)
 	}
 	if a := fm["allowed_extensions"].([]any); len(a) != 1 || a[0] != extFirefoxID() {
@@ -186,7 +186,7 @@ func TestHostManifests(t *testing.T) {
 
 func TestLearnOrigin(t *testing.T) {
 	knownOrigins = map[string]bool{}
-	if learnOrigin("moz-extension://x") || learnOrigin("chrome-extension://"+extChromeID) {
+	if learnOrigin("moz-extension://x") || learnOrigin("chrome-extension://"+extChromeID) || learnOrigin("chrome-extension://"+extStoreID) {
 		t.Fatal("firefox and the built-in address are not learned")
 	}
 	if !learnOrigin("chrome-extension://abcdef") || learnOrigin("chrome-extension://abcdef/") {

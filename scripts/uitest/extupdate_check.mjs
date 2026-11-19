@@ -71,6 +71,19 @@ check('Urdu: the steps have no leftover English sentences', !/(Unzip it|Load it 
 await shot('dialog-ur');
 await jsClick('#extLater2'); await sleep(300);
 
+// the Connect a browser dialog: one click opens the store page; the manual steps stay under a fold; Urdu has no English left
+await js(`window.__opened = []; window.open = (u) => { window.__opened.push(u); return null; }`);
+await js(`extConnect()`); await sleep(700);
+const cdlg = await js(`document.querySelector('#dlDlg .card').innerText`);
+check('Urdu: Connect a browser has no leftover English sentences', !/(Add the extension|Chrome Web Store|Come back here|Another browser)/.test(cdlg), cdlg.slice(0, 260).replace(/\n/g, ' | '));
+await shot('connect-ur');
+await jsClick('#extStore');
+const opened = await js(`window.__opened`);
+check('the store button opens the Chrome Web Store page', opened.length === 1 && opened[0] === 'https://chromewebstore.google.com/detail/pullwell-downloads/afmpagjigeklekbjmenipkphlcfijagi', JSON.stringify(opened));
+check('the by-hand steps are still there', await js(`!!document.querySelector('#dlDlg details [data-saveext=firefox]') && !!document.querySelector('#extCopy')`));
+await jsClick('#extDone'); await sleep(300);
+
+
 // an extension that reports the current version: no banner, and Options names the version
 await js(`localStorage.setItem('pw.lang', JSON.stringify('en')); localStorage.removeItem('pw.extBn')`);
 const cur = (await (await ext('ext/status?ev=0.15.0', {headers: auth})).json());
