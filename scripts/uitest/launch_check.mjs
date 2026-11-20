@@ -37,6 +37,8 @@ const count = () => {
     return Number(execSync(`pgrep -fc '${work}/app/[p]w -tray'`).toString()); // [p]: the search does not find itself
   } catch { return 0; }
 };
+// the browser's one-shot starter processes (also pw.exe on Windows) end a moment after they answer: wait for the count to settle
+const copies = async n => { for (let i = 0; i < 40 && count() !== n; i++) await sleep(250); return count(); };
 // where the browsers look for the starter on Windows (the program writes these keys itself)
 const regKeys = ['Google\\Chrome', 'Microsoft\\Edge', 'Chromium', 'Mozilla'].map(k => `HKCU\\Software\\${k}\\NativeMessagingHosts\\pullwell.launcher`);
 
@@ -92,7 +94,7 @@ check('the program is not running before the test', !(await up()));
 const pop = await ctx.newPage();
 await pop.goto(`chrome-extension://${extId}/popup.html`);
 check('opening the popup starts the program', await waitFor(up, 20000));
-check('exactly one copy runs', count() === 1, 'copies: ' + count());
+{ const c = await copies(1); check('exactly one copy runs', c === 1, 'copies: ' + c); }
 await pop.waitForSelector('#v-on:not([hidden])', {timeout: 15000}).catch(() => {});
 check('the popup connects by itself, with no code asked', await pop.locator('#v-on').isVisible() && !(await pop.locator('#v-pair').isVisible()));
 
@@ -129,7 +131,7 @@ let its = await items();
 check('and the program takes the download over', its.some(v => v.url.includes('/file/24MB')), its.map(v => v.url).join(' | '));
 const bdl = await sw.evaluate(async () => (await chrome.downloads.search({})).map(d => d.url + ' ' + d.state));
 check('the browser does not keep it', !bdl.some(s => s.includes('24MB') && !s.includes('interrupted')), bdl.join(' | '));
-check('still exactly one copy', count() === 1, 'copies: ' + count());
+{ const c = await copies(1); check('still exactly one copy', c === 1, 'copies: ' + c); }
 
 // 4. no starter registered (the program was never opened on this computer): the browser downloads as usual
 await quit();
