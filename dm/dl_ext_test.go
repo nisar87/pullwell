@@ -389,3 +389,52 @@ func TestExtLeftoversAreReplacedAndNotFlagged(t *testing.T) {
 		t.Fatal("a browser paired just now must count")
 	}
 }
+
+func TestExtPairsThroughTheStarter(t *testing.T) {
+	e := newExtEnv(t)
+	oldK, oldO := HostKey, HostOriginOK
+	t.Cleanup(func() { HostKey, HostOriginOK = oldK, oldO })
+	HostKey = func() string { return "secretsecretsecretsecretsecretsecret" }
+	HostOriginOK = func(o string) bool { return o == "chrome-extension://good/" }
+	body := func(key, origin string) map[string]string {
+		return map[string]string{"key": key, "origin": origin, "name": "Chrome"}
+	}
+	if st, _ := e.call("POST", "/ext/hostpair", "", "", body("wrong", "chrome-extension://good/")); st != 403 {
+		t.Fatalf("a wrong key must be refused: %d", st)
+	}
+	if st, _ := e.call("POST", "/ext/hostpair", "", "", body("secretsecretsecretsecretsecretsecret", "chrome-extension://other/")); st != 403 {
+		t.Fatalf("an unknown extension must be refused: %d", st)
+	}
+	// a web page or extension page cannot use the door, even with the key
+	if st, _ := e.call("POST", "/ext/hostpair", "chrome-extension://good", "", body("secretsecretsecretsecretsecretsecret", "chrome-extension://good/")); st != 403 {
+		t.Fatalf("a request with an Origin must be refused: %d", st)
+	}
+	st, out := e.call("POST", "/ext/hostpair", "", "", body("secretsecretsecretsecretsecretsecret", "chrome-extension://good/"))
+	if st != 200 || out["token"] == nil {
+		t.Fatalf("the starter must get a token: %d %v", st, out)
+	}
+	if st, _ := e.call("GET", "/ext/status", extO, out["token"].(string), nil); st != 200 {
+		t.Fatalf("the token must work: %d", st)
+	}
+	HostKey = func() string { return "" }
+	if st, _ := e.call("POST", "/ext/hostpair", "", "", body("", "chrome-extension://good/")); st != 403 {
+		t.Fatalf("without a key on disk nothing is allowed: %d", st)
+	}
+}
+
+func TestExtDirectPairingMakesRoomWhenFull(t *testing.T) {
+	newExtEnv(t)
+	oldK, oldO := HostKey, HostOriginOK
+	t.Cleanup(func() { HostKey, HostOriginOK = oldK, oldO })
+	HostKey, HostOriginOK = func() string { return "k" }, func(string) bool { return true }
+	now := time.Now().Unix()
+	for i := 0; i < 8; i++ {
+		ext.Browsers = append(ext.Browsers, extBrowser{ID: fmt.Sprint(i), Name: "Chrome", Hash: "h", Created: now - int64(100-i), Ver: "0.15.0"})
+	}
+	if _, err := ext.pairDirect("k", "o", "Chrome"); err != nil {
+		t.Fatal(err)
+	}
+	if len(ext.Browsers) != 8 || ext.Browsers[0].ID == "0" {
+		t.Fatalf("the one used longest ago must make room: %d %v", len(ext.Browsers), ext.Browsers[0])
+	}
+}

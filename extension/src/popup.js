@@ -8,10 +8,13 @@ async function paint() {
   const ping = await ask({ type: 'ping' });
   if (ping.status === 404) return show('v-off'); // the program runs, but its download manager is switched off
   if (!ping.ok) { $('hint').hidden = !(ping.data && ping.data.helperMissing); return show('v-down'); }
-  const s = await api.storage.local.get(['token', 'localOn', 'ignore', 'types', 'videoBtn']);
-  if (!s.token) return show('v-pair');
-  const st = await ask({ type: 'refresh' });
-  if (!st.ok) return show('v-pair'); // the token was refused: the program forgot this browser
+  const keys = ['token', 'localOn', 'ignore', 'types', 'videoBtn'];
+  let s = await api.storage.local.get(keys);
+  if (!s.token && (await ask({ type: 'autopair' })).ok) s = await api.storage.local.get(keys); // connects by itself through the starter
+  if (!s.token) return show('v-pair'); // no starter for this browser: the code
+  let st = await ask({ type: 'refresh' });
+  if (!st.ok && st.status === 401 && (await ask({ type: 'autopair' })).ok) { s = await api.storage.local.get(keys); st = await ask({ type: 'refresh' }); } // the program forgot this browser: connect again
+  if (!st.ok) return show('v-pair');
   show('v-on');
   const d = st.data;
   $('stat').textContent = d.active ? d.active + ' downloading · ' + fmt(d.speed) : 'Connected. Nothing downloading now.';

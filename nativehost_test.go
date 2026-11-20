@@ -7,9 +7,12 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
+	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -252,4 +255,68 @@ func zipFile(t *testing.T, z []byte, name string) []byte {
 	}
 	t.Fatalf("%s not in the zip", name)
 	return nil
+}
+
+func TestHostPairs(t *testing.T) {
+	// a fake program that hands out a token for the right key and origin
+	mux := http.NewServeMux()
+	mux.HandleFunc("/ext/ping", func(w http.ResponseWriter, r *http.Request) { fmt.Fprintf(w, `{"app":%q}`, strings.ToLower(AppName)) })
+	mux.HandleFunc("/ext/hostpair", func(w http.ResponseWriter, r *http.Request) {
+		var in struct{ Key, Origin, Name string }
+		json.NewDecoder(r.Body).Decode(&in)
+		if in.Key != "k1" || in.Origin != "chrome-extension://abc/" || in.Name != "Edge" {
+			w.WriteHeader(403)
+			return
+		}
+		fmt.Fprint(w, `{"token":"tok123"}`)
+	})
+	srv := httptest.NewServer(mux)
+	defer srv.Close()
+	port, _ := strconv.Atoi(srv.URL[strings.LastIndex(srv.URL, ":")+1:])
+	ask := func(d hostDeps) map[string]any {
+		var out bytes.Buffer
+		d.ports, d.wait = []int{port}, time.Second
+		serveHost(bytes.NewReader(frame(map[string]string{"cmd": "pair", "name": "Edge"})), &out, d)
+		var r map[string]any
+		n, _ := readHostMsg(bytes.NewReader(out.Bytes()))
+		json.Unmarshal(n, &r)
+		return r
+	}
+	if r := ask(hostDeps{origin: "chrome-extension://abc/", key: func() string { return "k1" }}); r["ok"] != true || r["token"] != "tok123" {
+		t.Fatalf("pair: %v", r)
+	}
+	if r := ask(hostDeps{origin: "chrome-extension://abc/", key: func() string { return "bad" }}); r["ok"] == true || r["token"] != nil {
+		t.Fatalf("a wrong key must not pair: %v", r)
+	}
+	if r := ask(hostDeps{origin: "chrome-extension://abc/", key: func() string { return "" }}); r["ok"] == true {
+		t.Fatalf("no key file, no pairing: %v", r)
+	}
+	if r := ask(hostDeps{origin: "chrome-extension://abc/"}); r["ok"] == true {
+		t.Fatalf("no key reader, no pairing: %v", r)
+	}
+}
+
+func TestHostOriginAndAutoPair(t *testing.T) {
+	if hostOrigin([]string{"chrome-extension://abc/", "--parent-window=1"}) != "chrome-extension://abc/" || hostOrigin([]string{`C:\m.json`, extFirefoxID()}) != "firefox:"+extFirefoxID() || hostOrigin(nil) != "" {
+		t.Fatal("hostOrigin")
+	}
+	knownOrigins = map[string]bool{"chrome-extension://seen/": true}
+	for _, o := range []string{chromeOrigin(extChromeID), chromeOrigin(extStoreID), "firefox:" + extFirefoxID(), "chrome-extension://seen/"} {
+		if !autoPairOrigin(o) {
+			t.Errorf("%s must be allowed", o)
+		}
+	}
+	for _, o := range []string{"chrome-extension://stranger/", "firefox:other@x", "https://evil/", ""} {
+		if autoPairOrigin(o) {
+			t.Errorf("%s must not be allowed", o)
+		}
+	}
+	root := t.TempDir()
+	if loadHostKey(root, false) != "" {
+		t.Fatal("the starter must not make the key")
+	}
+	k := loadHostKey(root, true)
+	if len(k) != 64 || loadHostKey(root, false) != k || loadHostKey(root, true) != k {
+		t.Fatalf("the key is made once and read back: %q", k)
+	}
 }

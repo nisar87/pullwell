@@ -185,6 +185,55 @@ func (s *extStore) pair(code, name string) (string, error) {
 	return tok, nil
 }
 
+// HostKey is the secret that only the program's own browser starter can read (a file in the data folder); HostOriginOK
+// tells whether an extension address may pair without a code. Both are set by the main package.
+var (
+	HostKey      func() string
+	HostOriginOK func(origin string) bool
+)
+
+var errExtHost = errors.New("not allowed")
+
+// pairDirect pairs a browser without a typed code. The caller is the browser's starter (native messaging): the browser
+// itself has checked which extension asked, and the starter proves it is this program's by the key in the data folder.
+func (s *extStore) pairDirect(key, origin, name string) (string, error) {
+	want := ""
+	if HostKey != nil {
+		want = HostKey()
+	}
+	if want == "" || subtle.ConstantTimeCompare([]byte(key), []byte(want)) != 1 || HostOriginOK == nil || !HostOriginOK(origin) {
+		return "", errExtHost
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	name = strings.TrimSpace(name)
+	if name == "" || len(name) > 40 {
+		name = "Browser"
+	}
+	now := time.Now().Unix()
+	active := func(b extBrowser) int64 { return max(b.LastSeen, b.Created) }
+	kept := s.Browsers[:0]
+	for _, b := range s.Browsers { // leftovers of reinstalls: the same browser, never said its version, unused for a week
+		if !(b.Name == name && b.Ver == "" && now-active(b) > extStaleAfter) {
+			kept = append(kept, b)
+		}
+	}
+	s.Browsers = kept
+	for len(s.Browsers) >= 8 { // full: the one used longest ago makes room, a new install must always connect
+		oldest := 0
+		for i, b := range s.Browsers {
+			if active(b) < active(s.Browsers[oldest]) {
+				oldest = i
+			}
+		}
+		s.Browsers = append(s.Browsers[:oldest], s.Browsers[oldest+1:]...)
+	}
+	tok := randomHex(32)
+	s.Browsers = append(s.Browsers, extBrowser{ID: randomHex(4), Name: name, Hash: extHash(tok), Created: now})
+	s.saveLocked()
+	return tok, nil
+}
+
 func (s *extStore) check(tok string) bool {
 	if tok == "" {
 		return false
@@ -300,6 +349,23 @@ func extHandler(auth bool, h http.HandlerFunc) http.HandlerFunc {
 func registerExtRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/ext/ping", extHandler(false, func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, map[string]any{"app": strings.ToLower(hName()), "version": H.Version})
+	}))
+	mux.HandleFunc("/ext/hostpair", extHandler(false, func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost || r.Header.Get("Origin") != "" { // only the starter (no Origin: it is not a web page) may ask
+			writeErr(w, 403, "forbidden")
+			return
+		}
+		var in struct{ Key, Origin, Name string }
+		if json.NewDecoder(http.MaxBytesReader(w, r.Body, 4096)).Decode(&in) != nil {
+			writeErr(w, 400, "bad request")
+			return
+		}
+		tok, err := ext.pairDirect(in.Key, in.Origin, in.Name)
+		if err != nil {
+			writeErr(w, 403, err.Error())
+			return
+		}
+		writeJSON(w, map[string]any{"token": tok})
 	}))
 	mux.HandleFunc("/ext/pair", extHandler(false, func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {

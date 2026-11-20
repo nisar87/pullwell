@@ -37,6 +37,8 @@ const count = () => {
     return Number(execSync(`pgrep -fc '${work}/app/[p]w -tray'`).toString()); // [p]: the search does not find itself
   } catch { return 0; }
 };
+// the browser's one-shot starter processes (also pw.exe on Windows) end a moment after they answer: wait for the count to settle
+const copies = async n => { for (let i = 0; i < 40 && count() !== n; i++) await sleep(250); return count(); };
 // where the browsers look for the starter on Windows (the program writes these keys itself)
 const regKeys = ['Google\\Chrome', 'Microsoft\\Edge', 'Chromium', 'Mozilla'].map(k => `HKCU\\Software\\${k}\\NativeMessagingHosts\\pullwell.launcher`);
 
@@ -92,18 +94,24 @@ check('the program is not running before the test', !(await up()));
 const pop = await ctx.newPage();
 await pop.goto(`chrome-extension://${extId}/popup.html`);
 check('opening the popup starts the program', await waitFor(up, 20000));
-check('exactly one copy runs', count() === 1, 'copies: ' + count());
-await pop.waitForSelector('#v-pair:not([hidden])', {timeout: 10000}).catch(() => {});
-check('the popup then asks for the pairing code', await pop.locator('#v-pair').isVisible());
+{ const c = await copies(1); check('exactly one copy runs', c === 1, 'copies: ' + c); }
+await pop.waitForSelector('#v-on:not([hidden])', {timeout: 15000}).catch(() => {});
+check('the popup connects by itself, with no code asked', await pop.locator('#v-on').isVisible() && !(await pop.locator('#v-pair').isVisible()));
 
-// 2. pair, and make the program use the test proxy and a download folder in /tmp
-const code = (await post('api/downloads', {action: 'extCode'})).code;
-await pop.fill('#code', String(code)); await pop.click('#pair'); await sleep(1500);
-check('pairing works', await sw.evaluate(async () => !!(await chrome.storage.local.get('token')).token));
+// 2. the token came through the starter; make the program use the test proxy and a download folder in /tmp
+check('the extension got its token without a code', await sw.evaluate(async () => !!(await chrome.storage.local.get('token')).token));
+check('the program lists this browser once', ((await (await fetch(URL0 + 'api/downloads', {headers: H})).json()).ext?.browsers || []).length === 1);
+// a copy of the program that forgot the browser (or a wiped token): the next popup connects again by itself
+await sw.evaluate(() => chrome.storage.local.remove('token'));
+await pop.reload(); await pop.waitForSelector('#v-on:not([hidden])', {timeout: 15000}).catch(() => {});
+check('a lost token is replaced by the starter again', await pop.locator('#v-on').isVisible() && await sw.evaluate(async () => !!(await chrome.storage.local.get('token')).token));
+// a page cannot pair: the key is not in a web page's reach
+const bad = await fetch(URL0 + 'ext/hostpair', {method: 'POST', headers: {'Content-Type': 'application/json', Origin: 'chrome-extension://' + EXT_ID}, body: JSON.stringify({key: 'x', origin: 'chrome-extension://' + EXT_ID, name: 'x'})});
+check('the pairing door is closed to everything but the starter', bad.status === 403, bad.status);
 // the extension tells the program its version (the program offers a newer one when it is older)
 const myVer = JSON.parse(fs.readFileSync(work + '/ext/manifest.json', 'utf8')).version;
 let seen = '';
-for (let i = 0; i < 25 && seen !== myVer; i++) { await sw.evaluate(() => refresh(false)); seen = ((await (await fetch(URL0 + 'api/downloads', {headers: H})).json()).ext?.browsers || [])[0]?.ver || ''; if (seen !== myVer) await sleep(200); }
+for (let i = 0; i < 25 && seen !== myVer; i++) { await sw.evaluate(() => refresh(false)); seen = ((await (await fetch(URL0 + 'api/downloads', {headers: H})).json()).ext?.browsers || []).map(b => b.ver).find(v => v === myVer) || ''; if (seen !== myVer) await sleep(200); }
 check('the program learns the extension\'s version', seen === myVer && myVer !== '', `${seen} / ${myVer}`);
 const cfg = (await (await fetch(URL0 + 'api/downloads', {headers: H})).json()).config; cfg.dir = work + '/dl';
 await post('api/downloads', {action: 'config', config: cfg});
@@ -123,7 +131,7 @@ let its = await items();
 check('and the program takes the download over', its.some(v => v.url.includes('/file/24MB')), its.map(v => v.url).join(' | '));
 const bdl = await sw.evaluate(async () => (await chrome.downloads.search({})).map(d => d.url + ' ' + d.state));
 check('the browser does not keep it', !bdl.some(s => s.includes('24MB') && !s.includes('interrupted')), bdl.join(' | '));
-check('still exactly one copy', count() === 1, 'copies: ' + count());
+{ const c = await copies(1); check('still exactly one copy', c === 1, 'copies: ' + c); }
 
 // 4. no starter registered (the program was never opened on this computer): the browser downloads as usual
 await quit();

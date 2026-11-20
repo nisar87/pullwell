@@ -1049,7 +1049,7 @@ async function extConnect(){
   dlDialog(`<div class="card" role="dialog" aria-modal="true" aria-label="Connect a browser" style="max-width:600px"><h3>Connect a browser</h3>
     <ol class="hint2" style="margin:0 0 12px;padding-left:18px;display:grid;gap:8px">
       <li><b>Add the extension</b> from the Chrome Web Store (Chrome, Edge and Brave can all use it): <button class="btn pri" id="extStore">Add to Chrome</button><div style="margin-top:4px">In the store page, click the button to add it and confirm. Come back here after that.</div></li>
-      <li><b>Pin the ${esc(APP.name)} icon</b> (the puzzle piece in the toolbar), click it and type this code:</li>
+      <li><b>Pin the ${esc(APP.name)} icon</b> (the puzzle piece in the toolbar) and click it. It connects by itself. If it asks for a code, type this one:</li>
     </ol>
     <div class="pair-code"><code data-nt dir="ltr">${esc(r.code)}</code><button class="btn" id="extCopyCode">Copy</button></div>
     <div class="hint2" style="margin-top:6px;text-align:center" id="extLeft"></div>

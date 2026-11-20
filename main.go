@@ -31,7 +31,9 @@ func main() {
 	updated := flag.String("updated", "", "after an update: the version that was replaced")
 	flag.Parse()
 	if isNativeHostCall(flag.Args()) { // the browser started this program as the extension's starter
-		serveHost(os.Stdin, os.Stdout, hostDeps{ports: appPorts, start: startProgram, wait: 15 * time.Second})
+		root, _, _ := resolveRoot(*root)
+		serveHost(os.Stdin, os.Stdout, hostDeps{ports: appPorts, start: startProgram, wait: 15 * time.Second, origin: hostOrigin(flag.Args()),
+			key: func() string { return loadHostKey(root, false) }})
 		return
 	}
 	uiMode, debugMode = *ui, *debug
@@ -40,26 +42,11 @@ func main() {
 		return
 	}
 
-	dir := *root
-	customRoot = dir != ""
-	if dir == "" {
-		exe, err := os.Executable()
-		if err != nil {
-			fail("cannot find the program's own folder: %v", err)
-		}
-		dir = filepath.Dir(exe)
-		// a file named "separate-copy" next to the program makes it a separate copy (a test copy, for example),
-		// exactly as if it had been started with -root on its own folder: its own data, and it leaves the Start
-		// menu entry, the link registration and Start with Windows of the installed copy alone
-		if _, err := os.Stat(filepath.Join(dir, separateMarker)); err == nil {
-			customRoot = true
-		} else if !writableDir(filepath.Join(dir, "data")) {
-			// a protected folder (Program Files, for example): keep the data in the person's own app data folder
-			if la := os.Getenv("LOCALAPPDATA"); la != "" {
-				dir = filepath.Join(la, appDataDir)
-			}
-		}
+	dir, isCustom, err := resolveRoot(*root)
+	if err != nil {
+		fail("cannot find the program's own folder: %v", err)
 	}
+	customRoot = isCustom
 	dir, _ = filepath.Abs(dir)
 	appRoot = dir
 	logInit(dir)
@@ -77,6 +64,8 @@ func main() {
 	loadAppSettings()
 	go keepStartMenu()
 	dm.OnExtOrigin = onNewOrigin
+	hostKey := loadHostKey(dir, true)
+	dm.HostKey, dm.HostOriginOK = func() string { return hostKey }, autoPairOrigin
 	go registerNativeHost()
 
 	// One copy per data folder: a second start shows the first one's window and ends.

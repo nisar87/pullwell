@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.17.0 (2026-11-20)
+
+The browser connects by itself: no pairing code to type.
+
+- The extension asks Pullwell's browser starter (the native messaging channel added in 0.14.0) for its token. The
+  browser itself says which extension is asking, and only Pullwell's own extension (and ones you paired by code
+  before) is given one. A key in Pullwell's data folder, which only the starter reads, protects the pairing door; web
+  pages and extension pages cannot use it. A lost or forgotten pairing is replaced the next time the popup opens.
+- When 8 browsers are listed, a new one replaces the one used longest ago instead of being refused.
+- **Connect a browser** now says the extension connects by itself; the code is shown for browsers without the starter
+  (Firefox by hand, or a Pullwell that was never opened). The extension's own files changed for this; they reach
+  Chrome through the next store version, and the "newer extension" notice stays off until that is out.
+
 ## 0.16.1 (2026-11-20)
 
 - Options → Browser no longer fills up with "A newer extension is available" rows. Every reinstall and new pairing used
