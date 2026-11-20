@@ -29,12 +29,16 @@ opens in Edge or Chrome instead.
 
 Pullwell carries its own browser extension, so the extension always matches the program.
 
-1. In Pullwell, open **Tools → Connect a browser** (or Options → Browser). Download the extension for Chrome/Edge
-   or Firefox there, and note the pairing code.
-2. **Chrome, Edge or Brave:** unzip the file. Open `chrome://extensions` (Edge: `edge://extensions`), switch on
-   **Developer mode** and choose **Load unpacked**, then pick the unzipped folder.
-   **Firefox:** open `about:debugging` → This Firefox → **Load Temporary Add-on**, and pick the zip.
-3. Click the extension's icon and type the pairing code.
+1. In Pullwell, open **Tools → Connect a browser** (or Options → Browser) and click **Add to Chrome**. It opens the
+   extension's page in the Chrome Web Store (Edge and Brave can use it too); add it there.
+2. Click the extension's icon. It connects by itself: the browser's own channel to Pullwell (the same one that
+   starts Pullwell for it) proves which extension is asking, so no code is needed. If it ever asks for one, type the
+   code shown in the same Pullwell window.
+
+Another browser, such as Firefox, or adding it by hand: save the extension from the same window. **Chrome, Edge or
+Brave:** unzip the file, open `chrome://extensions` (Edge: `edge://extensions`), switch on **Developer mode**, choose
+**Load unpacked** and pick the folder. **Firefox:** open `about:debugging` → This Firefox → **Load Temporary
+Add-on** and pick the zip.
 
 From then on, big downloads go to Pullwell (5 MB and up; you can change the size), and links get a
 **Download with Pullwell** entry in the right-click menu.
@@ -83,7 +87,7 @@ Pullwell contacts only the sites you download from, GitHub to check for updates,
 problem reports (below). It needs no account. Its window and its local interface answer only on `127.0.0.1`:
 
 - Other programs and web pages cannot change anything through that interface.
-- A browser can only send downloads after you pair it with a code.
+- A browser can only send downloads after it is paired: automatically for Pullwell's own extension (the browser tells Pullwell which extension is asking, and a key in Pullwell's data folder proves the request comes from Pullwell's own starter), or with a one-time code you type.
 - Copied links are only looked at when you switch that on, and only links to files are offered.
 - The log (`Tools → Open log`, kept on your computer, about 2 MB) records what the program did and why it failed, never links, sites, file names, your Windows user name or your folders.
 - **Problem reports** are on by default, shown once in the window before anything is sent, and can be turned off in

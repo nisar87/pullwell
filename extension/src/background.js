@@ -48,13 +48,33 @@ function launchApp() {
   return launching;
 }
 
+// Pairing without a typed code: the starter (native messaging) hands this browser its token. The browser has told the
+// starter which extension is asking, and only the extensions {{NAME}} knows are given one.
+let pairing = null;
+let noPairUntil = 0;
+function browserName() { const u = navigator.userAgent; return /Edg\//.test(u) ? 'Edge' : /Firefox\//.test(u) ? 'Firefox' : 'Chrome'; }
+function autoPair(force) {
+  if (pairing) return pairing;
+  if ((!force && Date.now() < noPairUntil) || !api.runtime.sendNativeMessage) return Promise.resolve(false);
+  pairing = (async () => {
+    try {
+      const r = await api.runtime.sendNativeMessage(HOST, { cmd: 'pair', name: browserName() });
+      if (r && r.ok && r.token) { await api.storage.local.set({ token: r.token }); noPairUntil = 0; return true; }
+    } catch (e) { }
+    noPairUntil = Date.now() + 30000; // refused or no starter: the code in the popup still works; try again in 30 seconds
+    return false;
+  })().finally(() => { pairing = null; });
+  return pairing;
+}
+
 async function store() { return api.storage.local.get(['token', 'enabled', 'minMB', 'localOn', 'ignore', 'types', 'seen']); }
 
 async function nm(path, opt, retried) {
-  const s = await store();
+  let s = await store();
   let b = await base(retried);
   if (!b && !(opt && opt.noLaunch) && await launchApp()) b = await base(true);
   if (!b) return { ok: false, status: 0, data: { error: '{{NAME}} is not running', helperMissing } };
+  if (!s.token && path !== '/ext/ping' && path !== '/ext/pair' && await autoPair()) s = await store();
   const ctl = new AbortController();
   const t = setTimeout(() => ctl.abort(), (opt && opt.timeout) || 4000);
   try {
@@ -134,7 +154,7 @@ function menus() {
     });
   } catch (e) { }
 }
-api.runtime.onInstalled.addListener(() => { menus(); videoScript(); });
+api.runtime.onInstalled.addListener(() => { menus(); refresh(true); videoScript(); });
 if (api.runtime.onStartup) api.runtime.onStartup.addListener(() => { menus(); refresh(true); videoScript(); });
 
 // The button over videos is a content script, added only while the person allowed all sites and has not switched the
@@ -211,6 +231,7 @@ api.runtime.onMessage.addListener((msg, sender, reply) => {
       flash(r.ok ? (r.data.duplicate ? '=' : '+') : '!', r.ok ? '#16a34a' : '#dc2626');
       return reply({ ok: r.ok, duplicate: !!(r.data && r.data.duplicate) });
     }
+    if (msg.type === 'autopair') return reply({ ok: await autoPair(true) });
     if (msg.type === 'pair') {
       const r = await nm('/ext/pair', { body: { code: msg.code, name: msg.name } });
       if (r.ok && r.data.token) await api.storage.local.set({ token: r.data.token });

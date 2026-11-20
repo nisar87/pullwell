@@ -8,7 +8,7 @@
 8|(not decided yet)
 9|(or in its tools folder) to get one file.
 10|(paused)
-11|(the puzzle piece in the toolbar), click it and type this code:
+11|(the puzzle piece in the toolbar) and click it. It connects by itself. If it asks for a code, type this one:
 12|, click
 13|, drop a link or a .torrent file here, or choose
 14|, switch on
