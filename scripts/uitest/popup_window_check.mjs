@@ -60,8 +60,10 @@ const evalIn = async (p, expr) => (await p.send('Runtime.evaluate', {expression:
 
 // pair once (in a tab: only the pairing needs typing), then look at each state in the real popup
 const pop = await ctx.newPage(); await pop.goto(`chrome-extension://${extId}/popup.html`);
-const code = (await post('api/downloads', {action: 'extCode'})).code;
-await pop.fill('#code', String(code)); await pop.click('#pair'); await sleep(2000); await pop.close();
+// the starter pairs it by itself; the code is only the way in for a browser without a starter
+await pop.waitForSelector('#v-on:not([hidden]), #v-pair:not([hidden])', {timeout: 20000});
+if (await pop.locator('#v-pair').isVisible()) { const code = (await post('api/downloads', {action: 'extCode'})).code; await pop.fill('#code', String(code)); await pop.click('#pair'); await sleep(2000); }
+await pop.close();
 check('the test browser is paired', await sw.evaluate(async () => !!(await chrome.storage.local.get('token')).token));
 
 async function state(name, ready, schemes = ['dark', 'light']) {
@@ -90,8 +92,11 @@ await quit();
 await state('program closed', `!document.getElementById('v-down').hidden`, ['dark', 'light']);
 await startApp();
 await sw.evaluate(() => chrome.storage.local.remove(['token']));
+// no way to connect by itself (the starter cannot read the key): the popup asks for the code
+const keyFile = work + '/app/data/host.key'; fs.renameSync(keyFile, keyFile + '.off');
 await state('not paired', `!document.getElementById('v-pair').hidden`, ['dark', 'light']);
 
+fs.renameSync(keyFile + '.off', keyFile);
 await quit(); await ctx.close();
 console.log(results.join('\n'));
 const fail = results.filter(r => r.startsWith('FAIL')).length;
