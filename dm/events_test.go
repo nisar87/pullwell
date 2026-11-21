@@ -42,3 +42,12 @@ func TestPanicLineHasNoUserData(t *testing.T) {
 	}
 	t.Log(got)
 }
+
+func TestSiteRefusedClassAndRepeat(t *testing.T) {
+	if got := dlErrClass(&errSiteRefused{msg: "x"}); got != "site-refused" {
+		t.Errorf("class = %q", got)
+	}
+	if noteTakenTry("https://a.test/f") || !noteTakenTry("https://a.test/f") {
+		t.Error("repeat of a link within a minute not detected")
+	}
+}

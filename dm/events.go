@@ -23,7 +23,11 @@ func dlErrClass(err error) string {
 	}
 	var he dlHTTPErr
 	var se dlStreamErr
+	var sr *errSiteRefused
 	switch {
+	case errors.As(err, &sr):
+		return "site-refused"
+
 	case errors.As(err, &he):
 		return fmt.Sprintf("http-%d", he.Code)
 	case errors.Is(err, errDlChanged):
