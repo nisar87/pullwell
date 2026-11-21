@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Problem reports now name a site's refusal of a browser download "site-refused" (it was logged as an unknown error) and
+  count how often the same link comes again within a minute, so a retry loop can be told from many links. Seen on 1 of
+  2 installs; no change in behaviour.
+
 ## 0.17.0 (2026-11-20)
 
 The browser connects by itself: no pairing code to type.

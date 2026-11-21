@@ -436,6 +436,9 @@ func registerExtRoutes(mux *http.ServeMux) {
 		if err != nil {
 			hLog("browser download: not taken (%s)", dlErrClass(err))
 			hCount("browser.not-taken")
+			if noteTakenTry(in.URL) {
+				hCount("browser.not-taken-again") // the same link came again within a minute: tells a retry loop from many links
+			}
 			writeErr(w, 400, err.Error())
 			return
 		}
@@ -465,7 +468,7 @@ func (m *dlManager) addFromBrowser(link, referrer, cookie, ua, name string) (map
 	// dead "Download file info" box and a cancelled browser download. Ask the site once now, briefly; when it refuses,
 	// say no, and the extension lets the browser carry on with its own download (it has the person's sign-in).
 	if refused := m.refusedForUs(link, h); refused != "" {
-		return nil, errors.New(refused)
+		return nil, &errSiteRefused{msg: refused}
 	}
 	if dlIsMetalink(link) { // the file lists what to download: add those files (no box: the person asked for the list)
 		its, _, err := m.addMetalink(link, dlAdd{Header: h, FromWeb: true})
@@ -665,4 +668,31 @@ func recentlyDeclined(link string) bool {
 	defer declineMu.Unlock()
 	t, ok := declined[link]
 	return ok && time.Since(t) <= declineFor
+}
+
+// errSiteRefused is a browser link the site answered with 401/403; the browser carries on with its own download.
+type errSiteRefused struct{ msg string }
+
+func (e *errSiteRefused) Error() string { return e.msg }
+
+var (
+	tryMu   sync.Mutex
+	tryLast = map[string]time.Time{}
+)
+
+// noteTakenTry remembers a link that was not taken and reports whether it was seen already within the last minute.
+func noteTakenTry(link string) bool {
+	tryMu.Lock()
+	defer tryMu.Unlock()
+	now := time.Now()
+	for k, t := range tryLast {
+		if now.Sub(t) > time.Minute {
+			delete(tryLast, k)
+		}
+	}
+	_, seen := tryLast[link]
+	if len(tryLast) < 200 {
+		tryLast[link] = now
+	}
+	return seen
 }
