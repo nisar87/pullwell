@@ -35,6 +35,9 @@ const extChromeID = "lkhdafbofbljmkmcpgmbeopfifpgedff"
 // its address differs from extChromeID. Both are trusted to start the program.
 const extStoreID = dm.ExtStoreID
 
+// extEdgeID is the same for Microsoft's Edge Add-ons store.
+const extEdgeID = dm.ExtEdgeID
+
 func extFirefoxID() string { return "downloads@" + appScheme + ".app" }
 
 // nativeHostName is the name the extension asks for. Lowercase letters, digits, dots and underscores only.
@@ -57,7 +60,7 @@ func chromeOrigin(id string) string { return "chrome-extension://" + id + "/" }
 // hostManifests makes the two manifest files the browsers read. origins are extension addresses allowed to start the
 // program besides the built-in one.
 func hostManifests(exe string, origins []string) (chrome, firefox []byte) {
-	set := map[string]bool{chromeOrigin(extChromeID): true, chromeOrigin(extStoreID): true}
+	set := map[string]bool{chromeOrigin(extChromeID): true, chromeOrigin(extStoreID): true, chromeOrigin(extEdgeID): true}
 	for _, o := range origins {
 		if strings.HasPrefix(o, "chrome-extension://") && len(o) < 100 && !strings.ContainsAny(o[len("chrome-extension://"):len(o)-1], "/\\\"") {
 			set[strings.TrimRight(o, "/")+"/"] = true
@@ -182,7 +185,7 @@ func loadHostKey(root string, create bool) string {
 // before are accepted, and Firefox's add-on.
 func autoPairOrigin(o string) bool {
 	o = strings.TrimRight(o, "/") + "/"
-	if o == chromeOrigin(extChromeID) || o == chromeOrigin(extStoreID) || o == "firefox:"+extFirefoxID()+"/" {
+	if o == chromeOrigin(extChromeID) || o == chromeOrigin(extStoreID) || o == chromeOrigin(extEdgeID) || o == "firefox:"+extFirefoxID()+"/" {
 		return true
 	}
 	originMu.Lock()
@@ -302,7 +305,7 @@ func learnOrigin(o string) bool {
 		return false
 	}
 	o = strings.TrimRight(o, "/") + "/"
-	if o == chromeOrigin(extChromeID) || o == chromeOrigin(extStoreID) {
+	if o == chromeOrigin(extChromeID) || o == chromeOrigin(extStoreID) || o == chromeOrigin(extEdgeID) {
 		return false
 	}
 	originMu.Lock()

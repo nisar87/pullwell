@@ -80,6 +80,9 @@ await shot('connect-ur');
 await jsClick('#extStore');
 const opened = await js(`window.__opened`);
 check('the store button opens the Chrome Web Store page', opened.length === 1 && opened[0] === 'https://chromewebstore.google.com/detail/pullwell-downloads/afmpagjigeklekbjmenipkphlcfijagi', JSON.stringify(opened));
+await jsClick('#extStoreEdge');
+const opened2 = await js(`window.__opened`);
+check('the Edge button opens the Edge Add-ons page', opened2.length === 2 && opened2[1] === 'https://microsoftedge.microsoft.com/addons/detail/pullwell-downloads/agnnnoegcdohnfnpagclhppflhfjcelo', JSON.stringify(opened2));
 check('the by-hand steps are still there', await js(`!!document.querySelector('#dlDlg details [data-saveext=firefox]') && !!document.querySelector('#extCopy')`));
 await jsClick('#extDone'); await sleep(300);
 

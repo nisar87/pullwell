@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.17.1 (2026-11-25)
+
+- **Connect a browser** has an **Add to Edge** button next to **Add to Chrome**; it opens the extension's page in
+  Microsoft Edge Add-ons. The update dialog has a button for each store.
+- The browser starter trusts the Edge Add-ons copy of the extension (it has an address of its own), so an Edge
+  install connects by itself like the Chrome one.
+
 ## Unreleased
 
 - Problem reports now name a site's refusal of a browser download "site-refused" (it was logged as an unknown error) and
