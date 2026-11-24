@@ -711,11 +711,13 @@
 711|Chrome, Edge, Brave:
 712|Firefox:
 713|Add the extension
-714| from the Chrome Web Store (Chrome, Edge and Brave can all use it): 
+714| from the store of your browser (Brave can use the Chrome one): 
 715|Add to Chrome
 716|In the store page, click the button to add it and confirm. Come back here after that.
 717|Another browser, such as Firefox, or adding it by hand
-718|From the Chrome Web Store:
+718|From a store:
 719| nothing to do, the browser updates it by itself (to check now, open chrome://extensions and use Update). 
-720|Open the store page
+720|Open the Chrome store page
 721|Not used for a while.
+722|Add to Edge
+723|Open the Edge store page

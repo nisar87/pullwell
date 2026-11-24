@@ -347,6 +347,9 @@ func TestExtStoreURL(t *testing.T) {
 	if len(ExtStoreID) != 32 || !strings.HasSuffix(ExtStoreURL, "/"+ExtStoreID) || !strings.HasPrefix(ExtStoreURL, "https://chromewebstore.google.com/detail/") {
 		t.Fatalf("store address: %s %s", ExtStoreID, ExtStoreURL)
 	}
+	if len(ExtEdgeID) != 32 || !strings.HasSuffix(ExtEdgeURL, "/"+ExtEdgeID) || !strings.HasPrefix(ExtEdgeURL, "https://microsoftedge.microsoft.com/addons/detail/") || ExtEdgeID == ExtStoreID {
+		t.Fatalf("edge store address: %s %s", ExtEdgeID, ExtEdgeURL)
+	}
 }
 
 // Reinstalling the extension and pairing again used to leave one more entry each time, every one "outdated".

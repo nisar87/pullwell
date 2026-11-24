@@ -176,7 +176,7 @@ func TestHostManifests(t *testing.T) {
 	for _, o := range cm["allowed_origins"].([]any) {
 		got[o.(string)] = true
 	}
-	if !got[chromeOrigin(extChromeID)] || !got[chromeOrigin(extStoreID)] || !got["chrome-extension://zzzz/"] || len(got) != 3 {
+	if !got[chromeOrigin(extChromeID)] || !got[chromeOrigin(extStoreID)] || !got[chromeOrigin(extEdgeID)] || !got["chrome-extension://zzzz/"] || len(got) != 4 {
 		t.Fatalf("origins: %v", got)
 	}
 	if a := fm["allowed_extensions"].([]any); len(a) != 1 || a[0] != extFirefoxID() {
@@ -189,7 +189,7 @@ func TestHostManifests(t *testing.T) {
 
 func TestLearnOrigin(t *testing.T) {
 	knownOrigins = map[string]bool{}
-	if learnOrigin("moz-extension://x") || learnOrigin("chrome-extension://"+extChromeID) || learnOrigin("chrome-extension://"+extStoreID) {
+	if learnOrigin("moz-extension://x") || learnOrigin("chrome-extension://"+extChromeID) || learnOrigin("chrome-extension://"+extStoreID) || learnOrigin("chrome-extension://"+extEdgeID) {
 		t.Fatal("firefox and the built-in address are not learned")
 	}
 	if !learnOrigin("chrome-extension://abcdef") || learnOrigin("chrome-extension://abcdef/") {
@@ -301,7 +301,7 @@ func TestHostOriginAndAutoPair(t *testing.T) {
 		t.Fatal("hostOrigin")
 	}
 	knownOrigins = map[string]bool{"chrome-extension://seen/": true}
-	for _, o := range []string{chromeOrigin(extChromeID), chromeOrigin(extStoreID), "firefox:" + extFirefoxID(), "chrome-extension://seen/"} {
+	for _, o := range []string{chromeOrigin(extChromeID), chromeOrigin(extStoreID), chromeOrigin(extEdgeID), "firefox:" + extFirefoxID(), "chrome-extension://seen/"} {
 		if !autoPairOrigin(o) {
 			t.Errorf("%s must be allowed", o)
 		}

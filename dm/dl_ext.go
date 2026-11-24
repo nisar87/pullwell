@@ -35,6 +35,10 @@ type extBrowser struct {
 const (
 	ExtStoreID  = "afmpagjigeklekbjmenipkphlcfijagi"
 	ExtStoreURL = "https://chromewebstore.google.com/detail/pullwell-downloads/" + ExtStoreID
+
+	// the same extension in Microsoft's Edge Add-ons store, which signs it with a key of its own
+	ExtEdgeID  = "agnnnoegcdohnfnpagclhppflhfjcelo"
+	ExtEdgeURL = "https://microsoftedge.microsoft.com/addons/detail/pullwell-downloads/" + ExtEdgeID
 )
 
 // ExtCurrentVersion is the newest extension that ships with this program. Raise it in a release that changes anything
@@ -299,7 +303,7 @@ func (s *extStore) view() map[string]any {
 		outdated = outdated || old
 		bs = append(bs, map[string]any{"id": b.ID, "name": b.Name, "created": b.Created, "lastSeen": b.LastSeen, "ver": b.Ver, "outdated": old, "stale": stale})
 	}
-	return map[string]any{"extCurrent": ExtCurrentVersion, "extStore": ExtStoreURL, "extOutdated": outdated, "browsers": bs, "minMB": s.MinMB, "enabled": !s.Off, "ask": !s.NoAsk, "asked": askedTotal.Load()}
+	return map[string]any{"extCurrent": ExtCurrentVersion, "extStore": ExtStoreURL, "extEdge": ExtEdgeURL, "extOutdated": outdated, "browsers": bs, "minMB": s.MinMB, "enabled": !s.Off, "ask": !s.NoAsk, "asked": askedTotal.Load()}
 }
 
 func extOrigin(o string) bool {

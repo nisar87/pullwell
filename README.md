@@ -29,8 +29,8 @@ opens in Edge or Chrome instead.
 
 Pullwell carries its own browser extension, so the extension always matches the program.
 
-1. In Pullwell, open **Tools → Connect a browser** (or Options → Browser) and click **Add to Chrome**. It opens the
-   extension's page in the Chrome Web Store (Edge and Brave can use it too); add it there.
+1. In Pullwell, open **Tools → Connect a browser** (or Options → Browser) and click **Add to Chrome** or **Add to Edge**.
+   It opens the extension's page in that store (Brave can use the Chrome one); add it there.
 2. Click the extension's icon. It connects by itself: the browser's own channel to Pullwell (the same one that
    starts Pullwell for it) proves which extension is asking, so no code is needed. If it ever asks for one, type the
    code shown in the same Pullwell window.
